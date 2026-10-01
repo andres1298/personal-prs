@@ -1,0 +1,424 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<!-- Pantalla de inicio iPhone -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="PRs">
+<meta name="theme-color" content="#111111">
+<link rel="apple-touch-icon" href="icon.png">
+<link rel="icon" href="icon.png">
+<title>Mis PRs</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  /* =========================================================
+     TEMA — cambia aquí colores, fuente y radios
+     ========================================================= */
+  :root{
+    --bg:#111111;
+    --surface:#1b1b1b;
+    --line:#262626;
+    --text:#f2f2f2;
+    --muted:#9a9a9a;
+    --accent:#ffffff;
+    --pill:999px;
+    --tile-radius:10px;     /* bordes de los botones de categoría */
+    --tile-cols:3;          /* columnas de la grilla de categorías */
+    --tile-height:38px;     /* alto de los botones de categoría */
+    --font: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+
+    /* Colores de categoría */
+    --red:#e5636b; --blue:#4a8fe7; --amber:#e0a43b; --green:#4cc38a;
+    --purple:#a97ce8; --teal:#3cc4c4;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;padding-bottom:110px}
+  button,input,select,textarea{font:inherit;color:inherit}
+  .wrap{max-width:640px;margin:0 auto;padding:0 16px}
+
+  h1{font-size:44px;font-weight:800;color:#777;padding:calc(env(safe-area-inset-top) + 32px) 0 16px;letter-spacing:-1px}
+
+  /* Tabs */
+  .tabs{display:flex;gap:6px;padding-bottom:14px}
+  .tab{background:none;border:0;padding:10px 20px;border-radius:var(--pill);color:var(--text);font-weight:600;white-space:nowrap;cursor:pointer}
+  .tab.active{background:var(--accent);color:#000}
+
+  /* Grilla de categorías (filtro de selección única) */
+  .tiles{display:grid;grid-template-columns:repeat(var(--tile-cols),1fr);gap:6px}
+  .tile{--c:var(--muted);height:var(--tile-height);border-radius:var(--tile-radius);cursor:pointer;
+        border:1px solid color-mix(in srgb,var(--c) 30%,transparent);
+        background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);
+        display:flex;justify-content:space-between;align-items:center;gap:4px;
+        padding:0 10px;font-size:13px;font-weight:600;white-space:nowrap;transition:background .15s,color .15s}
+  .tile span{overflow:hidden;text-overflow:ellipsis}
+  .tile small{font-size:11px;font-weight:500;opacity:.7}
+  .tile.active{background:var(--c);border-color:var(--c);color:#111}
+  .tile:active{transform:scale(.96)}
+
+  /* Search */
+  .search{width:100%;margin:14px 0 4px;background:var(--surface);border:1px solid var(--line);border-radius:var(--pill);padding:12px 18px;outline:none}
+  .search::placeholder{color:var(--muted)}
+
+  /* Lista */
+  .section h2{font-size:24px;font-weight:700;display:flex;align-items:center;gap:10px;padding:28px 0 16px;border-bottom:1px solid var(--line)}
+  .dot{width:9px;height:9px;border-radius:50%;background:var(--c)}
+  .row{display:flex;justify-content:space-between;align-items:center;padding:18px 0;border-bottom:1px solid var(--line);cursor:pointer;color:#d6d6d6;font-size:18px}
+  .row:last-child{border-bottom:0}
+  .row b{font-weight:600;color:var(--text)}
+  .row:active{opacity:.6}
+  .tag{font-size:12px;color:var(--muted);font-weight:500;margin-left:6px}
+
+  /* Botón flotante */
+  .fab{position:fixed;right:20px;bottom:calc(env(safe-area-inset-bottom) + 24px);width:58px;height:58px;border-radius:50%;border:0;background:var(--accent);color:#000;font-size:30px;cursor:pointer;box-shadow:0 6px 20px #0008}
+
+  /* Overlays */
+  .sheet{position:fixed;inset:0;background:var(--bg);overflow-y:auto;transform:translateY(100%);transition:transform .25s ease;z-index:10}
+  .sheet.open{transform:none}
+  .topbar{display:flex;justify-content:space-between;align-items:center;padding:calc(env(safe-area-inset-top) + 16px) 0 16px}
+  .link{background:none;border:0;color:var(--muted);font-size:16px;cursor:pointer}
+  .big{font-size:52px;font-weight:800;letter-spacing:-1px}
+  .kg{font-size:20px;color:var(--muted);font-weight:600;margin-top:2px}
+  .sub{color:var(--muted);margin-top:6px}
+  .seg{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;background:var(--surface);padding:4px;border-radius:12px;margin:8px 0 20px}
+  .seg button{border:0;background:none;padding:8px;border-radius:9px;font-weight:600;color:var(--muted);cursor:pointer}
+  .seg button.active{background:var(--accent);color:#000}
+  .chartbox{background:var(--surface);border-radius:18px;padding:16px;margin:24px 0}
+  .hist .row{cursor:default}
+  .hist small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
+  .vid{color:var(--blue);text-decoration:none;font-size:14px;margin-left:12px}
+
+  /* Formulario */
+  form{display:grid;gap:14px;padding-bottom:40px}
+  label{display:grid;gap:6px;color:var(--muted);font-size:14px}
+  input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:12px 14px;outline:none;color:var(--text)}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .primary{background:var(--accent);color:#000;border:0;border-radius:var(--pill);padding:14px;font-weight:700;cursor:pointer;margin-top:8px}
+  .primary:disabled{opacity:.5}
+  .empty{color:var(--muted);padding:40px 0;text-align:center}
+  .hidden{display:none!important}
+  .demo{font-size:12px;color:var(--amber);margin-top:-8px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <h1>PRs</h1>
+  <p class="demo hidden" id="demoNote">Modo demo — configura API_URL para guardar en Google Sheets</p>
+  <nav class="tabs" id="tabs"></nav>
+  <div class="tiles" id="tiles"></div>
+  <input class="search" id="search" placeholder="Buscar un ejercicio">
+  <main id="list"><p class="empty">Cargando…</p></main>
+</div>
+
+<button class="fab" id="fab" aria-label="Agregar PR">+</button>
+
+<!-- Detalle de movimiento -->
+<section class="sheet" id="detail">
+  <div class="wrap">
+    <div class="topbar"><button class="link" data-close>← Volver</button><button class="link" id="addHere">+ Agregar</button></div>
+    <p class="sub" id="dCat"></p>
+    <h2 style="font-size:28px;margin:4px 0 12px" id="dName"></h2>
+    <div class="seg" id="dSeg"></div>
+    <div class="big" id="dPR"></div>
+    <div class="kg" id="dKg"></div>
+    <p class="sub" id="dDate"></p>
+    <div class="chartbox"><canvas id="chart" height="200"></canvas></div>
+    <div class="hist" id="dHist"></div>
+  </div>
+</section>
+
+<!-- Formulario -->
+<section class="sheet" id="formSheet">
+  <div class="wrap">
+    <div class="topbar"><button class="link" data-close>Cancelar</button><span style="font-weight:700">Nuevo registro</span><span style="width:60px"></span></div>
+    <form id="form">
+      <label>Movimiento <select id="fMove" required></select></label>
+      <div class="two">
+        <label><span id="fValueLabel">Peso (lb)</span><input id="fValue" required inputmode="decimal"></label>
+        <label id="fRmWrap">Tipo
+          <select id="fRm"><option value="1">1RM</option><option value="3">3RM</option><option value="5">5RM</option></select>
+        </label>
+      </div>
+      <label>Fecha <input id="fDate" type="date" required></label>
+      <label>Video (opcional) <input id="fVideo" type="file" accept="video/*"></label>
+      <label>Notas <textarea id="fNotes" rows="2"></textarea></label>
+      <button class="primary" id="fSave">Guardar</button>
+    </form>
+  </div>
+</section>
+
+<script>
+/* =========================================================
+   CONFIGURACIÓN — pega aquí la URL del Web App de Apps Script
+   (termina en /exec). Si se deja vacía, la página corre en modo demo.
+   ========================================================= */
+const CONFIG = {
+  API_URL: 'https://script.google.com/macros/s/AKfycbyum8WmbJGiZGJV9UkK6JJVn2i7fJaSzyxUfbAGY4QYQOIZpBsF2Wn81Lwcx1rTQKUWsw/exec',
+};
+
+/* =========================================================
+   CATÁLOGO — agrega/quita categorías y movimientos aquí
+   type: 'weight' (lb, mayor es mejor, con 1RM/3RM/5RM) | 'time' (menor es mejor)
+   ========================================================= */
+const LB_TO_KG = 0.45359237;
+const RMS = [1, 3, 5];
+
+const CATALOG = {
+  Lift: { type:'weight', groups: [
+    { name:'Squats',    color:'--red',    moves:['Back Squat','Front Squat','Overhead Squat'] },
+    { name:'Cleans',    color:'--blue',   moves:['Clean','Hang Power Clean','Hang Squat Clean','Muscle Clean','Power Clean','Squat Clean'] },
+    { name:'Presses',   color:'--amber',  moves:['Strict Press','Push Press','Bench Press'] },
+    { name:'Jerks',     color:'--green',  moves:['Push Jerk','Split Jerk','Clean & Jerk'] },
+    { name:'Snatches',  color:'--purple', moves:['Snatch','Power Snatch','Hang Power Snatch','Squat Snatch'] },
+    { name:'Deadlifts', color:'--teal',   moves:['Deadlift','Sumo Deadlift'] },
+  ]},
+  Cardio: { type:'time', groups: [
+    { name:'Run',  color:'--red',   moves:['400 m','1 mile','5 km'] },
+    { name:'Row',  color:'--teal',  moves:['500 m Row','2 km Row'] },
+    { name:'Bike', color:'--amber', moves:['50 cal Bike'] },
+  ]},
+  Benchmarks: { type:'time', groups: [
+    { name:'Girls',  color:'--purple', moves:['Fran','Grace','Isabel','Helen','Diane'] },
+    { name:'Heroes', color:'--red',    moves:['Murph','DT'] },
+  ]},
+};
+
+/* =========================================================
+   CAPA DE DATOS
+   El peso SIEMPRE se guarda en lb; rm = 1 | 3 | 5 (vacío en tiempos).
+   ========================================================= */
+const DEMO = !CONFIG.API_URL.startsWith('https://');
+const DEMO_RECORDS = [
+  { move:'Back Squat', value:225, rm:1, date:'2025-11-10' },
+  { move:'Back Squat', value:240, rm:1, date:'2026-02-14' },
+  { move:'Back Squat', value:250, rm:1, date:'2026-05-20' },
+  { move:'Back Squat', value:260, rm:1, date:'2026-08-30' },
+  { move:'Back Squat', value:225, rm:3, date:'2026-04-02' },
+  { move:'Back Squat', value:235, rm:3, date:'2026-07-15' },
+  { move:'Back Squat', value:215, rm:5, date:'2026-06-10' },
+  { move:'Front Squat', value:215, rm:1, date:'2026-07-04' },
+  { move:'Squat Clean', value:165, rm:1, date:'2026-09-01' },
+  { move:'Bench Press', value:140, rm:1, date:'2026-04-22' },
+  { move:'Fran', value:312, date:'2026-03-15' },
+  { move:'Fran', value:285, date:'2026-08-10' },
+];
+
+// Clave de acceso: se pide una sola vez y queda guardada solo en este dispositivo
+function getKey(){
+  let k = null;
+  try { k = localStorage.getItem('prs_key'); } catch {}
+  if (!k){
+    k = prompt('Clave de acceso de tu API de PRs');
+    if (k) { try { localStorage.setItem('prs_key', k.trim()); } catch {} }
+  }
+  return k ? k.trim() : '';
+}
+function forgetKey(){ try { localStorage.removeItem('prs_key'); } catch {} }
+
+// Todas las llamadas son POST con text/plain para evitar el preflight CORS de Apps Script
+async function call(action, payload = {}){
+  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ key:getKey(), action, ...payload }) });
+  const data = await res.json();
+  if (data.error){
+    if (data.error === 'unauthorized') forgetKey();
+    throw new Error(data.error === 'unauthorized' ? 'Clave incorrecta. Recarga e ingrésala de nuevo.' : data.error);
+  }
+  return data;
+}
+
+// Sube el video directo a Drive (subida reanudable) mostrando el progreso
+async function uploadVideo(file, onProgress){
+  const { uploadUrl } = await call('uploadUrl', {
+    name: file.name, mimeType: file.type || 'video/mp4', size: file.size, origin: location.origin
+  });
+  return new Promise((resolve, reject) => {
+    const xhr = new XMLHttpRequest();
+    xhr.open('PUT', uploadUrl);
+    xhr.upload.onprogress = e => e.lengthComputable && onProgress(Math.round(e.loaded / e.total * 100));
+    xhr.onload = () => xhr.status < 300 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error('Error al subir el video (' + xhr.status + ')'));
+    xhr.onerror = () => reject(new Error('Error de red al subir el video'));
+    xhr.send(file);
+  });
+}
+
+const api = DEMO ? {
+  async getRecords(){ return DEMO_RECORDS; },
+  async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; }
+} : {
+  async getRecords(){ return (await call('list')).records; },
+  async addRecord(rec, file, onProgress){
+    if (file) rec.videoId = (await uploadVideo(file, onProgress)).id;
+    return (await call('add', { record: rec })).record;
+  }
+};
+
+/* ========================================================= */
+const $ = s => document.querySelector(s);
+let RECORDS = [];
+let currentTab = 'Lift', activeGroup = null, currentMove = null, currentRm = 1, chart = null;
+
+const info = move => {
+  for (const t in CATALOG) for (const g of CATALOG[t].groups) if (g.moves.includes(move)) return { tab:t, type:CATALOG[t].type, group:g };
+  return { tab:null, type:'weight', group:{ name:'Otros', color:'--muted' } };
+};
+const toKg = lb => (Math.round(lb * LB_TO_KG * 10) / 10).toLocaleString('es-CR');
+const fmt = (v, type) => {
+  if (v == null) return '';
+  if (type === 'time'){ const m = Math.floor(v/60), s = String(Math.round(v%60)).padStart(2,'0'); return `${m}:${s}`; }
+  return `${v} lb`;
+};
+const parseValue = (str, type) => {
+  if (type === 'time'){ const [m,s] = str.split(':').map(Number); return s == null ? m : m*60 + s; }
+  return parseFloat(str.replace(',', '.'));
+};
+const recordsOf = (move, rm) => {
+  const { type } = info(move);
+  return RECORDS.filter(r => r.move === move && (type !== 'weight' || (r.rm || 1) === rm));
+};
+const best = (move, rm = 1) => {
+  const { type } = info(move);
+  const rs = recordsOf(move, rm);
+  if (!rs.length) return null;
+  return rs.reduce((a,b) => (type === 'time' ? b.value < a.value : b.value > a.value) ? b : a);
+};
+const fmtDate = d => new Date(d + 'T12:00').toLocaleDateString('es-CR', { day:'numeric', month:'short', year:'numeric' });
+const today = () => { const d = new Date(); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0,10); };
+
+function renderTabs(){
+  $('#tabs').innerHTML = Object.keys(CATALOG).map(t =>
+    `<button class="tab ${t===currentTab?'active':''}" data-tab="${t}">${t}</button>`).join('');
+}
+
+function renderList(){
+  const q = $('#search').value.trim().toLowerCase();
+  const { type, groups } = CATALOG[currentTab];
+
+  $('#tiles').innerHTML = groups.map(g => {
+    const done = g.moves.filter(m => RECORDS.some(r => r.move === m)).length;
+    return `<button class="tile ${g.name===activeGroup?'active':''}" style="--c:var(${g.color})" data-group="${g.name}">
+      <span>${g.name}</span><small>${done}/${g.moves.length}</small></button>`;
+  }).join('');
+
+  const visible = activeGroup ? groups.filter(g => g.name === activeGroup) : groups;
+  const html = visible.map(g => {
+    const moves = g.moves.filter(m => m.toLowerCase().includes(q));
+    if (!moves.length) return '';
+    return `<div class="section" style="--c:var(${g.color})">
+      <h2>${g.name} <span class="dot"></span></h2>
+      ${moves.map(m => {
+        // Muestra el 1RM; si no existe, el mejor RM disponible con su etiqueta
+        let label = '';
+        if (type === 'weight'){
+          const rm = RMS.find(n => best(m, n));
+          if (rm) label = `${fmt(best(m, rm).value, type)}${rm > 1 ? `<span class="tag">${rm}RM</span>` : ''}`;
+        } else {
+          const b = best(m); if (b) label = fmt(b.value, type);
+        }
+        return `<div class="row" data-move="${m}"><span>${m}</span><b>${label}</b></div>`;
+      }).join('')}
+    </div>`;
+  }).join('');
+  $('#list').innerHTML = html || '<p class="empty">Sin resultados</p>';
+}
+
+function openDetail(move, rm){
+  currentMove = move;
+  const { type, group } = info(move);
+  const isWeight = type === 'weight';
+  if (rm) currentRm = rm;
+  else if (isWeight) currentRm = RMS.find(n => best(move, n)) || 1;
+
+  $('#dSeg').classList.toggle('hidden', !isWeight);
+  $('#dSeg').innerHTML = RMS.map(n => `<button class="${n===currentRm?'active':''}" data-rm="${n}">${n}RM</button>`).join('');
+
+  const rs = recordsOf(move, currentRm).sort((a,b) => a.date.localeCompare(b.date));
+  const b = best(move, currentRm);
+  $('#dCat').textContent = group.name;
+  $('#dName').textContent = move;
+  $('#dPR').textContent = b ? fmt(b.value, type) : '—';
+  $('#dKg').textContent = b && isWeight ? `${toKg(b.value)} kg` : '';
+  $('#dDate').textContent = b ? `PR del ${fmtDate(b.date)}` : 'Aún no hay registros';
+  $('#dHist').innerHTML = rs.slice().reverse().map(r => `
+    <div class="row"><span>${fmtDate(r.date)}<small>${isWeight ? toKg(r.value)+' kg' : ''}${r.notes ? (isWeight?' · ':'') + r.notes : ''}</small></span>
+    <span><b>${fmt(r.value,type)}</b>${r.video?`<a class="vid" href="${r.video}" target="_blank">▶ video</a>`:''}</span></div>`).join('');
+
+  if (chart) { chart.destroy(); chart = null; }
+  if (window.Chart && rs.length){
+    const color = getComputedStyle(document.documentElement).getPropertyValue(group.color).trim();
+    chart = new Chart($('#chart'), {
+      type:'line',
+      data:{ labels: rs.map(r => fmtDate(r.date)), datasets:[{ data: rs.map(r => r.value), borderColor:color, backgroundColor:color, tension:.3, pointRadius:4 }] },
+      options:{ plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c => isWeight ? `${c.raw} lb · ${toKg(c.raw)} kg` : fmt(c.raw,type) } } },
+        scales:{ x:{ ticks:{color:'#777'}, grid:{display:false} },
+                 y:{ reverse: type==='time', ticks:{ color:'#777', callback: v => fmt(v,type) }, grid:{color:'#222'} } } }
+    });
+  }
+  $('#detail').classList.add('open');
+}
+
+function openForm(move){
+  $('#fMove').innerHTML = Object.entries(CATALOG).map(([t,c]) =>
+    c.groups.map(g => `<optgroup label="${t} · ${g.name}">${g.moves.map(m => `<option ${m===move?'selected':''}>${m}</option>`).join('')}</optgroup>`).join('')
+  ).join('');
+  $('#fDate').value = today();
+  $('#fValue').value = ''; $('#fNotes').value = ''; $('#fVideo').value = '';
+  $('#fRm').value = move && $('#detail').classList.contains('open') ? currentRm : 1;
+  updateFormFields();
+  $('#formSheet').classList.add('open');
+}
+function updateFormFields(){
+  const { type } = info($('#fMove').value);
+  $('#fValueLabel').textContent = type === 'time' ? 'Tiempo (mm:ss)' : 'Peso (lb)';
+  $('#fValue').placeholder = type === 'time' ? '4:45' : '';
+  $('#fRmWrap').classList.toggle('hidden', type !== 'weight');
+}
+
+/* Eventos */
+document.addEventListener('click', e => {
+  const t = e.target.closest('[data-tab],[data-group],[data-move],[data-close],[data-rm]');
+  if (!t) return;
+  if (t.dataset.tab){ currentTab = t.dataset.tab; activeGroup = null; $('#search').value = ''; renderTabs(); renderList(); }
+  // Selección única: tocar otra categoría reemplaza el filtro; tocar la misma lo quita
+  if (t.dataset.group){ activeGroup = activeGroup === t.dataset.group ? null : t.dataset.group; renderList(); }
+  if (t.dataset.move) openDetail(t.dataset.move);
+  if (t.dataset.rm) openDetail(currentMove, +t.dataset.rm);
+  if ('close' in t.dataset) t.closest('.sheet').classList.remove('open');
+});
+$('#search').addEventListener('input', renderList);
+$('#fab').onclick = () => openForm();
+$('#addHere').onclick = () => openForm(currentMove);
+$('#fMove').onchange = updateFormFields;
+$('#form').onsubmit = async e => {
+  e.preventDefault();
+  const move = $('#fMove').value, { type } = info(move);
+  const rec = { move, value: parseValue($('#fValue').value, type), date: $('#fDate').value, notes: $('#fNotes').value.trim() };
+  if (type === 'weight') rec.rm = +$('#fRm').value;
+  if (isNaN(rec.value)) return alert('Valor inválido');
+  const btn = $('#fSave');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const saved = await api.addRecord(rec, $('#fVideo').files[0], p => btn.textContent = `Subiendo video… ${p}%`);
+    RECORDS.push(saved);
+    $('#formSheet').classList.remove('open');
+    renderList();
+    if ($('#detail').classList.contains('open')) openDetail(move, rec.rm);
+  } catch (err) {
+    alert(err.message);
+  } finally {
+    btn.disabled = false; btn.textContent = 'Guardar';
+  }
+};
+
+(async () => {
+  $('#demoNote').classList.toggle('hidden', !DEMO);
+  renderTabs();
+  try { RECORDS = await api.getRecords(); }
+  catch (err) { $('#list').innerHTML = `<p class="empty">${err.message}</p>`; return; }
+  renderList();
+})();
+</script>
+</body>
+</html>
