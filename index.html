@@ -240,6 +240,8 @@
   .switch.on{background:var(--go)}
   .switch.on::after{transform:translateX(20px)}
   .empty{color:var(--muted);padding:40px 0;text-align:center}
+  .bflex{display:flex;justify-content:space-between;align-items:center;gap:10px}
+  .bflex button{color:var(--text);font-weight:700;height:32px;padding:0 12px;border-radius:8px;background:var(--surface2);flex:none}
   .banner{font-size:13px;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border-radius:10px;padding:8px 12px;margin-bottom:10px}
 </style>
 </head>
@@ -308,6 +310,7 @@
     <div class="sec">Discos que tienes</div>
     <div class="opts" id="sPlates"></div>
     <div class="sec">Gimnasio</div>
+    <div class="setrow" style="margin-bottom:10px"><div>Datos<div class="sub" id="sKeyTxt" style="font-size:13px;margin-top:2px"></div></div><button class="okbtn" id="sKeyBtn"></button></div>
     <div class="setrow"><div>Pantalla siempre encendida<div class="sub" style="font-size:13px;margin-top:2px">Mientras estás en un levantamiento</div></div><button class="switch" id="sWake" data-a="wake"></button></div>
   </div>
 </section>
@@ -394,16 +397,11 @@ const DEMO_RECORDS = [
   { move:'Fran', value:285, date:'2026-08-10' },
 ];
 
-function getKey(){
-  let k = null;
-  try { k = localStorage.getItem('prs_key'); } catch {}
-  if (!k){
-    k = prompt('Clave de acceso de tu API de PRs');
-    if (k) { try { localStorage.setItem('prs_key', k.trim()); } catch {} }
-  }
-  return k ? k.trim() : '';
-}
+// La clave se guarda solo en este dispositivo. Sin clave, la app muestra datos de ejemplo.
+function getKey(){ try { return (localStorage.getItem('prs_key') || '').trim(); } catch { return ''; } }
+function setKey(k){ try { localStorage.setItem('prs_key', k.trim()); } catch {} }
 function forgetKey(){ try { localStorage.removeItem('prs_key'); } catch {} }
+const usingDemo = () => DEMO || !getKey();
 
 // POST con text/plain para evitar el preflight CORS de Apps Script
 async function call(action, payload = {}){
@@ -411,7 +409,7 @@ async function call(action, payload = {}){
   const data = await res.json();
   if (data.error){
     if (data.error === 'unauthorized') forgetKey();
-    throw new Error(data.error === 'unauthorized' ? 'Clave incorrecta. Recarga e ingrésala de nuevo.' : data.error);
+    throw new Error(data.error === 'unauthorized' ? 'Clave incorrecta. Mostrando datos de ejemplo.' : data.error);
   }
   return data;
 }
@@ -428,15 +426,20 @@ async function uploadVideo(file, onProgress){
   });
 }
 
-const api = DEMO ? {
-  async getRecords(){ return DEMO_RECORDS; },
-  async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; }
-} : {
+const demoApi = {
+  async getRecords(){ return DEMO_RECORDS.map(r => ({ ...r })); },
+  async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; }   // solo en memoria
+};
+const liveApi = {
   async getRecords(){ return (await call('list')).records; },
   async addRecord(rec, file, onProgress){
     if (file) rec.videoId = (await uploadVideo(file, onProgress)).id;
     return (await call('add', { record: rec })).record;
   }
+};
+const api = {
+  getRecords: (...a) => (usingDemo() ? demoApi : liveApi).getRecords(...a),
+  addRecord:  (...a) => (usingDemo() ? demoApi : liveApi).addRecord(...a),
 };
 
 /* =========================================================
@@ -597,7 +600,7 @@ function nudge(d){
 function renderExec(){
   const v = $('#vExec');
   const run = EX.view === 'run';
-  const dock = run && S.tab === 'exec' && !EX.free;   // en cálculo libre el % se define arriba
+  const dock = false;   // el % se define arriba, junto al peso, en ambos modos
   document.body.classList.toggle('docked', dock);
   $('#dock').classList.toggle('hidden', !dock);
   wake(run && S.tab === 'exec');
@@ -643,8 +646,7 @@ function renderExec(){
 
   // ---- Pantalla de trabajo ----
   const ttl = EX.free ? 'Cálculo libre' : EX.move;
-  const ctx = EX.free ? '' : `<div class="rms">${RMS.map(n => `<button class="${n===EX.rm?'on':''}" data-a="rm" data-v="${n}" ${best(EX.move,n)?'':'disabled'}>${n}RM</button>`).join('')}</div>
-       <span class="base"><b class="num">${EX.base}</b> lb</span>`;
+  const ctx = '';
   v.innerHTML = `
     <div class="navbar">
       <button class="nbtn" data-a="${EX.free ? 'pick' : 'backmoves'}">${I.back} ${EX.free ? 'Execute' : (info(EX.move).group.name)}</button>
@@ -665,27 +667,33 @@ function renderExec(){
       </div>
       <div id="panel"></div>
     </div>`;
-  if (EX.free) renderBase();
-  renderStrip();
+  renderBase();
   updateRun();
 }
 
-// Cálculo libre: peso base y % en una línea compacta; el lápiz abre la edición
+// Línea de contexto (ambos modos): base y % compactos; el lápiz abre la edición.
+//   Movimiento:    1RM · 260 lb · 80%  ✎   → editar RM y %
+//   Cálculo libre: 260 lb · 80%  ✎         → editar peso y %
 function renderBase(){
   const ctx = $('#ctx');
+  const rmTag = EX.free ? '' : `<span>${EX.rm}RM</span> · `;
   if (EX.base > 0 && !EX.editBase) {
-    ctx.innerHTML = `<button class="basebtn" data-a="editbase"><b class="num">${num(EX.base)} lb</b> · <b class="num">${num(EX.pct)}%</b>${I.pencil}</button>`;
+    ctx.innerHTML = `<button class="basebtn" data-a="editbase">${rmTag}<b class="num">${num(EX.base)} lb</b> · <b class="num">${num(EX.pct)}%</b>${I.pencil}</button>`;
     return;
   }
+  const baseField = EX.free
+    ? `<input class="baseIn num" id="baseIn" inputmode="decimal" placeholder="Peso" value="${EX.base || ''}"><span class="base">lb</span>`
+    : `<div class="rms">${RMS.map(n => `<button class="${n===EX.rm?'on':''}" data-a="rm" data-v="${n}" ${best(EX.move,n)?'':'disabled'}>${n}RM</button>`).join('')}</div>
+       <span class="base"><b class="num">${num(EX.base)}</b> lb</span>`;
   ctx.innerHTML = `
-    <input class="baseIn num" id="baseIn" inputmode="decimal" placeholder="Peso" value="${EX.base || ''}"><span class="base">lb</span>
+    ${baseField}
     <input class="baseIn num" id="pctIn" inputmode="decimal" placeholder="%" value="${EX.pct || ''}" style="width:76px"><span class="base">%</span>
     <button class="okbtn" data-a="basedone">Listo</button>`;
   const inp = $('#baseIn'), pin = $('#pctIn');
-  inp.oninput = e => { EX.base = parseFloat(e.target.value.replace(',', '.')) || 0; resetAdj(); updateRun(); };
-  pin.oninput = e => { const n = parseFloat(e.target.value.replace(',', '.')); if (n > 0) { EX.pct = n; resetAdj(); updateRun(); } };
-  [inp, pin].forEach(el => el.onkeydown = e => { if (e.key === 'Enter') closeBase(); });
-  setTimeout(() => (EX.base ? pin : inp).focus(), 60);
+  if (inp) inp.oninput = e => { EX.base = parseFloat(e.target.value.replace(',', '.')) || 0; resetAdj(); updateRun(); };
+  pin.oninput = e => { const n = parseFloat(e.target.value.replace(',', '.')); if (n > 0) { EX.pct = n; S.lastPct = n; saveS(); resetAdj(); updateRun(); } };
+  [inp, pin].forEach(el => el && (el.onkeydown = e => { if (e.key === 'Enter') closeBase(); }));
+  setTimeout(() => ((EX.free && !EX.base) ? inp : pin).focus(), 60);
 }
 function closeBase(){
   if (!(EX.base > 0)) { $('#baseIn')?.focus(); return; }
@@ -759,6 +767,7 @@ function selectMove(m){
   EX.rm = firstRm(m) || 1;
   EX.base = best(m, EX.rm)?.value || 0;
   EX.pct = S.lastPct || 80;
+  EX.editBase = true;
   renderExec();
   window.scrollTo(0, 0);
 }
@@ -787,8 +796,9 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
    ========================================================= */
 function banner(){
   if (LOADING) return '<div class="banner" style="color:var(--muted);background:var(--surface)">Cargando tus PRs…</div>';
-  if (LOAD_ERR) return `<div class="banner">${LOAD_ERR}</div>`;
-  if (DEMO) return '<div class="banner">Modo demo — configura API_URL para guardar en Google Sheets</div>';
+  if (DEMO) return '<div class="banner">Datos de ejemplo — configura API_URL para guardar en Google Sheets</div>';
+  if (LOAD_ERR) return `<div class="banner bflex"><span>${LOAD_ERR}</span>${!getKey() ? '<button data-a="setkey">Conectar</button>' : ''}</div>`;
+  if (!getKey()) return '<div class="banner bflex"><span>Estás viendo datos de ejemplo</span><button data-a="setkey">Conectar</button></div>';
   return '';
 }
 
@@ -901,6 +911,11 @@ function renderSettings(){
   $('#sBar').innerHTML = BARS.map(b => `<button class="${b===S.bar?'on':''}" data-a="bar" data-v="${b}">${b} lb</button>`).join('');
   $('#sPlates').innerHTML = ALL_PLATES.map(p => `<button class="${S.plates.includes(p)?'on':''}" data-a="plate" data-v="${p}">${p}</button>`).join('');
   $('#sWake').classList.toggle('on', S.wake !== false);
+  const k = !!getKey();
+  $('#sKeyTxt').textContent = DEMO ? 'Ejemplo · falta API_URL' : k ? 'Conectado a tu Google Sheets' : 'Datos de ejemplo';
+  $('#sKeyBtn').textContent = k ? 'Desconectar' : 'Conectar';
+  $('#sKeyBtn').dataset.a = k ? 'logout' : 'setkey';
+  $('#sKeyBtn').classList.toggle('hidden', DEMO);
 }
 
 /* =========================================================
@@ -939,7 +954,7 @@ document.addEventListener('click', e => {
     case 'move':     selectMove(v); break;
     case 'free':     goFree(); break;
     case 'resume':   EX.view = 'run'; renderExec(); break;
-    case 'rm':       EX.rm = +v; EX.base = best(EX.move, EX.rm)?.value || 0; resetAdj(); renderExec(); break;
+    case 'rm':       EX.rm = +v; EX.base = best(EX.move, EX.rm)?.value || 0; resetAdj(); renderBase(); updateRun(); break;
     case 'pct':      EX.pct = +v; resetAdj(); S.lastPct = EX.pct; saveS(); renderStrip(); updateRun(); break;
     case 'pctother': {
       const r = prompt('Porcentaje', PCTS.includes(EX.pct) ? '' : EX.pct);
@@ -975,6 +990,12 @@ document.addEventListener('click', e => {
       saveS(); renderSettings(); break;
     }
     case 'wake':     S.wake = S.wake === false; saveS(); renderSettings(); break;
+    case 'setkey': {
+      const k = prompt('Clave de acceso de tu API de PRs');
+      if (k && k.trim()) { setKey(k); renderSettings(); loadData(); }
+      break;
+    }
+    case 'logout':   forgetKey(); renderSettings(); loadData(); break;
 
     case 'prstab':   UI.prsTab = v; UI.prsGroup = null; renderPRs(); break;
     case 'prsgroup': UI.prsGroup = UI.prsGroup === v ? null : v; renderPRs(); break;
@@ -987,13 +1008,19 @@ document.addEventListener('click', e => {
 /* =========================================================
    INICIO
    ========================================================= */
-renderAll();
-(async () => {
+async function loadData(){
+  LOADING = true; LOAD_ERR = ''; renderAll();
   try { RECORDS = await api.getRecords(); }
-  catch (err) { LOAD_ERR = err.message === 'Failed to fetch' ? 'No se pudo conectar con tu API. Revisa la implementación de Apps Script.' : err.message; }
+  catch (err) {
+    LOAD_ERR = err.message === 'Failed to fetch' ? 'No se pudo conectar con tu API. Mostrando datos de ejemplo.' : err.message;
+    RECORDS = await demoApi.getRecords();     // nunca queda vacía: cae a datos de ejemplo
+  }
   LOADING = false;
   renderAll();
-})();
+  if ($('#detail').classList.contains('open') && UI.move) openDetail(UI.move, UI.rm);
+}
+renderAll();
+loadData();
 </script>
 </body>
 </html>
