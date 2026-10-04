@@ -28,17 +28,9 @@ Usa HTTPS para instalar la aplicación en iPhone o Android. El manifiesto y los 
 
 ## Gestión de tareas
 
-Este proyecto usa [Backlog.md](https://github.com/MrLesk/Backlog.md) como dependencia de desarrollo. Las tareas se guardan como archivos Markdown en `backlog/` y se versionan con el proyecto. El comando se ejecuta con `npx --no-install` para usar la versión instalada localmente.
+Las tareas, planes y avances se gestionan en [GitHub Issues](https://github.com/andres1298/personal-prs/issues). Usa el número del issue como identificador, por ejemplo `#3`.
 
-```bash
-npm ci
-npx --no-install backlog task create "Descripción de la tarea"
-npx --no-install backlog task list --plain
-npx --no-install backlog board
-npx --no-install backlog browser
-```
-
-Para actualizar una tarea, usa `npx --no-install backlog task edit <id>`. El tablero web se abre localmente y permite organizar las tareas por estado. Los estados iniciales son **To Do**, **In Progress** y **Done**.
+Consulta [el estándar de seguimiento](docs/GITHUB_ISSUES.md) para crear, iniciar, actualizar y cerrar tareas. Incluye estados, dependencias, ejemplos para la CLI `gh` y reglas de validación. Las plantillas en `.github/` facilitan crear issues y documentar pull requests.
 
 ## Acceso desde el teléfono
 
