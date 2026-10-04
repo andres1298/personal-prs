@@ -3,11 +3,21 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "prisma generate && next build",
     "start": "next start",
-    "db:check": "node --env-file=.env.local scripts/check-db.mjs"
+    "db:check": "node --env-file=.env.local scripts/check-db.mjs",
+    "postinstall": "prisma generate",
+    "db:generate": "prisma generate",
+    "db:validate": "prisma validate",
+    "db:migrate:dev": "prisma migrate dev",
+    "db:migrate:deploy": "prisma migrate deploy",
+    "db:migrate:status": "prisma migrate status",
+    "db:seed": "prisma db seed",
+    "db:test": "node --conditions=react-server --env-file-if-exists=.env.local scripts/test-prisma.mjs"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "7.10.0",
+    "@prisma/client": "7.10.0",
     "@supabase/ssr": "^0.12.7",
     "@supabase/supabase-js": "^2.117.2",
     "chart.js": "^4.5.1",
@@ -16,5 +26,16 @@
     "react": "^19.3.0",
     "react-dom": "^19.3.0",
     "server-only": "0.0.1"
+  },
+  "devDependencies": {
+    "prisma": "7.10.0"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "overrides": {
+    "deepmerge-ts": "8.0.2",
+    "mysql2": "3.24.5"
   }
 }

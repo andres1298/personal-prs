@@ -15,6 +15,7 @@
 
 ## Implementación y validación
 
+- Usa inglés en todo código nuevo o modificado: nombres de archivos, variables, funciones, clases, componentes, modelos, campos, tablas, enums, comentarios, mensajes técnicos y pruebas. Los textos visibles para usuarios pueden mantenerse en el idioma del producto. No renombres código ajeno al alcance del issue solo para traducirlo.
 - Mantén los cambios dentro del alcance del issue y respeta las convenciones del código existente.
 - Conserva las credenciales en variables de entorno de servidor. Los módulos de base de datos deben permanecer exclusivos de servidor.
 - Usa Prisma Migrate como único flujo de migraciones del esquema de la aplicación cuando se implemente Prisma.

@@ -1,0 +1,64 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../src/generated/prisma"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum MeasurementType {
+  WEIGHT
+  TIME
+}
+
+enum MovementCategory {
+  LIFT
+  CARDIO
+  BENCHMARK
+}
+
+model Profile {
+  // Supabase Auth identity; Auth tables remain externally managed.
+  id          String           @id @db.Uuid
+  displayName String?
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
+  records     PersonalRecord[]
+}
+
+model Movement {
+  id              String           @id
+  name            String           @unique
+  category        MovementCategory
+  groupName       String
+  measurementType MeasurementType
+  records         PersonalRecord[]
+
+  // The composite foreign key prevents records from changing measurement units.
+  @@unique([id, measurementType])
+}
+
+model PersonalRecord {
+  id              String          @id @default(uuid(7)) @db.Uuid
+  profileId       String          @db.Uuid
+  movementId      String
+  measurementType MeasurementType
+  value           Decimal         @db.Decimal(12, 3)
+  performedOn     DateTime        @db.Date
+  repetitionMax   Int?            @db.SmallInt
+  notes           String?
+  videoUrl        String?
+  videoId         String?
+  createdAt       DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt       DateTime        @updatedAt @db.Timestamptz(3)
+  profile         Profile         @relation(fields: [profileId], references: [id], onDelete: Restrict)
+  movement        Movement        @relation(fields: [movementId, measurementType], references: [id, measurementType], onDelete: Restrict, onUpdate: Restrict)
+
+  @@index([profileId, performedOn])
+  @@index([profileId, movementId, repetitionMax, performedOn])
+  @@index([movementId, measurementType])
+}
