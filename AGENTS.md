@@ -9,6 +9,7 @@
 - Antes de implementar, comprueba las dependencias y registra el plan y el estado en el issue. Para planes futuros, conserva Pendiente.
 - Actualiza el cuerpo del issue al terminar una parte relevante, encontrar un bloqueo o cambiar el plan. Registra evidencia y el siguiente paso. No agregues comentarios de progreso.
 - Al cerrar un issue, agrega un único comentario con el contexto del cierre: resultado, validación y trabajo que queda fuera de alcance.
+- Antes de publicar el comentario de cierre, revisa su texto completo. Limítalo al resultado funcional, comprobaciones generales y referencias públicas a issues, commits o PRs. Omite identificadores de infraestructura, hosts, rutas locales, usuarios, nombres de variables o certificados, errores internos, permisos y configuración de seguridad. No pegues logs ni valores de configuración. Aplica la misma protección de secretos al cuerpo del issue y al PR.
 - No cierres un issue hasta verificar sus criterios y publicar los cambios según el flujo documentado. Un build exitoso no demuestra una conexión real ni una prueba en navegador.
 - No publiques credenciales, cadenas de conexión, tokens ni datos privados en issues, comentarios o logs.
 
