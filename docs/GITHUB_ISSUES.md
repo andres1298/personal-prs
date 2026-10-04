@@ -65,6 +65,18 @@ Para un bloqueo, añade quién debe resolverlo y conserva el issue abierto. No p
 
 ## Herramientas
 
+### Comentarios seguros de cierre
+
+Revisa el texto completo antes de publicarlo. Incluye solo el resultado funcional, las comprobaciones generales realmente realizadas y referencias públicas a issues, commits o PRs. Omite credenciales, claves, tokens, cadenas de conexión, datos privados, identificadores de infraestructura, hosts, rutas locales, usuarios, nombres de variables o certificados, errores internos y detalles de permisos o configuración de seguridad. No copies logs ni archivos de configuración. Si la evidencia contiene información sensible, resume el resultado sin reproducirla; conserva el diagnóstico detallado fuera de GitHub.
+
+Ejemplo:
+
+```markdown
+Cierre: preparación de la base de datos completada y conexión de servidor verificada. La compilación pasó. Cambios en PR #1; el modelo de datos se continúa en #4.
+```
+
+Esta revisión también protege los cuerpos de issues y PRs. Publica únicamente comprobaciones realizadas; no afirmes que todo el sistema es seguro porque una conexión o compilación pasó.
+
 Los agentes usan las herramientas de GitHub disponibles para buscar, leer, crear y actualizar issues. Si el conector devuelve un error de permisos al escribir, pueden usar `gh` ya autenticado. Si tampoco funciona, informa el bloqueo y conserva el contenido preparado para publicarlo; no declares una sincronización exitosa.
 
 La CLI es opcional para desarrollar la aplicación. Ejemplos en PowerShell:
