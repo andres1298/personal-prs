@@ -35,7 +35,7 @@ npm run dev
 
 El certificado local se excluye de Git con `*.crt`. Configura la confianza TLS apropiada en cada entorno; no desactives la validación del certificado. Las variables de conexión siguen exclusivamente en `.env.local` o en la configuración privada del despliegue.
 
-El código de servidor obtiene el cliente mediante `getPrisma()` en `src/lib/server/prisma.js`; las operaciones de persistencia están en `src/lib/server/records.js`. La importación `server-only` impide usar esos módulos desde un componente cliente. La configuración limita cada proceso a una conexión y exige TLS para conexiones remotas. El script `db:check` conserva una consulta diagnóstica de conectividad con `pg`. La aplicación actual sigue usando Apps Script hasta que las tareas de datos cambien sus rutas. Consulta [PRISMA.md](PRISMA.md) para las entidades, autorización y pruebas de persistencia.
+El código de servidor obtiene el cliente mediante `getPrisma()` en `src/lib/server/prisma.js`; las operaciones de persistencia están en `src/lib/server/records.js`. La importación `server-only` impide usar esos módulos desde un componente cliente. La configuración limita cada proceso a una conexión y exige TLS para conexiones remotas. El script `db:check` conserva una consulta diagnóstica de conectividad con `pg`. La interfaz Next.js usa `/api/records` para leer y registrar PRs con una sesión autorizada de Supabase. Consulta [AUTH.md](AUTH.md) para configurar el acceso y [PRISMA.md](PRISMA.md) para las entidades y pruebas de persistencia.
 
 ## Despliegue
 
