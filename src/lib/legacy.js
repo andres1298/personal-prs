@@ -1,352 +1,6 @@
-<!doctype html>
-<html lang="es">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="apple-mobile-web-app-title" content="PRs">
-<meta name="theme-color" content="#0e0e0f">
-<link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="icon.png" sizes="180x180">
-<link rel="icon" href="icon.png">
-<title>Mis PRs</title>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
-<style>
-  /* =========================================================
-     TEMA — cambia aquí colores, tamaños y radios
-     ========================================================= */
-  :root{
-    --bg:#0e0e0f;
-    --surface:#19191b;
-    --surface2:#26262a;
-    --line:#2a2a2e;
-    --text:#f5f5f7;
-    --muted:#8e8e93;
-    --accent:#ffffff;
-    --go:#4cc38a;
-    --r:16px;
-    --pill:999px;
-    --tabbar:62px;
-    --bar:#141416;          /* color de la barra inferior */
-    --hero:84px;            /* tamaño del peso objetivo */
-    --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Inter", "Segoe UI", Roboto, sans-serif;
-
-    /* Colores de categoría y discos */
-    --red:#e5636b; --blue:#4a8fe7; --amber:#e0a43b; --green:#4cc38a;
-    --purple:#a97ce8; --teal:#3cc4c4; --gray:#a1a1a6;
-    --p10:#d1d1d6; --p5:#3cc4c4; --p25s:#f28cb1;   /* discos de 10, 5 y 2.5 */
-  }
-  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
-  html{background:var(--bar);height:100%;overscroll-behavior:none}   /* lo que asome bajo la barra es del mismo color */
-  body{background:var(--bg);min-height:100%;min-height:100dvh}
-  body{color:var(--text);font-family:var(--font);-webkit-font-smoothing:antialiased;overscroll-behavior-y:none;
-       -webkit-user-select:none;user-select:none;padding-bottom:calc(var(--tabbar) + env(safe-area-inset-bottom) + 24px)}
-  body.docked{padding-bottom:calc(var(--tabbar) + env(safe-area-inset-bottom) + 112px)}
-  input,textarea,select{font:inherit;color:inherit;-webkit-user-select:text;user-select:text}
-  button{font:inherit;color:inherit;background:none;border:0;cursor:pointer;text-align:inherit}
-  button:active{opacity:.75}
-  .num,.hero,.mrow .v,.step b{font-variant-numeric:tabular-nums}
-  .wrap{max-width:560px;margin:0 auto;padding:0 16px}
-  .hidden{display:none!important}
-  svg{display:block}
-
-  /* ---------- Encabezados ---------- */
-  .hdr{padding:calc(env(safe-area-inset-top) + 18px) 0 14px}
-  .hdr h1{font-size:34px;font-weight:800;letter-spacing:-.6px}
-  .hdr p{color:var(--muted);margin-top:4px;font-size:15px}
-  .navbar{position:sticky;top:0;z-index:4;display:grid;grid-template-columns:88px 1fr 88px;align-items:center;
-          padding:calc(env(safe-area-inset-top) + 6px) 0 6px;margin:0 -16px;padding-left:16px;padding-right:16px;
-          background:color-mix(in srgb,var(--bg) 85%,transparent);-webkit-backdrop-filter:blur(14px);backdrop-filter:blur(14px)}
-  .navbar .ttl{text-align:center;font-weight:700;font-size:17px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .nbtn{height:44px;display:flex;align-items:center;gap:2px;font-size:16px;color:var(--text)}
-  .nbtn.r{justify-content:flex-end;gap:14px}
-  .nbtn svg{width:24px;height:24px}
-  .sec{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:24px 4px 8px}
-
-  /* ---------- Tab bar ---------- */
-  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(3,1fr);
-          padding-bottom:max(env(safe-area-inset-bottom), 6px);border-top:1px solid var(--line);
-          background:var(--bar);transform:translateZ(0);-webkit-transform:translateZ(0)}
-  /* extiende el fondo de la barra hacia abajo: tapa cualquier franja al rebotar o con la barra de Safari */
-  .tabbar::after{content:'';position:absolute;left:0;right:0;top:100%;height:120px;background:var(--bar)}
-  .tab{height:var(--tabbar);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;
-       font-size:11px;font-weight:600;color:var(--muted);text-align:center}
-  .tab svg{width:26px;height:26px}
-  .tab.on{color:var(--text)}
-
-  /* ---------- Selección (Execute) ---------- */
-  .resume{width:100%;margin-bottom:18px;padding:14px 16px;border-radius:var(--r);background:var(--accent);color:#000;
-          display:flex;justify-content:space-between;align-items:center}
-  .resume small{display:block;color:#666;font-size:13px;font-weight:600}
-  .resume b{font-size:18px}
-  .resume .go{font-size:22px;font-weight:800}
-  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  .cat{--c:var(--muted);height:80px;border-radius:var(--r);padding:14px;display:flex;flex-direction:column;justify-content:space-between;
-       background:color-mix(in srgb,var(--c) 12%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 24%,transparent)}
-  .cat b{font-size:18px;color:var(--c)}
-  .cat small{color:var(--muted);font-size:13px}
-  .cat:disabled{opacity:.35}
-  .freecard{width:100%;margin-top:10px;height:58px;border-radius:var(--r);border:1px dashed #3d3d42;color:var(--text);
-            display:flex;align-items:center;justify-content:center;gap:8px;font-weight:600;font-size:16px}
-  .freecard svg{width:20px;height:20px}
-  .list{background:var(--surface);border-radius:var(--r);overflow:hidden}
-  .mrow{width:100%;min-height:60px;padding:0 16px;display:flex;justify-content:space-between;align-items:center;gap:12px;
-        border-bottom:1px solid var(--line);font-size:17px}
-  .mrow:last-child{border-bottom:0}
-  .mrow .v{font-weight:700;white-space:nowrap}
-  .mrow .v small{color:var(--muted);font-weight:600;font-size:12px;margin-left:4px}
-  .mrow:disabled{color:#55555a}
-  .mrow:disabled .v{font-weight:500;font-size:14px}
-  .dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--c);margin-right:10px;vertical-align:middle}
-
-  /* ---------- Pantalla de trabajo ---------- */
-  .ctx{display:flex;justify-content:center;align-items:center;gap:10px;margin-top:6px;flex-wrap:wrap;min-height:38px}
-  .rms{display:flex;gap:2px;background:var(--surface);padding:3px;border-radius:10px}
-  .rms button{height:32px;padding:0 12px;border-radius:8px;font-size:13px;font-weight:700;color:var(--muted)}
-  .rms button.on{background:var(--surface2);color:var(--text)}
-  .rms button:disabled{opacity:.28}
-  .base{color:var(--muted);font-size:15px}
-  .base b{color:var(--text)}
-  .baseIn{width:110px;height:38px;border-radius:10px;background:var(--surface);border:1px solid var(--line);
-          text-align:center;font-size:17px;font-weight:700;outline:none}
-  .hero{text-align:center;padding:14px 0 4px}
-  .hero .w{font-size:var(--hero);font-weight:800;letter-spacing:-3px;line-height:1}
-  .hero .w span{font-size:28px;letter-spacing:0;color:var(--muted);font-weight:700;margin-left:6px}
-  .hero .s{color:var(--muted);font-size:16px;margin-top:10px}
-  .exact{color:var(--muted);opacity:.65;font-size:12.5px;margin-top:4px}
-  .adjpill{display:inline-flex;align-items:center;gap:10px;margin-top:10px;padding:6px 6px 6px 14px;border-radius:var(--pill);
-           background:color-mix(in srgb,var(--go) 15%,transparent);color:var(--go);font-size:14px;font-weight:700}
-  .adjpill button{width:26px;height:26px;border-radius:50%;background:color-mix(in srgb,var(--go) 25%,transparent);
-                  display:flex;align-items:center;justify-content:center}
-  .adjpill svg{width:14px;height:14px}
-  .herorow{display:grid;grid-template-columns:58px 1fr 58px;align-items:center;gap:6px}
-  .nudge{display:flex;flex-direction:column;gap:8px}
-  .nudge button{height:42px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-weight:700;font-size:15px;text-align:center}
-  .nudge.minus button{color:var(--muted)}
-  .basebtn{display:inline-flex;align-items:center;gap:8px;height:38px;padding:0 14px;border-radius:10px;background:var(--surface);color:var(--muted);font-size:15px}
-  .basebtn b{color:var(--text)}
-  .pstep{width:100%;display:grid;grid-template-columns:1fr 1fr 1.5fr 1fr 1fr;gap:6px;margin-top:4px}
-  .pstep button{height:46px;border-radius:12px;background:var(--bg);font-weight:800;font-size:16px;text-align:center}
-  .pstep button.m{color:var(--muted)}
-  .pstep .pv{position:relative;display:flex;align-items:center}
-  .pstep .pv input{width:100%;height:46px;border-radius:12px;background:var(--accent);color:#000;border:0;text-align:center;
-                   font-size:20px;font-weight:800;padding:0 22px 0 6px}
-  .pstep .pv span{position:absolute;right:10px;color:#555;font-weight:800;font-size:16px;pointer-events:none}
-  body.focus{padding-bottom:calc(env(safe-area-inset-bottom) + 24px)}
-  body.focus .tabbar{display:none}
-  .simple .bigbar{height:150px}
-  .simple .loadcard{margin-top:12px}
-  .qp{width:100%;display:grid;grid-template-columns:repeat(5,1fr);gap:6px;margin-top:4px}
-  .qp button{height:42px;border-radius:10px;background:var(--bg);font-weight:800;font-size:15px;text-align:center}
-  .qp button.on{background:var(--accent);color:#000}
-  .okbtn.ok{width:42px;padding:0;display:flex;align-items:center;justify-content:center}
-  .okbtn.ok svg{width:20px;height:20px}
-  .okbtn{height:38px;padding:0 14px;border-radius:10px;background:var(--accent);color:#000;font-weight:700;font-size:15px}
-  .basebtn svg{width:16px;height:16px}
-  .seg{display:grid;grid-template-columns:1fr 1fr;background:var(--surface);padding:4px;border-radius:12px;margin:14px 0 10px}
-  .seg.three{grid-template-columns:repeat(3,1fr)}
-  .seg button{height:38px;border-radius:9px;font-weight:700;color:var(--muted);font-size:15px;text-align:center}
-  .seg button.on{background:var(--surface2);color:var(--text)}
-
-  .loadcard{background:var(--surface);border-radius:20px;padding:12px 14px 14px}
-  /* Zona 1 = peso en números · Zona 2 = la barra. Misma data, distinta interfaz */
-  .zone{background:var(--surface);border-radius:20px;padding:12px 14px 16px;margin-top:4px}
-  .zhead{display:flex;justify-content:space-between;align-items:center;color:var(--muted);font-size:12px;font-weight:700;
-         text-transform:uppercase;letter-spacing:.6px;min-height:22px}
-  .zhead span{display:flex;align-items:center;gap:6px}
-  .zhead svg{width:16px;height:16px}
-  .zhead .kgv{text-transform:none;letter-spacing:0;font-size:14px;font-weight:600}
-  .zone .ctx{margin-top:6px}
-  .zone .hero{padding:10px 0 0}
-  .zone .nudge button,.loadcard .optnav button{background:var(--surface2);border-color:transparent}
-  .loadcard .optnav button{background:none}
-  .zone .rms,.zone .basebtn,.zone .baseIn{background:var(--bg)}
-  .zone .rms button.on{background:var(--surface2)}
-  .zone .empty{padding:18px 0 6px}
-  .loadcard .adjrow{margin:12px -14px 0;padding:0 14px 2px}
-  .loadcard .hint{margin-top:10px}
-  .lchead{display:none;justify-content:space-between;align-items:baseline;color:var(--muted);font-size:13px;font-weight:600;
-          text-transform:uppercase;letter-spacing:.5px}
-  .bigbar{position:relative;display:flex;align-items:center;gap:3px;height:124px;margin-top:8px}
-  .bigbar::before{content:'';position:absolute;left:0;right:0;top:50%;height:12px;margin-top:-6px;background:#3a3a3e;border-radius:6px}
-  .collar{position:relative;z-index:1;flex:none;width:26px;height:54px;margin-right:4px;border-radius:5px;background:#5a5a5f;color:#e5e5ea;
-          font-size:12px;font-weight:800;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg)}
-  .pl.x{background-image:repeating-linear-gradient(135deg,rgba(255,255,255,.38) 0 3px,transparent 3px 8px);
-        box-shadow:inset 0 0 0 2px rgba(255,255,255,.55)}
-  .bigbar .empty{position:relative;z-index:1;margin-left:8px;color:var(--muted);font-size:14px;background:var(--surface);padding:0 8px}
-  .pl{position:relative;z-index:1;flex:none;width:34px;height:var(--h);background:var(--pc);border-radius:6px;color:#111;font-style:normal;
-      font-size:15px;font-weight:800;display:flex;align-items:center;justify-content:center;writing-mode:vertical-rl;transform:rotate(180deg)}
-  .pl.s{width:24px;font-size:12px}
-  .loadtxt{font-size:22px;font-weight:800;margin-top:10px}
-  .optnav{display:grid;grid-template-columns:48px 1fr 48px;align-items:center;margin-top:14px;padding-top:10px;border-top:1px solid var(--line)}
-  .optnav button{height:44px;display:flex;align-items:center;justify-content:center}
-  .optnav button svg{width:22px;height:22px}
-  .optnav button:disabled{opacity:.25}
-  .optnav .mid{text-align:center}
-  .optnav .mid b{display:block;font-size:15px}
-  .dots{display:flex;gap:6px;justify-content:center;margin-top:6px}
-  .dots i{width:6px;height:6px;border-radius:50%;background:#3a3a3e}
-  .dots i.on{background:var(--text)}
-  .adjrow{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;margin:14px -16px 0;padding:0 16px 2px}
-  .adjrow::-webkit-scrollbar{display:none}
-  .adjrow button{flex:none;height:46px;min-width:58px;padding:0 12px;border-radius:12px;background:var(--pc);color:#111;border:0;
-                 font-weight:700;font-size:16px;text-align:center}
-  .hint{color:var(--muted);font-size:13px;margin:10px 4px 0;text-align:center}
-
-  .steps{background:var(--surface);border-radius:var(--r);overflow:hidden}
-  .step{width:100%;display:grid;grid-template-columns:30px 1fr auto;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid var(--line)}
-  .step:last-child{border-bottom:0}
-  .chk{width:28px;height:28px;border-radius:50%;border:2px solid #48484c;display:flex;align-items:center;justify-content:center;color:transparent}
-  .chk svg{width:16px;height:16px}
-  .step b{font-size:24px;font-weight:800}
-  .step small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-  .step .note{text-align:right;font-size:14px;color:var(--muted)}
-  .mini{display:flex;gap:2px;justify-content:flex-end;align-items:center;height:26px;margin-bottom:4px}
-  .mini i{width:9px;border-radius:2px;background:var(--pc)}
-  .step.done{opacity:.38}
-  .step.done .chk{background:var(--go);border-color:var(--go);color:#000}
-  .step.next{background:var(--surface2)}
-  .step.next .chk{border-color:var(--text)}
-  .step.next .note{color:var(--text);font-weight:700}
-  .step.goal b{color:var(--go)}
-  .warmfoot{display:flex;justify-content:center;margin-top:10px}
-  .warmfoot button{height:40px;padding:0 14px;color:var(--muted);font-size:14px}
-
-  /* Dock de porcentajes (zona del pulgar) */
-  .dock{position:fixed;left:0;right:0;bottom:calc(var(--tabbar) + env(safe-area-inset-bottom));z-index:5;
-        padding:16px 0 10px;background:linear-gradient(transparent,var(--bg) 28%)}
-  .pstrip{display:flex;gap:8px;overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;padding:0 16px;max-width:560px;margin:0 auto}
-  .pstrip::-webkit-scrollbar{display:none}
-  .pstrip button{flex:none;scroll-snap-align:center;height:54px;min-width:68px;border-radius:14px;background:var(--surface);
-                 border:1px solid var(--line);font-size:18px;font-weight:800;text-align:center}
-  .pstrip button.on{background:var(--accent);color:#000;border-color:var(--accent)}
-  .pstrip button.other{font-size:15px;color:var(--muted);font-weight:700}
-
-  /* ---------- PRs ---------- */
-  .chips{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-bottom:14px}
-  .chip{--c:var(--muted);height:38px;border-radius:10px;padding:0 10px;display:flex;justify-content:space-between;align-items:center;gap:4px;
-        font-size:13px;font-weight:600;color:var(--c);white-space:nowrap;
-        background:color-mix(in srgb,var(--c) 12%,transparent);border:1px solid color-mix(in srgb,var(--c) 26%,transparent)}
-  .chip small{font-size:11px;opacity:.7}
-  .chip.on{background:var(--c);color:#111;border-color:var(--c)}
-  .grp{margin-bottom:18px}
-  .grp h3{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:0 4px 8px;display:flex;align-items:center}
-
-  /* ---------- Hojas (detalle, registro, ajustes) ---------- */
-  .sheet{position:fixed;inset:0;z-index:10;background:var(--bg);overflow-y:auto;transform:translateY(100%);transition:transform .28s cubic-bezier(.2,.8,.2,1)}
-  .sheet.open{transform:none}
-  .sheet .wrap{padding-bottom:calc(env(safe-area-inset-bottom) + 40px)}
-  .big{font-size:56px;font-weight:800;letter-spacing:-1.5px;font-variant-numeric:tabular-nums}
-  .kg{font-size:20px;color:var(--muted);font-weight:700}
-  .sub{color:var(--muted);margin-top:6px}
-  .chartbox{background:var(--surface);border-radius:18px;padding:16px;margin:20px 0}
-  .hist .mrow{cursor:default}
-  .hist small{display:block;color:var(--muted);font-size:13px;margin-top:2px}
-  .vid{color:var(--blue);text-decoration:none;font-size:14px;margin-left:12px}
-  .primary{width:100%;height:54px;border-radius:var(--pill);background:var(--accent);color:#000;font-weight:800;font-size:17px;text-align:center;
-           display:flex;align-items:center;justify-content:center;gap:8px}
-  .primary svg{width:20px;height:20px}
-  .primary:disabled{opacity:.5}
-  form{display:grid;gap:14px}
-  label{display:grid;gap:6px;color:var(--muted);font-size:14px}
-  input,select,textarea{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:13px 14px;outline:none;color:var(--text);font-size:16px}
-  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-  .opts{display:flex;flex-wrap:wrap;gap:8px}
-  .opts button{height:42px;min-width:58px;padding:0 14px;border-radius:12px;background:var(--surface);border:1px solid var(--line);font-weight:700;text-align:center}
-  .opts button.on{background:var(--accent);color:#000;border-color:var(--accent)}
-  .setrow{display:flex;justify-content:space-between;align-items:center;background:var(--surface);border-radius:var(--r);padding:14px 16px;gap:12px}
-  .switch{width:52px;height:32px;border-radius:16px;background:#39393d;position:relative;flex:none;transition:background .2s}
-  .switch::after{content:'';position:absolute;top:2px;left:2px;width:28px;height:28px;border-radius:50%;background:#fff;transition:transform .2s}
-  .switch.on{background:var(--go)}
-  .switch.on::after{transform:translateX(20px)}
-  .empty{color:var(--muted);padding:40px 0;text-align:center}
-  .bflex{display:flex;justify-content:space-between;align-items:center;gap:10px}
-  .bflex button{color:var(--text);font-weight:700;height:32px;padding:0 12px;border-radius:8px;background:var(--surface2);flex:none}
-  .banner{font-size:13px;color:var(--amber);background:color-mix(in srgb,var(--amber) 12%,transparent);border-radius:10px;padding:8px 12px;margin-bottom:10px}
-</style>
-</head>
-<body>
-
-<!-- ============ EXECUTE ============ -->
-<section id="vExec" class="wrap"></section>
-
-<!-- ============ PRs ============ -->
-<section id="vPRs" class="wrap hidden"></section>
-
-<!-- Dock de porcentajes: solo en la pantalla de trabajo -->
-<div class="dock hidden" id="dock"><div class="pstrip" id="pstrip"></div></div>
-
-<!-- Tab bar -->
-<nav class="tabbar">
-  <button class="tab" data-a="tab" data-v="exec" id="tabExec"></button>
-  <button class="tab" data-a="tab" data-v="prs" id="tabPrs"></button>
-  <button class="tab" data-a="add" id="tabAdd"></button>
-</nav>
-
-<!-- Detalle de PR -->
-<section class="sheet" id="detail">
-  <div class="wrap">
-    <div class="navbar"><button class="nbtn" data-a="close"></button><div class="ttl" id="dName"></div><button class="nbtn r" data-a="add" data-v="detail" aria-label="Registrar"></button></div>
-    <p class="sub" id="dCat" style="text-align:center;margin-top:0"></p>
-    <div class="seg three" id="dSeg"></div>
-    <div style="text-align:center">
-      <div class="big" id="dPR"></div>
-      <div class="kg" id="dKg"></div>
-      <p class="sub" id="dDate"></p>
-    </div>
-    <div class="chartbox"><canvas id="chart" height="200"></canvas></div>
-    <button class="primary" id="dExec" data-a="dexec"></button>
-    <div class="sec">Historial</div>
-    <div class="list hist" id="dHist"></div>
-  </div>
-</section>
-
-<!-- Registrar PR -->
-<section class="sheet" id="formSheet">
-  <div class="wrap">
-    <div class="navbar"><button class="nbtn" data-a="close">Cancelar</button><div class="ttl">Nuevo registro</div><span></span></div>
-    <form id="form" style="margin-top:8px">
-      <label>Movimiento <select id="fMove" required></select></label>
-      <div class="two">
-        <label><span id="fValueLabel">Peso (lb)</span><input id="fValue" required inputmode="decimal"></label>
-        <label id="fRmWrap">Tipo
-          <select id="fRm"><option value="1">1RM</option><option value="3">3RM</option><option value="5">5RM</option></select>
-        </label>
-      </div>
-      <label>Fecha <input id="fDate" type="date" required></label>
-      <label>Video (opcional) <input id="fVideo" type="file" accept="video/*"></label>
-      <label>Notas <textarea id="fNotes" rows="2"></textarea></label>
-      <button class="primary" id="fSave" style="margin-top:8px">Guardar</button>
-    </form>
-  </div>
-</section>
-
-<!-- Ajustes de barra y discos -->
-<section class="sheet" id="setSheet">
-  <div class="wrap">
-    <div class="navbar"><span></span><div class="ttl">Barra y discos</div><button class="nbtn r" data-a="close" style="font-weight:700">Listo</button></div>
-    <div class="sec">Barra</div>
-    <div class="opts" id="sBar"></div>
-    <div class="sec">Discos que tienes</div>
-    <div class="opts" id="sPlates"></div>
-    <div class="sec">App</div>
-    <div class="setrow" style="margin-bottom:10px"><div>Datos<div class="sub" id="sKeyTxt" style="font-size:13px;margin-top:2px"></div></div><button class="okbtn" id="sKeyBtn"></button></div>
-    <div class="setrow" style="margin-bottom:10px"><div>Modo simple<div class="sub" style="font-size:13px;margin-top:2px">Solo ejercicio, peso, % y la barra final</div></div><button class="switch" id="sSimple" data-a="simple"></button></div>
-    <div class="setrow"><div>Pantalla siempre encendida<div class="sub" style="font-size:13px;margin-top:2px">Mientras estás en un levantamiento</div></div><button class="switch" id="sWake" data-a="wake"></button></div>
-  </div>
-</section>
-
-<script>
-/* =========================================================
-   CONFIGURACIÓN — URL del Web App de Apps Script (termina en /exec).
-   Vacía = modo demo.
-   ========================================================= */
-const CONFIG = {
-  API_URL: '',
-};
-
+export function initLegacyApp(hasBackend){
+const controller = new AbortController();
+const { signal } = controller;
 /* =========================================================
    CATÁLOGO — agrega/quita categorías y movimientos aquí
    type: 'weight' (lb, mayor es mejor, con 1RM/3RM/5RM) | 'time' (menor es mejor)
@@ -406,7 +60,7 @@ const I = {
 /* =========================================================
    CAPA DE DATOS — peso SIEMPRE en lb; rm = 1 | 3 | 5 (vacío en tiempos)
    ========================================================= */
-const DEMO = !CONFIG.API_URL.startsWith('https://');
+const DEMO = !hasBackend;
 const DEMO_RECORDS = [
   { move:'Back Squat', value:225, rm:1, date:'2025-11-10' },
   { move:'Back Squat', value:240, rm:1, date:'2026-02-14' },
@@ -430,7 +84,7 @@ const usingDemo = () => DEMO || !getKey();
 
 // POST con text/plain para evitar el preflight CORS de Apps Script
 async function call(action, payload = {}){
-  const res = await fetch(CONFIG.API_URL, { method:'POST', body: JSON.stringify({ key:getKey(), action, ...payload }) });
+  const res = await fetch('/api/apps-script', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:getKey(), action, ...payload }) });
   const data = await res.json();
   if (data.error){
     if (data.error === 'unauthorized') forgetKey();
@@ -822,14 +476,14 @@ async function wake(on){
     } else if (!wantWake && wakeLock) { await wakeLock.release(); wakeLock = null; }
   } catch { wakeLock = null; }
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) wake(true); });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) wake(true); }, { signal });
 
 /* =========================================================
    PRs
    ========================================================= */
 function banner(){
   if (LOADING) return '<div class="banner" style="color:var(--muted);background:var(--surface)">Cargando tus PRs…</div>';
-  if (DEMO) return '<div class="banner">Datos de ejemplo — configura API_URL para guardar en Google Sheets</div>';
+  if (DEMO) return '<div class="banner">Datos de ejemplo — configura APPS_SCRIPT_URL para guardar en Google Sheets</div>';
   if (LOAD_ERR) return `<div class="banner bflex"><span>${LOAD_ERR}</span>${!getKey() ? '<button data-a="setkey">Conectar</button>' : ''}</div>`;
   if (!getKey()) return '<div class="banner bflex"><span>Estás viendo datos de ejemplo</span><button data-a="setkey">Conectar</button></div>';
   return '';
@@ -946,7 +600,7 @@ function renderSettings(){
   $('#sWake').classList.toggle('on', S.wake !== false);
   $('#sSimple').classList.toggle('on', !!S.simple);
   const k = !!getKey();
-  $('#sKeyTxt').textContent = DEMO ? 'Ejemplo · falta API_URL' : k ? 'Conectado a tu Google Sheets' : 'Datos de ejemplo';
+  $('#sKeyTxt').textContent = DEMO ? 'Ejemplo · falta APPS_SCRIPT_URL' : k ? 'Conectado a tu Google Sheets' : 'Datos de ejemplo';
   $('#sKeyBtn').textContent = k ? 'Desconectar' : 'Conectar';
   $('#sKeyBtn').dataset.a = k ? 'logout' : 'setkey';
   $('#sKeyBtn').classList.toggle('hidden', DEMO);
@@ -1045,24 +699,29 @@ document.addEventListener('click', e => {
     case 'drm':      openDetail(UI.move, +v); break;
     case 'dexec':    $('#detail').classList.remove('open'); S.tab = 'exec'; saveS(); renderTabs(); selectMove(UI.move); break;
   }
-});
+}, { signal });
 
 /* =========================================================
    INICIO
    ========================================================= */
 async function loadData(){
   LOADING = true; LOAD_ERR = ''; renderAll();
-  try { RECORDS = await api.getRecords(); }
+  try {
+    const records = await api.getRecords();
+    if (signal.aborted) return;
+    RECORDS = records;
+  }
   catch (err) {
+    if (signal.aborted) return;
     LOAD_ERR = err.message === 'Failed to fetch' ? 'No se pudo conectar con tu API. Mostrando datos de ejemplo.' : err.message;
     RECORDS = await demoApi.getRecords();     // nunca queda vacía: cae a datos de ejemplo
   }
+  if (signal.aborted) return;
   LOADING = false;
   renderAll();
   if ($('#detail').classList.contains('open') && UI.move) openDetail(UI.move, UI.rm);
 }
 renderAll();
 loadData();
-</script>
-</body>
-</html>
+return () => { controller.abort(); if (chart) chart.destroy(); wake(false); };
+}
