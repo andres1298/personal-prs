@@ -1,4 +1,4 @@
-export function initLegacyApp(hasBackend){
+export function initLegacyApp(hasBackend, userId = 'demo'){
 const controller = new AbortController();
 const { signal } = controller;
 /* =========================================================
@@ -76,33 +76,14 @@ const DEMO_RECORDS = [
   { move:'Fran', value:285, date:'2026-08-10' },
 ];
 
-// La clave se guarda solo en este dispositivo. Sin clave, la app muestra datos de ejemplo.
-function getKey(){ try { return (localStorage.getItem('prs_key') || '').trim(); } catch { return ''; } }
-function setKey(k){ try { localStorage.setItem('prs_key', k.trim()); } catch {} }
-function forgetKey(){ try { localStorage.removeItem('prs_key'); } catch {} }
-const usingDemo = () => DEMO || !getKey();
+// Live data uses the server-verified Supabase session, never a shared browser key.
+const usingDemo = () => DEMO;
 
-// POST con text/plain para evitar el preflight CORS de Apps Script
-async function call(action, payload = {}){
-  const res = await fetch('/api/apps-script', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ key:getKey(), action, ...payload }) });
+async function call(record){
+  const res = await fetch('/api/records', record ? { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(record), signal } : { cache:'no-store', signal });
   const data = await res.json();
-  if (data.error){
-    if (data.error === 'unauthorized') forgetKey();
-    throw new Error(data.error === 'unauthorized' ? 'Clave incorrecta. Mostrando datos de ejemplo.' : data.error);
-  }
+  if (!res.ok) throw new Error(data.error || 'No se pudo completar la solicitud.');
   return data;
-}
-
-async function uploadVideo(file, onProgress){
-  const { uploadUrl } = await call('uploadUrl', { name:file.name, mimeType:file.type || 'video/mp4', size:file.size, origin:location.origin });
-  return new Promise((resolve, reject) => {
-    const xhr = new XMLHttpRequest();
-    xhr.open('PUT', uploadUrl);
-    xhr.upload.onprogress = e => e.lengthComputable && onProgress(Math.round(e.loaded / e.total * 100));
-    xhr.onload = () => xhr.status < 300 ? resolve(JSON.parse(xhr.responseText)) : reject(new Error('Error al subir el video (' + xhr.status + ')'));
-    xhr.onerror = () => reject(new Error('Error de red al subir el video'));
-    xhr.send(file);
-  });
 }
 
 const demoApi = {
@@ -110,10 +91,10 @@ const demoApi = {
   async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; }   // solo en memoria
 };
 const liveApi = {
-  async getRecords(){ return (await call('list')).records; },
-  async addRecord(rec, file, onProgress){
-    if (file) rec.videoId = (await uploadVideo(file, onProgress)).id;
-    return (await call('add', { record: rec })).record;
+  async getRecords(){ return (await call()).records; },
+  async addRecord(rec, file){
+    if (file) throw new Error('La subida de videos todavía no está disponible.');
+    return (await call(rec)).record;
   }
 };
 const api = {
@@ -131,12 +112,15 @@ const store = {
 };
 let RECORDS = [];
 let LOADING = true, LOAD_ERR = '';
-const S = store.get('prs_settings', { bar:45, plates:[...ALL_PLATES], lastPct:70, wake:true, simple:false, tab:'exec' });
-const EX = store.get('prs_exec', { view:'pick', cat:null, move:null, free:false, rm:1, base:0, pct:80, adj:0, extra:[], minus:[], editBase:false, sel:0, panel:'load', done:[], key:'', ts:0 });
+const storageScope = hasBackend ? userId : 'demo';
+const settingsKey = `prs_settings_${storageScope}`;
+const exerciseKey = `prs_exec_${storageScope}`;
+const S = store.get(settingsKey, { bar:45, plates:[...ALL_PLATES], lastPct:70, wake:true, simple:false, tab:'exec' });
+const EX = store.get(exerciseKey, { view:'pick', cat:null, move:null, free:false, rm:1, base:0, pct:80, adj:0, extra:[], minus:[], editBase:false, sel:0, panel:'load', done:[], key:'', ts:0 });
 EX.adj = 0; EX.custom = null;   // (obsoletos) el ajuste vive en EX.extra / EX.minus
 const UI = { prsTab:'Lift', prsGroup:null, move:null, rm:1 };
-const saveS = () => store.set('prs_settings', S);
-const saveEX = () => { EX.ts = Date.now(); store.set('prs_exec', EX); };
+const saveS = () => store.set(settingsKey, S);
+const saveEX = () => { EX.ts = Date.now(); store.set(exerciseKey, EX); };
 if (Date.now() - (EX.ts || 0) > 8 * 3600e3 && EX.view !== 'pick') { EX.view = 'pick'; EX.done = []; }   // sesión vieja
 
 /* =========================================================
@@ -483,9 +467,8 @@ document.addEventListener('visibilitychange', () => { if (document.visibilitySta
    ========================================================= */
 function banner(){
   if (LOADING) return '<div class="banner" style="color:var(--muted);background:var(--surface)">Cargando tus PRs…</div>';
-  if (DEMO) return '<div class="banner">Datos de ejemplo — configura APPS_SCRIPT_URL para guardar en Google Sheets</div>';
-  if (LOAD_ERR) return `<div class="banner bflex"><span>${LOAD_ERR}</span>${!getKey() ? '<button data-a="setkey">Conectar</button>' : ''}</div>`;
-  if (!getKey()) return '<div class="banner bflex"><span>Estás viendo datos de ejemplo</span><button data-a="setkey">Conectar</button></div>';
+  if (DEMO) return '<div class="banner bflex"><span>Datos de ejemplo · cambios solo en esta sesión</span><button data-a="login">Iniciar sesión</button></div>';
+  if (LOAD_ERR) return `<div class="banner bflex"><span>${LOAD_ERR}</span><button data-a="retry">Reintentar</button></div>`;
   return '';
 }
 
@@ -599,11 +582,9 @@ function renderSettings(){
   $('#sPlates').innerHTML = ALL_PLATES.map(p => `<button class="${S.plates.includes(p)?'on':''}" data-a="plate" data-v="${p}">${p}</button>`).join('');
   $('#sWake').classList.toggle('on', S.wake !== false);
   $('#sSimple').classList.toggle('on', !!S.simple);
-  const k = !!getKey();
-  $('#sKeyTxt').textContent = DEMO ? 'Ejemplo · falta APPS_SCRIPT_URL' : k ? 'Conectado a tu Google Sheets' : 'Datos de ejemplo';
-  $('#sKeyBtn').textContent = k ? 'Desconectar' : 'Conectar';
-  $('#sKeyBtn').dataset.a = k ? 'logout' : 'setkey';
-  $('#sKeyBtn').classList.toggle('hidden', DEMO);
+  $('#sKeyTxt').textContent = DEMO ? 'Datos de ejemplo · cambios solo en esta sesión' : 'Conectado a tu cuenta';
+  $('#sKeyBtn').textContent = DEMO ? 'Iniciar sesión' : 'Cerrar sesión';
+  $('#sKeyBtn').dataset.a = DEMO ? 'login' : 'logout';
 }
 
 /* =========================================================
@@ -686,12 +667,13 @@ document.addEventListener('click', e => {
     }
     case 'wake':     S.wake = S.wake === false; saveS(); renderSettings(); break;
     case 'simple':   S.simple = !S.simple; saveS(); renderSettings(); break;
-    case 'setkey': {
-      const k = prompt('Clave de acceso de tu API de PRs');
-      if (k && k.trim()) { setKey(k); renderSettings(); loadData(); }
-      break;
+    case 'retry': loadData(); break;
+    case 'login': location.assign('/'); break;
+    case 'logout': {
+      const form = document.createElement('form');
+      form.method = 'post'; form.action = '/auth/logout';
+      document.body.append(form); form.submit(); break;
     }
-    case 'logout':   forgetKey(); renderSettings(); loadData(); break;
 
     case 'prstab':   UI.prsTab = v; UI.prsGroup = null; renderPRs(); break;
     case 'prsgroup': UI.prsGroup = UI.prsGroup === v ? null : v; renderPRs(); break;
@@ -713,8 +695,8 @@ async function loadData(){
   }
   catch (err) {
     if (signal.aborted) return;
-    LOAD_ERR = err.message === 'Failed to fetch' ? 'No se pudo conectar con tu API. Mostrando datos de ejemplo.' : err.message;
-    RECORDS = await demoApi.getRecords();     // nunca queda vacía: cae a datos de ejemplo
+    LOAD_ERR = err.message === 'Failed to fetch' ? 'No se pudieron cargar tus registros. Comprueba tu conexión.' : err.message;
+    RECORDS = [];
   }
   if (signal.aborted) return;
   LOADING = false;

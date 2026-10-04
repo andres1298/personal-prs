@@ -1,37 +1,41 @@
 # personal-prs
-Personal CrossFit PR tracker, lifts, cardio and benchmarks with progress charts and video uploads. Minimal iPhone-installable web app backed by Google Sheets &amp; Drive via Apps Script.
 
-## Desarrollo con Next.js
+Personal CrossFit PR tracker with progress charts and a plate calculator. Next.js uses Supabase Auth for Google sign-in and Prisma for server access to Supabase Postgres.
 
-Requiere Node.js 20.9 o superior. Instala dependencias y configura la implementación existente de Apps Script:
+## Development
+
+Requires Node.js 24. Install dependencies and create private configuration:
 
 ```bash
 npm ci
 cp .env.example .env.local
-# Edita APPS_SCRIPT_URL en .env.local con la URL que termina en /exec.
 npm run dev
 ```
 
-Abre `http://localhost:3000`. Si `APPS_SCRIPT_URL` está vacía, la aplicación usa datos de ejemplo. Con la URL configurada, introduce la clave actual desde **Ajustes → Datos → Conectar**. La clave permanece en el almacenamiento local de ese navegador, como en la versión HTML. Si cambias de dominio, tendrás que introducirla de nuevo.
+Configure the project URL, publishable key, database connection and approved user IDs in `.env.local`. Follow [Auth setup](docs/AUTH.md) for Google OAuth and account authorization, and [database setup](docs/SUPABASE.md) for connections and TLS trust.
 
-La ruta `/api/apps-script` envía las acciones `list`, `add` y `uploadUrl` desde el servidor a Apps Script. La URL de Apps Script solo se lee en el servidor. La subida del archivo de video sigue usando la URL temporal que devuelve Apps Script; el archivo se envía directamente allí desde el navegador.
+The home page requests sign-in. `/?demo=1` explicitly opens sample data; demo records stay in memory and are never written to Supabase. Authorized sessions read and create personal records through `/api/records`. The server derives ownership from verified Auth. Failed live requests show an error rather than replacing real records with samples. Settings stay on the device, separately for each account and demo mode.
 
-## Supabase Postgres
+Apps Script is no longer used by Next.js. The original `index.html` remains as a historical reference. Historical records have not been imported automatically. Live video upload is temporarily disabled pending private Storage integration; existing database video references are retained.
 
-La preparación de Supabase y la prueba de conexión de servidor están documentadas en [docs/SUPABASE.md](docs/SUPABASE.md). Configura `DATABASE_URL` y `DIRECT_DATABASE_URL` en `.env.local` y ejecuta `npm run db:check`. Los datos de la interfaz siguen en Apps Script hasta las tareas de Prisma y migración.
+## Database and verification
 
-## Despliegue en Vercel
+Prisma owns application models and migrations. See [Prisma persistence](docs/PRISMA.md). Generate the client during installation/build; apply reviewed migrations separately. Never run development resets against a database with real data.
 
-Importa este repositorio como proyecto Next.js. En **Project Settings → Environment Variables**, define `APPS_SCRIPT_URL` para los entornos donde quieras datos reales, con la URL HTTPS de Apps Script que termina en `/exec`. No uses el prefijo `NEXT_PUBLIC_`. Despliega de nuevo después de modificarla. Si no configuras la variable, se mostrará el modo demo.
+```bash
+npm run db:check
+node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs
+npm run build
+```
 
-Usa HTTPS para instalar la aplicación en iPhone o Android. El manifiesto y los iconos están en `public/`. Si tu flujo de subida de video limita orígenes, autoriza el dominio final de Vercel en la configuración de Apps Script/Drive.
+Access tests check default denial, authorization removal, editable metadata and cross-origin mutations. They do not prove real Google sessions, complete database isolation or historical import.
 
-## Gestión de tareas
+## Vercel deployment
 
-Las tareas, planes y avances se gestionan en [GitHub Issues](https://github.com/andres1298/personal-prs/issues). Usa el número del issue como identificador, por ejemplo `#3`.
+Import the repository with the Next.js preset and Node.js 24. Use `npm ci` and `npm run build`. Configure the variables in [Auth setup](docs/AUTH.md) for the intended environment. Database credentials and the authorization list are server-only; only the project URL and publishable key may use `NEXT_PUBLIC_`.
 
-Consulta [el estándar de seguimiento](docs/GITHUB_ISSUES.md) para crear, iniciar, actualizar y cerrar tareas. Incluye estados, dependencias, ejemplos para la CLI `gh` y reglas de validación. Las plantillas en `.github/` facilitan crear issues y documentar pull requests.
+Add the final HTTPS callback to Supabase Auth's redirect allowlist and redeploy after environment changes. Apply reviewed migrations separately from the build. See [mobile installation](docs/INSTALACION.md) after publication.
 
-## Acceso desde el teléfono
+## Task tracking
 
-Consulta el [manual para iPhone y Android](docs/INSTALACION.md) para añadir un icono de Mis PRs a la pantalla de inicio y abrir la aplicación web sin la barra del navegador cuando el teléfono lo permita.
+[GitHub Issues](https://github.com/andres1298/personal-prs/issues) is the only task and progress record. Follow [the repository workflow](docs/GITHUB_ISSUES.md).
