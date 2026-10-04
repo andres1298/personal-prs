@@ -9,7 +9,7 @@ El [issue #3](https://github.com/andres1298/personal-prs/issues/3) prepara la co
 3. Copia la cadena **Direct connection** (puerto 5432) para `DIRECT_DATABASE_URL`. Prisma Migrate usará esta conexión para los cambios de esquema. Si la máquina que ejecuta migraciones no tiene IPv6 y el proyecto no tiene el complemento IPv4, usa **Session pooler** (puerto 5432) como alternativa compatible.
 4. Sustituye `[YOUR-PASSWORD]` en ambas cadenas. Si la contraseña contiene caracteres reservados de URL (por ejemplo `&`, `#`, `?` o espacios), codifícalos como porcentaje. No publiques las cadenas ni las pegues en un chat.
 
-Las opciones de conexión y sus puertos están documentados en [Supabase: Connect to your database](https://supabase.com/docs/guides/database/connecting-to-postgres). El modo transacción requiere desactivar las consultas preparadas al configurar Prisma en [issue #4](https://github.com/andres1298/personal-prs/issues/4); la [guía de Prisma de Supabase](https://supabase.com/docs/guides/database/prisma/prisma-troubleshooting) indica `pgbouncer=true` para su cadena de ejecución.
+Las opciones de conexión y sus puertos están documentados en [Supabase: Connect to your database](https://supabase.com/docs/guides/database/connecting-to-postgres). Prisma utiliza el adaptador `pg`, que gestiona sus conexiones. La configuración y las diferencias respecto a parámetros de versiones anteriores se describen en [PRISMA.md](PRISMA.md).
 
 ## Desarrollo local
 
@@ -35,7 +35,7 @@ npm run dev
 
 El certificado local se excluye de Git con `*.crt`. Configura la confianza TLS apropiada en cada entorno; no desactives la validación del certificado. Las variables de conexión siguen exclusivamente en `.env.local` o en la configuración privada del despliegue.
 
-El código de servidor puede obtener el pool mediante `getDbPool()` en `src/lib/server/db.js`. La importación `server-only` impide usar ese módulo desde un componente cliente. La configuración limita cada proceso a una conexión y exige TLS. La aplicación actual sigue usando Apps Script hasta que las tareas de datos cambien sus rutas.
+El código de servidor obtiene el cliente mediante `getPrisma()` en `src/lib/server/prisma.js`; las operaciones de persistencia están en `src/lib/server/records.js`. La importación `server-only` impide usar esos módulos desde un componente cliente. La configuración limita cada proceso a una conexión y exige TLS para conexiones remotas. El script `db:check` conserva una consulta diagnóstica de conectividad con `pg`. La aplicación actual sigue usando Apps Script hasta que las tareas de datos cambien sus rutas. Consulta [PRISMA.md](PRISMA.md) para las entidades, autorización y pruebas de persistencia.
 
 ## Despliegue
 
