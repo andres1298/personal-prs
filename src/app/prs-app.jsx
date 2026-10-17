@@ -2,20 +2,20 @@
 
 import { useEffect } from 'react';
 
-export default function App({ hasBackend }) {
+export default function App({ hasBackend, userId = 'demo' }) {
   useEffect(() => {
     let cleanup;
     let active = true;
     Promise.all([import('chart.js/auto'), import('../lib/legacy')]).then(([chartModule, legacy]) => {
       if (!active) return;
       window.Chart = chartModule.default;
-      cleanup = legacy.initLegacyApp(hasBackend);
+      cleanup = legacy.initLegacyApp(hasBackend, userId);
     });
     return () => {
       active = false;
       cleanup?.();
     };
-  }, [hasBackend]);
+  }, [hasBackend, userId]);
 
   return <>
     <section id="vExec" className="wrap" />
@@ -58,7 +58,9 @@ export default function App({ hasBackend }) {
             </label>
           </div>
           <label>Fecha <input id="fDate" type="date" required /></label>
-          <label>Video (opcional) <input id="fVideo" type="file" accept="video/*" /></label>
+          <label>Video (opcional) <input id="fVideo" type="file" accept="video/*" disabled={hasBackend} />
+            {hasBackend && <span className="sub">La subida de videos estará disponible próximamente.</span>}
+          </label>
           <label>Notas <textarea id="fNotes" rows="2" /></label>
           <button className="primary" id="fSave" style={{ marginTop: 8 }}>Guardar</button>
         </form>

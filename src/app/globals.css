@@ -1,6 +1,10 @@
   /* =========================================================
      TEMA — cambia aquí colores, tamaños y radios
      ========================================================= */
+  .auth-panel{padding-top:64px;display:grid;gap:20px;text-align:center}
+  .auth-panel img{margin:0 auto;border-radius:16px}
+  .auth-panel .primary{width:100%;text-align:center}
+  .auth-demo{color:var(--text);padding:12px}
   :root{
     --bg:#0e0e0f;
     --surface:#19191b;

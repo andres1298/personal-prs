@@ -3,6 +3,8 @@ import { getPrisma } from './prisma.js';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
+export class RecordInputError extends Error {}
+
 function requireProfileId(profileId) {
   if (typeof profileId !== 'string' || !uuidPattern.test(profileId)) {
     throw new Error('A verified Auth user ID is required.');
@@ -12,7 +14,7 @@ function requireProfileId(profileId) {
 
 function optionalText(value, field) {
   if (value == null || value === '') return null;
-  if (typeof value !== 'string') throw new Error(`${field} must be text.`);
+  if (typeof value !== 'string') throw new RecordInputError(`${field} must be text.`);
   return value.trim() || null;
 }
 
@@ -32,28 +34,28 @@ function recordDto(record) {
 }
 
 async function validatedRecord(input) {
-  if (!input || typeof input !== 'object') throw new Error('Record input is required.');
+  if (!input || typeof input !== 'object') throw new RecordInputError('Record input is required.');
   const movement = await getPrisma().movement.findUnique({ where: { id: input.movementId } });
-  if (!movement) throw new Error('Unknown movement.');
+  if (!movement) throw new RecordInputError('Unknown movement.');
 
   const value = String(input.value);
   if (!/^\d{1,9}(\.\d{1,3})?$/.test(value) || Number(value) <= 0) {
-    throw new Error('Value must be positive with at most nine integer and three decimal digits.');
+    throw new RecordInputError('Value must be positive with at most nine integer and three decimal digits.');
   }
   if (typeof input.performedOn !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(input.performedOn)) {
-    throw new Error('Performed date must use YYYY-MM-DD.');
+    throw new RecordInputError('Performed date must use YYYY-MM-DD.');
   }
   const performedOn = new Date(`${input.performedOn}T00:00:00.000Z`);
   if (input.performedOn.startsWith('0000') || !Number.isFinite(performedOn.getTime()) || performedOn.toISOString().slice(0, 10) !== input.performedOn) {
-    throw new Error('Performed date is invalid.');
+    throw new RecordInputError('Performed date is invalid.');
   }
   const repetitionMax = input.repetitionMax ?? null;
   if (movement.measurementType === 'WEIGHT' ? ![1, 3, 5].includes(repetitionMax) : repetitionMax !== null) {
-    throw new Error('Weight records require 1, 3 or 5 repetitions; time records have none.');
+    throw new RecordInputError('Weight records require 1, 3 or 5 repetitions; time records have none.');
   }
   const videoUrl = optionalText(input.videoUrl, 'Video URL');
   if (videoUrl && new URL(videoUrl).protocol !== 'https:') {
-    throw new Error('Video URL must use HTTPS.');
+    throw new RecordInputError('Video URL must use HTTPS.');
   }
   return {
     movementId: movement.id,
