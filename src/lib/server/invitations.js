@@ -96,8 +96,9 @@ export async function acceptInvitation(token, password, now = new Date()) {
       await tx.invitation.update({ where: { tokenHash }, data: { acceptedProfileId: data.user.id } });
     });
   } catch (profileError) {
-    await authAdmin.deleteUser(data.user.id);
-    await release();
+    // Cleanup steps are independent so a failed delete still frees the link; the original error wins.
+    try { await authAdmin.deleteUser(data.user.id); } catch {}
+    try { await release(); } catch {}
     throw profileError;
   }
   return { email: invitation.email };

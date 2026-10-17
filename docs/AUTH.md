@@ -34,6 +34,10 @@ Vercel's Supabase integration installs the public Supabase variables, `SUPABASE_
 
 Only the SHA-256 hash of each link token is stored. Treat a link like a password until it is used or revoked.
 
+## Recover a stuck invitation
+
+If a network failure happens after Supabase created the account but before the app saved the profile, the invitee may see "Ya existe una cuenta con este correo" and a new invitation fails the same way. In **Authentication → Users**, find that email: if its UUID has no row in `Profile`, delete the Auth user, then create a new invitation.
+
 ## Session and data boundaries
 
 - Access is granted to administrators listed in `SUPABASE_ADMIN_USER_IDS` and to accounts with a profile. Profiles are created only by accepting an invitation (or for administrators on first access); user-editable metadata never grants access.

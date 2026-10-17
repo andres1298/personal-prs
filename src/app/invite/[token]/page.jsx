@@ -1,8 +1,9 @@
 import { findValidInvitation, MIN_PASSWORD_LENGTH } from '../../../lib/server/invitations';
 
 export const dynamic = 'force-dynamic';
-// The link token is a credential; keep it out of Referer headers.
-export const metadata = { referrer: 'no-referrer' };
+// The link token is a credential; keep its path out of cross-origin Referer headers.
+// no-referrer would make browsers send Origin: null on the form post, failing the origin check.
+export const metadata = { referrer: 'same-origin' };
 
 const formErrors = {
   mismatch: 'Las contraseñas no coinciden.',

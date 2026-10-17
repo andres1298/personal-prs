@@ -76,3 +76,10 @@ test('cross-origin acceptance is rejected', async () => {
   assert.equal((await POST(form(valid, 'https://other.example.test'))).status, 403);
   assert.deepEqual(calls, []);
 });
+
+test('the invitation page keeps the Origin header on its same-origin form post', async () => {
+  // A no-referrer policy makes browsers send Origin: null on form POSTs, which hasSameOrigin rejects.
+  const page = await readFile(new URL('../src/app/invite/[token]/page.jsx', import.meta.url), 'utf8');
+  const policy = page.match(/referrer:\s*'([^']+)'/)?.[1];
+  assert.ok(['same-origin', 'strict-origin', 'strict-origin-when-cross-origin'].includes(policy), `unexpected referrer policy ${policy}`);
+});

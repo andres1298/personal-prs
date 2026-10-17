@@ -51,7 +51,7 @@ function fakeDatabase({ failProfile = false } = {}) {
   return db;
 }
 
-async function service({ failProfile, authError } = {}) {
+async function service({ failProfile, authError, failDelete } = {}) {
   const db = fakeDatabase({ failProfile });
   const auth = { created: [], deleted: [] };
   const dependencies = {
@@ -66,7 +66,7 @@ async function service({ failProfile, authError } = {}) {
           await new Promise((resolve) => setTimeout(resolve, 5));
           return authError ? { data: { user: null }, error: authError } : { data: { user: { id: newUserId } }, error: null };
         },
-        deleteUser: async (id) => { auth.deleted.push(id); return { error: null }; },
+        deleteUser: async (id) => { auth.deleted.push(id); if (failDelete) throw new Error('Private delete failure'); return { error: null }; },
       }),
     },
   };
@@ -194,4 +194,12 @@ test("revoke only affects the inviter's pending invitation", async () => {
   assert.equal(await api.revokeInvitation(otherAdminId, invitation.id, now), false);
   await api.acceptInvitation(token, 'long-password', now);
   assert.equal(await api.revokeInvitation(adminId, invitation.id, now), false);
+});
+
+test('a failing auth cleanup still releases the claim and keeps the original error', async () => {
+  const { api, db, auth } = await service({ failProfile: true, failDelete: true });
+  const { token } = await api.createInvitation(adminId, { name: 'Ana', email: 'ana@example.test' }, now);
+  await assert.rejects(api.acceptInvitation(token, 'long-password', now), /Private profile failure/);
+  assert.deepEqual(auth.deleted, [newUserId]);
+  assert.equal(db.invitations[0].acceptedAt, null);
 });
