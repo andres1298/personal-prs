@@ -23,11 +23,36 @@ enum MovementCategory {
 
 model Profile {
   // Supabase Auth identity; Auth tables remain externally managed.
-  id          String           @id @db.Uuid
-  displayName String?
-  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
-  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
-  records     PersonalRecord[]
+  // Rows are created only by accepting an invitation or by admin bootstrap.
+  id                 String           @id @db.Uuid
+  displayName        String?
+  email              String?          @unique
+  invitedById        String?          @db.Uuid
+  createdAt          DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
+  records            PersonalRecord[]
+  invitedBy          Profile?         @relation("ProfileInviter", fields: [invitedById], references: [id], onDelete: Restrict)
+  invitees           Profile[]        @relation("ProfileInviter")
+  invitationsSent    Invitation[]     @relation("InvitationInviter")
+  acceptedInvitation Invitation?      @relation("InvitationAcceptance")
+}
+
+model Invitation {
+  id                String    @id @default(uuid(7)) @db.Uuid
+  // SHA-256 of the link token; the token itself is never stored.
+  tokenHash         String    @unique
+  name              String
+  email             String
+  invitedById       String    @db.Uuid
+  expiresAt         DateTime  @db.Timestamptz(3)
+  acceptedAt        DateTime? @db.Timestamptz(3)
+  acceptedProfileId String?   @unique @db.Uuid
+  revokedAt         DateTime? @db.Timestamptz(3)
+  createdAt         DateTime  @default(now()) @db.Timestamptz(3)
+  invitedBy         Profile   @relation("InvitationInviter", fields: [invitedById], references: [id], onDelete: Restrict)
+  acceptedProfile   Profile?  @relation("InvitationAcceptance", fields: [acceptedProfileId], references: [id], onDelete: Restrict)
+
+  @@index([invitedById, acceptedAt, revokedAt])
 }
 
 model Movement {
