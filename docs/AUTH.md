@@ -9,8 +9,10 @@ Google OAuth uses Supabase's PKCE flow and cookie sessions. Prisma accesses Post
 | `NEXT_PUBLIC_SUPABASE_URL` | Project API URL from the Connect dialog | Public configuration |
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Project publishable key | Public; never substitute a secret/service-role key |
 | `SUPABASE_ALLOWED_USER_IDS` | Comma-separated Auth UUIDs approved by the administrator | Server only; empty denies all accounts |
-| `DATABASE_URL` | Prisma runtime connection | Server secret |
-| `DIRECT_DATABASE_URL` | Prisma migration connection | Private migration environment; unnecessary for runtime/build |
+| `DATABASE_URL` | Prisma runtime connection; falls back to `POSTGRES_PRISMA_URL` | Server secret |
+| `DIRECT_DATABASE_URL` | Prisma migration connection; falls back to `POSTGRES_URL_NON_POOLING` | Private migration environment; unnecessary for runtime/build |
+
+Vercel's Supabase integration installs the public Supabase variables and the `POSTGRES_*` fallbacks. Only `SUPABASE_ALLOWED_USER_IDS` must be added manually.
 
 Configure local values in ignored `.env.local` and deployment values in Vercel's environment manager. Use a separate project for previews that write test data. Configure TLS trust as described in [SUPABASE.md](SUPABASE.md).
 

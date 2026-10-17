@@ -30,13 +30,11 @@ Use Node 24 or a supported Prisma 7 runtime. Prisma CLI, client and Postgres ada
 
 The lockfile overrides the CLI's transitive `deepmerge-ts` and `mysql2` dependencies to patched versions. The application uses only Postgres; retain and review these overrides when upgrading Prisma.
 
-- `DATABASE_URL`: server runtime connection, normally the transaction pooler.
-- `DIRECT_DATABASE_URL`: migration connection, direct or session pooler.
+- `DATABASE_URL`: server runtime connection, normally the transaction pooler. Falls back to `POSTGRES_PRISMA_URL` from Vercel's Supabase integration.
+- `DIRECT_DATABASE_URL`: migration connection, direct or session pooler. Falls back to `POSTGRES_URL_NON_POOLING`.
 - `SHADOW_DATABASE_URL`: an independent disposable database used by `migrate dev` when required. Never point it to an application database.
 
-The CLI loads an optional `.env.local`; process environment values take precedence. Client creation is lazy and reused per process, with one connection and validated TLS. The `pg` adapter owns pooling. Do not copy engine-specific pool parameters from older Prisma releases; `pgbouncer=true` is not a substitute for the driver's configuration. Certificate trust must be configured privately in each environment.
-
-Runtime SSL URL parameters are removed before passing the connection to `pg` so they cannot override certificate verification. Configure runtime trust through Node's certificate settings. Migration connections still use the Prisma CLI's connection configuration.
+The CLI loads an optional `.env.local`; process environment values take precedence. Client creation is lazy and reused per process, with one connection and validated TLS. The `pg` adapter owns pooling. Do not copy engine-specific pool parameters from older Prisma releases; `pgbouncer=true` is not a substitute for the driver's configuration. Runtime SSL URL parameters are removed before passing the connection to `pg` so they cannot override certificate verification. Runtime trust uses Node's default CAs plus the public Supabase Root 2021 CA from `src/lib/server/database-config.js`. Migration connections still use the Prisma CLI's connection configuration.
 
 `DATABASE_SSL=disable` is accepted only for loopback hosts and is intended for disposable local Postgres tests. Remote connections always verify TLS. Do not disable TLS to work around certificate errors.
 

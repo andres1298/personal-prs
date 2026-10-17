@@ -1,6 +1,7 @@
 import { existsSync } from 'node:fs';
 import { loadEnvFile } from 'node:process';
 import { defineConfig } from 'prisma/config';
+import { getMigrationDatabaseUrl } from './src/lib/server/database-config.js';
 
 // Keep CI-provided values authoritative; local files are optional for generation.
 if (existsSync('.env.local')) loadEnvFile('.env.local');
@@ -12,7 +13,7 @@ export default defineConfig({
     seed: 'node --conditions=react-server prisma/seed.mjs',
   },
   datasource: {
-    url: process.env.DIRECT_DATABASE_URL ?? '',
+    url: getMigrationDatabaseUrl(),
     shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
   },
 });
