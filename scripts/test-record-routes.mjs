@@ -17,7 +17,6 @@ async function routes(access, failure) {
     '../../../lib/server/auth': { getAccess: async () => access, hasSameOrigin },
     '../../../lib/server/records': {
       RecordInputError,
-      upsertProfile: async (id) => calls.push(['profile', id]),
       listRecords: async (id) => { calls.push(['list', id]); return []; },
       createRecord: async (id, input) => {
         calls.push(['create', id, input]);
@@ -63,7 +62,7 @@ test('authorized reads and creation use only the verified server identity', asyn
   const created = await handlers.POST(post());
   assert.equal(created.status, 201);
   assert.deepEqual(calls, [
-    ['list', ownerId], ['profile', ownerId],
+    ['list', ownerId],
     ['create', ownerId, { movementId: 'clean-and-jerk', value: 185, performedOn: '2026-10-03', repetitionMax: 3, notes: 'Test' }],
   ]);
 });

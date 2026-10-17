@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../lib/server/auth';
-import { createRecord, listRecords, RecordInputError, toLegacyRecord, upsertProfile } from '../../../lib/server/records';
+import { createRecord, listRecords, RecordInputError, toLegacyRecord } from '../../../lib/server/records';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -44,7 +44,6 @@ export async function POST(request) {
         input.move.length > 100 || (input.notes != null && (typeof input.notes !== 'string' || input.notes.length > 5000))) {
       return json({ error: 'Revisa los datos del registro.' }, 400);
     }
-    await upsertProfile(access.user.id);
     const record = await createRecord(access.user.id, {
       movementId: input.move.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-'),
       value: input.value,

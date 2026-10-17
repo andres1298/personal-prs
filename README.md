@@ -1,6 +1,6 @@
 # personal-prs
 
-Personal CrossFit PR tracker with progress charts and a plate calculator. Next.js uses Supabase Auth for Google sign-in and Prisma for server access to Supabase Postgres.
+Personal CrossFit PR tracker with progress charts and a plate calculator. Next.js uses Supabase Auth for invitation-only email/password sign-in and Prisma for server access to Supabase Postgres.
 
 ## Development
 
@@ -12,7 +12,7 @@ cp .env.example .env.local
 npm run dev
 ```
 
-Configure the project URL, publishable key, database connection and approved user IDs in `.env.local`. Follow [Auth setup](docs/AUTH.md) for Google OAuth and account authorization, and [database setup](docs/SUPABASE.md) for connections and TLS trust.
+Configure the project URL, publishable key, secret key, database connection and administrator IDs in `.env.local`. Follow [Auth setup](docs/AUTH.md) for the first administrator and invitations, and [database setup](docs/SUPABASE.md) for connections and TLS trust.
 
 The home page requests sign-in. `/?demo=1` explicitly opens sample data; demo records stay in memory and are never written to Supabase. Authorized sessions read and create personal records through `/api/records`. The server derives ownership from verified Auth. Failed live requests show an error rather than replacing real records with samples. Settings stay on the device, separately for each account and demo mode.
 
@@ -24,11 +24,11 @@ Prisma owns application models and migrations. See [Prisma persistence](docs/PRI
 
 ```bash
 npm run db:check
-node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs
+node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-accept-route.mjs
 npm run build
 ```
 
-Access tests check default denial, authorization removal, editable metadata and cross-origin mutations. They do not prove real Google sessions, complete database isolation or historical import.
+Access tests check default denial, admin and invited-profile access, single-use invitations, editable metadata and cross-origin mutations. They do not prove real sessions, complete database isolation or historical import.
 
 ## Vercel deployment
 

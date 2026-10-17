@@ -1,8 +1,9 @@
 'use client';
 
 import { useEffect } from 'react';
+import InvitationsPanel from './invitations-panel';
 
-export default function App({ hasBackend, userId = 'demo' }) {
+export default function App({ hasBackend, userId = 'demo', isAdmin = false }) {
   useEffect(() => {
     let cleanup;
     let active = true;
@@ -78,6 +79,7 @@ export default function App({ hasBackend, userId = 'demo' }) {
         <div className="setrow" style={{ marginBottom: 10 }}><div>Datos<div className="sub" id="sKeyTxt" style={{ fontSize: 13, marginTop: 2 }} /></div><button className="okbtn" id="sKeyBtn" /></div>
         <div className="setrow" style={{ marginBottom: 10 }}><div>Modo simple<div className="sub" style={{ fontSize: 13, marginTop: 2 }}>Solo ejercicio, peso, % y la barra final</div></div><button className="switch" id="sSimple" data-a="simple" /></div>
         <div className="setrow"><div>Pantalla siempre encendida<div className="sub" style={{ fontSize: 13, marginTop: 2 }}>Mientras estás en un levantamiento</div></div><button className="switch" id="sWake" data-a="wake" /></div>
+        {isAdmin && <InvitationsPanel />}
       </div>
     </section>
   </>;
