@@ -1,16 +1,17 @@
 import { Pool } from 'pg';
+import { databaseCertificateAuthorities, getDatabaseUrl } from '../src/lib/server/database-config.js';
 
-const connectionString = process.env.DATABASE_URL;
+const connectionString = getDatabaseUrl();
 
 if (!connectionString) {
-  console.error('Falta DATABASE_URL en .env.local. Consulta docs/SUPABASE.md.');
+  console.error('Falta DATABASE_URL (o POSTGRES_PRISMA_URL) en .env.local. Consulta docs/SUPABASE.md.');
   process.exitCode = 1;
 } else {
   const pool = new Pool({
     connectionString,
     max: 1,
     connectionTimeoutMillis: 8000,
-    ssl: { rejectUnauthorized: true },
+    ssl: { ca: databaseCertificateAuthorities, rejectUnauthorized: true },
   });
 
   try {

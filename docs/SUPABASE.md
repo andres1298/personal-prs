@@ -25,21 +25,20 @@ Comprueba la conexión con una consulta de lectura que no crea ni modifica tabla
 npm run db:check
 ```
 
-Si Node informa `SELF_SIGNED_CERT_IN_CHAIN`, descarga el certificado raíz desde **Database → Settings → SSL Configuration** y configura su ruta antes de iniciar Node. En PowerShell, con el certificado local en la raíz del proyecto:
-
-```powershell
-$env:NODE_EXTRA_CA_CERTS = (Resolve-Path -LiteralPath prod-ca-2021.crt).Path
-npm run db:check
-npm run dev
-```
-
-El certificado local se excluye de Git con `*.crt`. Configura la confianza TLS apropiada en cada entorno; no desactives la validación del certificado. Las variables de conexión siguen exclusivamente en `.env.local` o en la configuración privada del despliegue.
+El servidor y `db:check` confían en la CA raíz pública de Supabase (Supabase Root 2021 CA), incluida en `src/lib/server/database-config.js` junto a las CA predeterminadas de Node. No hace falta `NODE_EXTRA_CA_CERTS` ni descargar el certificado; no desactives la validación del certificado. Las variables de conexión siguen exclusivamente en `.env.local` o en la configuración privada del despliegue.
 
 El código de servidor obtiene el cliente mediante `getPrisma()` en `src/lib/server/prisma.js`; las operaciones de persistencia están en `src/lib/server/records.js`. La importación `server-only` impide usar esos módulos desde un componente cliente. La configuración limita cada proceso a una conexión y exige TLS para conexiones remotas. El script `db:check` conserva una consulta diagnóstica de conectividad con `pg`. La interfaz Next.js usa `/api/records` para leer y registrar PRs con una sesión autorizada de Supabase. Consulta [AUTH.md](AUTH.md) para configurar el acceso y [PRISMA.md](PRISMA.md) para las entidades y pruebas de persistencia.
 
 ## Despliegue
 
-Cuando se prepare [issue #16](https://github.com/andres1298/personal-prs/issues/16), configura `DATABASE_URL` y `DIRECT_DATABASE_URL` como variables privadas del proyecto en Vercel para cada entorno que vaya a usarlas. Usa cadenas del proyecto Supabase correspondiente a ese entorno. No introduzcas secretos en archivos versionados ni en variables `NEXT_PUBLIC_`. La migración del esquema se ejecuta como paso controlado de despliegue, no durante `next build` ni en cada petición.
+Para [issue #16](https://github.com/andres1298/personal-prs/issues/16), la integración de Supabase en Vercel instala las variables del proyecto enlazado. La aplicación las usa como alternativa cuando no existen las variables propias:
+
+| Variable de la aplicación | Alternativa de la integración |
+| --- | --- |
+| `DATABASE_URL` | `POSTGRES_PRISMA_URL` (transaction pooler) |
+| `DIRECT_DATABASE_URL` | `POSTGRES_URL_NON_POOLING` |
+
+La integración también instala `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `SUPABASE_ALLOWED_USER_IDS` se configura manualmente (ver [AUTH.md](AUTH.md)). Tras cambiar variables, vuelve a desplegar. Para migrar la base enlazada desde tu máquina, descarga sus variables con `vercel env pull .env.local` y ejecuta `npm run db:migrate:deploy` y `npm run db:seed`. No introduzcas secretos en archivos versionados ni en variables `NEXT_PUBLIC_`. La migración del esquema se ejecuta como paso controlado de despliegue, no durante `next build` ni en cada petición.
 
 ## Único flujo de migraciones de esquema
 
