@@ -1,7 +1,8 @@
 import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
-import { isAuthorizedUser } from './access-policy.js';
+import { isAdminUser } from './access-policy.js';
+import { ensureAdminProfile, findProfile } from './records.js';
 
 export { hasSameOrigin } from './access-policy.js';
 
@@ -30,10 +31,17 @@ export async function createAuthClient() {
 }
 
 export async function getAccess() {
-  if (!hasAuthConfiguration()) return { user: null, authorized: false };
+  if (!hasAuthConfiguration()) return { user: null, authorized: false, isAdmin: false };
   const client = await createAuthClient();
   // Verify with Auth, including revoked sessions; never trust a cookie's user object.
   const { data, error } = await client.auth.getUser();
   const user = error ? null : data.user;
-  return { user, authorized: isAuthorizedUser(user, process.env.SUPABASE_ALLOWED_USER_IDS) };
+  if (isAdminUser(user, process.env.SUPABASE_ADMIN_USER_IDS)) {
+    // Invitations reference the inviter's profile, so admins always have one.
+    await ensureAdminProfile(user);
+    return { user, authorized: true, isAdmin: true };
+  }
+  // Members gain access only through a profile created by accepting an invitation.
+  const authorized = Boolean(user && !user.is_anonymous && await findProfile(user.id));
+  return { user, authorized, isAdmin: false };
 }

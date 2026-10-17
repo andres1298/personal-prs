@@ -71,6 +71,16 @@ async function validatedRecord(input) {
 
 // Internal persistence API: callers must obtain identity from verified Auth,
 // never from a browser-supplied owner. Public integration belongs to issues #5/#6/#7.
+export async function findProfile(authUserId) {
+  return getPrisma().profile.findUnique({ where: { id: requireProfileId(authUserId) }, select: { id: true } });
+}
+
+export async function ensureAdminProfile(user) {
+  const id = requireProfileId(user?.id);
+  const email = typeof user.email === 'string' ? user.email.trim().toLowerCase() : null;
+  await getPrisma().profile.upsert({ where: { id }, create: { id, email }, update: {} });
+}
+
 export async function upsertProfile(authUserId, displayName = null) {
   const id = requireProfileId(authUserId);
   const name = optionalText(displayName, 'Display name');
