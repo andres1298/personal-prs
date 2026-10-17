@@ -9,6 +9,6 @@ export default async function Home({ searchParams }) {
   if (demo === '1') return <App hasBackend={false} />;
   const configured = hasAuthConfiguration();
   const { user, authorized, isAdmin } = await getAccess();
-  if (!authorized) return <AuthPanel configured={configured} signedIn={Boolean(user)} authError={Boolean(authError)} />;
+  if (!authorized) return <AuthPanel configured={configured} signedIn={Boolean(user)} authError={authError} />;
   return <App hasBackend={true} userId={user.id} isAdmin={isAdmin} />;
 }
