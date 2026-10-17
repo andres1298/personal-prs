@@ -38,7 +38,7 @@ Para [issue #16](https://github.com/andres1298/personal-prs/issues/16), la integ
 | `DATABASE_URL` | `POSTGRES_PRISMA_URL` (transaction pooler) |
 | `DIRECT_DATABASE_URL` | `POSTGRES_URL_NON_POOLING` |
 
-La integración también instala `NEXT_PUBLIC_SUPABASE_URL` y `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`. `SUPABASE_ALLOWED_USER_IDS` se configura manualmente (ver [AUTH.md](AUTH.md)). Tras cambiar variables, vuelve a desplegar. Para migrar la base enlazada desde tu máquina, descarga sus variables con `vercel env pull .env.local` y ejecuta `npm run db:migrate:deploy` y `npm run db:seed`. No introduzcas secretos en archivos versionados ni en variables `NEXT_PUBLIC_`. La migración del esquema se ejecuta como paso controlado de despliegue, no durante `next build` ni en cada petición.
+La integración también instala `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` y `SUPABASE_SECRET_KEY`. `SUPABASE_ADMIN_USER_IDS` se configura manualmente (ver [AUTH.md](AUTH.md)). Tras cambiar variables, vuelve a desplegar. Para migrar la base enlazada desde tu máquina, descarga sus variables con `vercel env pull .env.local` y ejecuta `npm run db:migrate:deploy` y `npm run db:seed`. No introduzcas secretos en archivos versionados ni en variables `NEXT_PUBLIC_`. La migración del esquema se ejecuta como paso controlado de despliegue, no durante `next build` ni en cada petición.
 
 ## Único flujo de migraciones de esquema
 

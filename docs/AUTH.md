@@ -1,56 +1,55 @@
-# Supabase Auth and authorized access
+# Supabase Auth and invitation-only access
 
-Google OAuth uses Supabase's PKCE flow and cookie sessions. Prisma accesses Postgres only on the server. Authentication establishes identity; a private allowlist authorizes access until invitations are implemented.
+Accounts use Supabase email/password sessions stored in cookies. Nobody can sign up on their own: an account is created only when someone accepts a single-use invitation issued by an administrator. Prisma accesses Postgres only on the server.
 
 ## Environment configuration
 
 | Variable | Purpose | Exposure |
 | --- | --- | --- |
-| `NEXT_PUBLIC_SUPABASE_URL` | Project API URL from the Connect dialog | Public configuration |
-| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Project publishable key | Public; never substitute a secret/service-role key |
-| `SUPABASE_ALLOWED_USER_IDS` | Comma-separated Auth UUIDs approved by the administrator | Server only; empty denies all accounts |
+| `NEXT_PUBLIC_SUPABASE_URL` | Project API URL | Public configuration |
+| `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Project publishable key | Public; never substitute a secret key |
+| `SUPABASE_SECRET_KEY` | Admin client that creates invited accounts | Server secret; never `NEXT_PUBLIC_` |
+| `SUPABASE_ADMIN_USER_IDS` | Comma-separated Auth UUIDs of administrators | Server only; empty means no administrators |
 | `DATABASE_URL` | Prisma runtime connection; falls back to `POSTGRES_PRISMA_URL` | Server secret |
 | `DIRECT_DATABASE_URL` | Prisma migration connection; falls back to `POSTGRES_URL_NON_POOLING` | Private migration environment; unnecessary for runtime/build |
 
-Vercel's Supabase integration installs the public Supabase variables and the `POSTGRES_*` fallbacks. Only `SUPABASE_ALLOWED_USER_IDS` must be added manually.
+Vercel's Supabase integration installs the public Supabase variables, `SUPABASE_SECRET_KEY` and the `POSTGRES_*` fallbacks. Only `SUPABASE_ADMIN_USER_IDS` must be added manually. Configure local values in ignored `.env.local`. Redeploy after changing variables.
 
-Configure local values in ignored `.env.local` and deployment values in Vercel's environment manager. Use a separate project for previews that write test data. Configure TLS trust as described in [SUPABASE.md](SUPABASE.md).
+## Configure Supabase
 
-## Configure Google OAuth
+1. **Authentication → Sign In / Providers**: keep **Email** enabled, disable **Allow new users to sign up**, and disable any other provider (including Google). Server-side account creation through the secret key still works with sign-ups disabled.
+2. Apply migrations and the movement catalog to the linked database: `npm run db:migrate:deploy` and `npm run db:seed`.
 
-1. In Google Cloud, create or select the application's project. Configure the OAuth consent screen and audience. If it remains in testing, add the intended accounts as test users.
-2. Create an OAuth client of type **Web application**. Add the local origin and final HTTPS origin as authorized JavaScript origins.
-3. In Supabase **Authentication → Sign In / Providers → Google**, copy the provider callback URL. Add that exact URL to Google's authorized redirect URIs. This callback belongs to Supabase, not `/auth/callback` in this app.
-4. Save the Google client ID and client secret in Supabase's Google provider settings and enable the provider. Keep the secret there; never put it in source code or public configuration.
-5. In Supabase **Authentication → URL Configuration**, set the Site URL for the intended environment. Add `http://localhost:3000/auth/callback` to Redirect URLs for local development and the final HTTPS application's `/auth/callback` URL for production. If you run the local server on another port, use that exact origin and port in both configurations. Add only the preview callbacks you intend to use.
+## Create the first administrator
 
-The app starts OAuth through `POST /auth/login`, exchanges the code in `GET /auth/callback`, and redirects only to the home page. It does not accept arbitrary post-login destinations.
+1. In **Authentication → Users → Add user**, create your account with email, password and **Auto Confirm User**.
+2. Copy its UUID into `SUPABASE_ADMIN_USER_IDS` and redeploy (or restart the local server).
+3. Sign in with that email and password. The administrator's profile is created on first access.
 
-## Authorize the initial account
+## Invite someone
 
-1. Select **Continuar con Google**. A new account initially sees an authorization message and cannot access records.
-2. Find that account in Supabase **Authentication → Users** and verify the intended identity. Put its UUID in the private `SUPABASE_ALLOWED_USER_IDS` setting. Do not publish account details in issues.
-3. Restart the local server or redeploy Vercel after updating configuration, then reload the app. Authorization is checked on every record request.
-4. Approve additional UUIDs individually, separated by commas. Removing a UUID revokes application access on the next server request independently of token lifetime.
+1. Open **Ajustes → Invitaciones**, enter the person's name and email, and select **Crear link**. Copy the link and send it privately.
+2. The person opens the link, sees their name and email, chooses a password (minimum 8 characters, entered twice) and is signed in.
+3. Each link is tied to that email, expires after 7 days, works once and can be revoked from the same list while pending. Inviting an email that already has access is rejected.
 
-User-editable metadata cannot authorize an account. Anonymous accounts are rejected even if listed. Invitations and administration require separate implementation.
+Only the SHA-256 hash of each link token is stored. Treat a link like a password until it is used or revoked.
 
 ## Session and data boundaries
 
-- The proxy refreshes sessions and propagates cookies and cache headers. Private responses use `Cache-Control: private, no-store`.
-- The server calls `getUser()` to verify identity with Auth, including session revocation. It never trusts an unverified session's embedded user.
-- Private records return 401 without a valid session and 403 without authorization. Writes and sign-out require the request's exact origin.
-- The client cannot specify an owner or video reference when creating a record. The server assigns the verified user ID and validates fields through Prisma.
-- Tables retain RLS and the initial deny-by-default Data API configuration. Prisma uses server access and explicit owner filters, not automatic JWT forwarding into RLS. Full role/policy verification is required before changing direct API privileges.
-- Settings are device-local, scoped by account UUID, and separate from demo state. They are not synchronized to Postgres. Existing unscoped settings remain untouched.
-- Live video upload is disabled pending private Storage integration. Historical import remains separate. No existing records or files are removed.
+- Access is granted to administrators listed in `SUPABASE_ADMIN_USER_IDS` and to accounts with a profile. Profiles are created only by accepting an invitation (or for administrators on first access); user-editable metadata never grants access.
+- The server calls `getUser()` on every private request, which includes session revocation. Private records return 401 without a valid session and 403 without access. Invitation operations re-check the administrator role on every request.
+- Writes, sign-in, invitation acceptance and sign-out require the request's exact origin. Private responses use `Cache-Control: private, no-store`.
+- Acceptance claims the invitation with a conditional update, so concurrent submissions create at most one account. If account creation fails, the claim is released.
+- Tables retain RLS with no policies; Prisma uses server access with explicit owner filters.
+- Settings are device-local, scoped by account UUID, and separate from demo state.
+- Live video upload remains disabled pending private Storage integration.
 
 ## Verify after setup
 
-1. Sign in with an approved Google account and reload to confirm session persistence.
-2. Read records, create an agreed test PR, and reload to verify persistence, units and date. Keep private data out of screenshots and logs.
-3. Sign out and verify private operations reject requests. Check an unapproved account and a revoked authorization entry.
-4. With two approved accounts, verify each sees only its records. Attempt owner injection and cross-origin writes. Complete database policy and video tests before declaring full isolation.
-5. Run `node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs`, `npm run build` and `git diff --check`. The route tests isolate Auth and persistence dependencies to verify ownership assignment and request rejection; they do not test real sessions or database writes. These checks do not replace real OAuth and browser verification.
+1. Sign in as the administrator and reload to confirm session persistence.
+2. Create an invitation, open it in a private window, set a password and confirm you land in the app.
+3. Reopen the same link: it must show that the link is no longer valid. Revoke another pending link and confirm it stops working.
+4. With two accounts, verify each sees only its records.
+5. Run `node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-accept-route.mjs`, `npm run build` and `git diff --check`. These tests isolate Auth and persistence; they do not replace the browser checks above.
 
-References: [SSR clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [Google OAuth](https://supabase.com/docs/guides/auth/social-login/auth-google), [redirect URLs](https://supabase.com/docs/guides/auth/redirect-urls).
+References: [SSR clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [password sign-in](https://supabase.com/docs/guides/auth/passwords), [admin createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser).
