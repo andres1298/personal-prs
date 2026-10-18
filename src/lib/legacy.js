@@ -86,20 +86,30 @@ async function call(record){
   return data;
 }
 
+async function callBulk(records){
+  const res = await fetch('/api/records/bulk', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ records }), signal });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'No se pudo completar la solicitud.');
+  return data;
+}
+
 const demoApi = {
   async getRecords(){ return DEMO_RECORDS.map(r => ({ ...r })); },
-  async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; }   // solo en memoria
+  async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; },   // solo en memoria
+  async addRecords(recs){ return recs.map(r => ({ ...r })); },
 };
 const liveApi = {
   async getRecords(){ return (await call()).records; },
   async addRecord(rec, file){
     if (file) throw new Error('La subida de videos todavía no está disponible.');
     return (await call(rec)).record;
-  }
+  },
+  async addRecords(recs){ return (await callBulk(recs)).records; },
 };
 const api = {
   getRecords: (...a) => (usingDemo() ? demoApi : liveApi).getRecords(...a),
   addRecord:  (...a) => (usingDemo() ? demoApi : liveApi).addRecord(...a),
+  addRecords: (...a) => (usingDemo() ? demoApi : liveApi).addRecords(...a),
 };
 
 /* =========================================================
@@ -476,7 +486,7 @@ function renderPRs(){
   const { type, groups } = CATALOG[UI.prsTab];
   const visible = UI.prsGroup ? groups.filter(g => g.name === UI.prsGroup) : groups;
   $('#vPRs').innerHTML = `
-    <div class="hdr"><h1>PRs</h1></div>
+    <div class="hdr bflex"><h1>PRs</h1><button class="qbtn" data-a="quick" ${LOADING || LOAD_ERR ? 'disabled' : ''}>${I.bolt}Carga rápida</button></div>
     ${banner()}
     <div class="seg three" style="margin-top:0">${Object.keys(CATALOG).map(t =>
       `<button class="${t===UI.prsTab?'on':''}" data-a="prstab" data-v="${t}">${t}</button>`).join('')}</div>
@@ -571,6 +581,80 @@ $('#form').onsubmit = async e => {
     alert(err.message);
   } finally {
     btn.disabled = false; btn.textContent = 'Guardar';
+  }
+};
+
+/* =========================================================
+   QUICK UPLOAD — only fills movement + RM pairs without records
+   ========================================================= */
+const QUICK = { rm:1, values:{} };   // values: `${move}|${rm}` → typed text
+const quickPromptKey = `prs_quick_prompt_${storageScope}`;
+const weightGroups = () => Object.values(CATALOG).filter(c => c.type === 'weight').flatMap(c => c.groups);
+const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const validQuick = s => /^\d{1,4}([.,]\d{1,2})?$/.test(s.trim()) && parseValue(s.trim(), 'weight') > 0;
+const lastRecord = (move, rm) => recordsOf(move, rm).reduce((a, b) => (!a || b.date > a.date ? b : a), null);
+const quickEntries = () => Object.entries(QUICK.values)
+  .map(([k, raw]) => { const [move, rm] = k.split('|'); return { move, rm:+rm, raw }; })
+  .filter(e => e.raw.trim() && !lastRecord(e.move, e.rm));
+
+function openQuick(){
+  QUICK.rm = 1; QUICK.values = {};
+  renderQuick();
+  $('#quickSheet').classList.add('open');
+  $('#quickSheet').scrollTo(0, 0);
+}
+function renderQuick(){
+  const moves = weightGroups().flatMap(g => g.moves);
+  $('#qSeg').innerHTML = RMS.map(n => {
+    const done = moves.every(m => lastRecord(m, n));
+    return `<button class="${n===QUICK.rm?'on':''}" data-a="qrm" data-v="${n}">${n}RM${done ? ' ✓' : ''}</button>`;
+  }).join('');
+  const allDone = moves.every(m => lastRecord(m, QUICK.rm));
+  $('#qList').innerHTML = (allDone ? `<p class="sub" style="text-align:center;margin-bottom:12px">Ya tienes todos los ${QUICK.rm}RM registrados.</p>` : '') +
+    weightGroups().map(g => `
+    <div class="grp">
+      <h3><i class="dot" style="--c:var(${g.color})"></i>${g.name}</h3>
+      <div class="list">${g.moves.map(m => {
+        const last = lastRecord(m, QUICK.rm);
+        if (last) return `<label class="mrow qrow done"><span>${m}</span><input value="${last.value} lb" disabled aria-label="${escAttr(m)} ${QUICK.rm}RM"></label>`;
+        const raw = QUICK.values[`${m}|${QUICK.rm}`] || '';
+        return `<label class="mrow qrow"><span>${m}</span><input class="qin${raw && !validQuick(raw) ? ' bad' : ''}" inputmode="decimal" placeholder="lb" autocomplete="off"
+          data-move="${escAttr(m)}" value="${escAttr(raw)}" aria-label="${escAttr(m)} ${QUICK.rm}RM en libras"></label>`;
+      }).join('')}</div>
+    </div>`).join('');
+  updateQuickSave();
+}
+function updateQuickSave(){
+  const entries = quickEntries();
+  const btn = $('#qSave');
+  btn.disabled = !entries.length || entries.some(e => !validQuick(e.raw));
+  btn.textContent = entries.length ? `Guardar (${entries.length})` : 'Guardar';
+}
+function closeQuickPrompt(){
+  store.set(quickPromptKey, { seen:true });
+  $('#quickPrompt').classList.remove('open');
+}
+document.addEventListener('input', e => {
+  if (!e.target.matches('.qin')) return;
+  QUICK.values[`${e.target.dataset.move}|${QUICK.rm}`] = e.target.value;
+  e.target.classList.toggle('bad', !!e.target.value.trim() && !validQuick(e.target.value));
+  updateQuickSave();
+}, { signal });
+$('#qSave').onclick = async () => {
+  const entries = quickEntries();
+  if (!entries.length || entries.some(e => !validQuick(e.raw))) return;
+  const date = today();
+  const btn = $('#qSave');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const saved = await api.addRecords(entries.map(e => ({ move:e.move, value:parseValue(e.raw.trim(), 'weight'), date, rm:e.rm })));
+    RECORDS.push(...saved);
+    QUICK.values = {};
+    $('#quickSheet').classList.remove('open');
+    renderAll();
+  } catch (err) {
+    alert(err.message);
+    updateQuickSave();
   }
 };
 
@@ -675,6 +759,11 @@ document.addEventListener('click', e => {
       document.body.append(form); form.submit(); break;
     }
 
+    case 'quick':      openQuick(); break;
+    case 'qrm':        QUICK.rm = +v; renderQuick(); break;
+    case 'quickstart': closeQuickPrompt(); openQuick(); break;
+    case 'quickskip':  closeQuickPrompt(); break;
+
     case 'prstab':   UI.prsTab = v; UI.prsGroup = null; renderPRs(); break;
     case 'prsgroup': UI.prsGroup = UI.prsGroup === v ? null : v; renderPRs(); break;
     case 'detail':   openDetail(v); break;
@@ -702,6 +791,8 @@ async function loadData(){
   LOADING = false;
   renderAll();
   if ($('#detail').classList.contains('open') && UI.move) openDetail(UI.move, UI.rm);
+  // Offer the quick upload once to accounts that have no records yet.
+  if (!DEMO && !LOAD_ERR && !RECORDS.length && !store.get(quickPromptKey, { seen:false }).seen) $('#quickPrompt').classList.add('open');
 }
 renderAll();
 loadData();
