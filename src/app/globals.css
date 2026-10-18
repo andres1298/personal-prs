@@ -102,6 +102,9 @@ svg { display: block; flex: none; }
 .center { display: flex; justify-content: center; text-align: center; }
 .wrap { max-width: 600px; margin: 0 auto; padding: 0 16px; }
 .app-loading { min-height: 100dvh; }
+/* iOS standalone apps size the initial viewport without the status bar, which lifts fixed bottom bars until
+   the page scrolls; reserving that height keeps the tab bar flush with the bottom edge. */
+@media (display-mode: standalone) { html { min-height: calc(100% + var(--safe-top)); } }
 
 .page { padding-bottom: calc(var(--tab-height) + var(--safe-bottom) + 40px); }
 .page[data-focus="true"] { padding-bottom: calc(var(--safe-bottom) + 24px); }
@@ -114,7 +117,7 @@ svg { display: block; flex: none; }
   min-height: calc(var(--safe-top) + 44px); padding: var(--safe-top) 16px 0; margin: 0 -16px;
   transition: background-color .25s, box-shadow .25s;
 }
-.navbar[data-collapsed="true"] {
+.navbar[data-scrolled="true"] {
   background: var(--material); box-shadow: 0 .5px 0 var(--separator);
   -webkit-backdrop-filter: saturate(180%) blur(20px); backdrop-filter: saturate(180%) blur(20px);
 }
