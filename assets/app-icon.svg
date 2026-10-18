@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <!-- App icon source. Full-bleed background; artwork stays inside the 80% maskable circle.
+       Letters are strokes, not text, so rendering never depends on installed fonts. -->
+  <defs>
+    <linearGradient id="background" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#26262b"/>
+      <stop offset="1" stop-color="#0c0c0f"/>
+    </linearGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#background)"/>
+  <g transform="translate(-36 9)" fill="none" stroke="#ffffff" stroke-width="84" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M300 552V318H388A80 80 0 0 1 388 478H300"/>
+    <path d="M620 552V318H708A80 80 0 0 1 708 478H620M690 478L796 552"/>
+  </g>
+  <!-- Plate colors from the plate calculator: 55, 45, 35 and 25 lb. -->
+  <g transform="translate(-36 9)">
+    <rect x="258" y="682" width="133" height="48" rx="24" fill="#ff453a"/>
+    <rect x="407" y="682" width="133" height="48" rx="24" fill="#0a84ff"/>
+    <rect x="556" y="682" width="133" height="48" rx="24" fill="#ff9f0a"/>
+    <rect x="705" y="682" width="133" height="48" rx="24" fill="#30d158"/>
+  </g>
+</svg>
