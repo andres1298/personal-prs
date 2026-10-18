@@ -21,14 +21,20 @@ export default function App({ hasBackend, userId = 'demo', isAdmin = false }) {
   return <>
     <section id="vExec" className="wrap" />
     <section id="vPRs" className="wrap hidden" />
+    <section id="vTimer" className="wrap hidden" />
 
     <div className="dock hidden" id="dock"><div className="pstrip" id="pstrip" /></div>
+    <button className="tpill hidden" id="timerPill" data-a="t-open" />
 
     <nav className="tabbar" aria-label="Navegación principal">
       <button className="tab" data-a="tab" data-v="exec" id="tabExec" />
       <button className="tab" data-a="tab" data-v="prs" id="tabPrs" />
+      <button className="tab" data-a="tab" data-v="timer" id="tabTimer" />
       <button className="tab" data-a="add" id="tabAdd" />
     </nav>
+
+    <section className="sheet" id="timerCfg"><div className="wrap" id="tCfgBody" /></section>
+    <section className="sheet" id="timerRun"><div className="wrap" id="tRunBody" /></section>
 
     <section className="sheet" id="detail">
       <div className="wrap">
@@ -67,6 +73,25 @@ export default function App({ hasBackend, userId = 'demo', isAdmin = false }) {
         </form>
       </div>
     </section>
+
+    <section className="sheet" id="quickSheet">
+      <div className="wrap">
+        <div className="navbar"><button className="nbtn" data-a="close">Cancelar</button><div className="ttl">Carga rápida</div><span /></div>
+        <p className="sub" style={{ textAlign: 'center', marginTop: 0 }}>Completa los pesos que te faltan. Se guardan con fecha de hoy.</p>
+        <div className="seg three" id="qSeg" />
+        <div id="qList" />
+        <button className="primary qsave" id="qSave" />
+      </div>
+    </section>
+
+    <div className="modal" id="quickPrompt" role="dialog" aria-modal="true" aria-labelledby="qpTitle">
+      <div className="modal-card">
+        <h2 id="qpTitle">¿Quieres hacer un cargado rápido de tus pesos?</h2>
+        <p className="sub">Escribe tus PRs de una vez y empieza a calcular tus cargas.</p>
+        <button className="primary" data-a="quickstart">Empezar</button>
+        <button className="quiet" data-a="quickskip">Ahora no</button>
+      </div>
+    </div>
 
     <section className="sheet" id="setSheet">
       <div className="wrap">

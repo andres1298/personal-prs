@@ -25,6 +25,7 @@
     /* Colores de categoría y discos */
     --red:#e5636b; --blue:#4a8fe7; --amber:#e0a43b; --green:#4cc38a;
     --purple:#a97ce8; --teal:#3cc4c4; --gray:#a1a1a6;
+    --lime:#d8ef4c; --cyan:#4fd9e8; --violet:#6656f2;   /* plantillas del timer */
     --p10:#d1d1d6; --p5:#3cc4c4; --p25s:#f28cb1;   /* discos de 10, 5 y 2.5 */
   }
   *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
@@ -55,7 +56,7 @@
   .sec{font-size:13px;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.6px;margin:24px 4px 8px}
 
   /* ---------- Tab bar ---------- */
-  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(3,1fr);
+  .tabbar{position:fixed;left:0;right:0;bottom:0;z-index:6;display:grid;grid-template-columns:repeat(4,1fr);
           padding-bottom:max(env(safe-area-inset-bottom), 6px);border-top:1px solid var(--line);
           background:var(--bar);transform:translateZ(0);-webkit-transform:translateZ(0)}
   /* extiende el fondo de la barra hacia abajo: tapa cualquier franja al rebotar o con la barra de Safari */
@@ -268,3 +269,71 @@
   .admin-row.off .who{opacity:.55}
   .admin-actions{display:flex;gap:8px;flex:none;margin-left:auto}
   .admin-actions .okbtn{height:34px;padding:0 12px;font-size:14px}
+
+  /* ---------- Carga rápida ---------- */
+  .hdr .qbtn{display:flex;align-items:center;gap:6px;font-size:14px}
+  .qbtn svg{width:14px;height:14px}
+  .qbtn:disabled{opacity:.5}
+  .qrow{cursor:text}
+  .qrow input{width:112px;flex:none;padding:9px 12px;text-align:right;font-weight:700}
+  .qrow input.bad{border-color:var(--red)}
+  .qrow.done{color:#55555a;cursor:default}
+  .qrow.done input{color:#55555a;background:transparent;border-color:transparent;font-weight:500}
+  .qsave{position:sticky;bottom:calc(env(safe-area-inset-bottom) + 12px);margin-top:4px}
+  .modal{position:fixed;inset:0;z-index:20;display:none;align-items:flex-end;justify-content:center;padding:16px;background:rgba(0,0,0,.6)}
+  .modal.open{display:flex}
+  .modal-card{width:100%;max-width:420px;background:var(--surface);border-radius:20px;padding:24px 20px calc(env(safe-area-inset-bottom) + 12px);display:grid;gap:12px;text-align:center}
+  .modal-card h2{font-size:22px;font-weight:800;letter-spacing:-.3px}
+  .quiet{height:44px;color:var(--muted);font-weight:600;font-size:16px;text-align:center}
+
+  /* ---------- Timer ---------- */
+  .tcards{display:grid;gap:12px}
+  .tcard{display:flex;align-items:center;gap:16px;width:100%;padding:16px;border-radius:22px;background:var(--surface);text-align:left}
+  .tcard:active{background:var(--surface2)}
+  .ticon{--c:var(--muted);width:56px;height:56px;flex:none;border-radius:16px;background:var(--c);color:#fff;display:flex;align-items:center;justify-content:center}
+  .ticon svg{width:30px;height:30px}
+  .ticon.big{width:72px;height:72px;border-radius:20px}
+  .ticon.big svg{width:38px;height:38px}
+  .tcopy{flex:1;display:grid;gap:3px;min-width:0}
+  .tcopy b{font-size:18px;font-weight:700;letter-spacing:.2px}
+  .tcopy small{font-size:14px;color:var(--muted);line-height:1.3}
+  .tarrow{color:var(--muted);flex:none}
+  .tarrow svg{width:22px;height:22px}
+  .tcur{--c:var(--muted);display:flex;justify-content:space-between;align-items:center;width:100%;padding:14px 16px;margin-bottom:4px;
+        border-radius:var(--r);background:color-mix(in srgb,var(--c) 16%,var(--surface));border:1px solid color-mix(in srgb,var(--c) 45%,transparent);text-align:left}
+  .tcur small{display:block;font-size:12px;color:var(--muted);font-weight:600}
+  .tcur b{font-size:17px}
+  .tcur .num{font-size:24px;font-weight:800}
+  .tcfghead{display:grid;justify-items:center;gap:12px;margin:12px 0 20px;text-align:center}
+  .tfields{display:grid;gap:10px}
+  .tstep{display:flex;align-items:center;gap:6px}
+  .tstep b{min-width:64px;text-align:center;font-size:18px}
+  .tstep button{width:40px;height:40px;border-radius:12px;background:var(--surface2);font-size:22px;font-weight:600;text-align:center}
+  .tnote{text-align:center;margin:16px 0}
+  .tstage{display:grid;justify-items:center;text-align:center;padding:36px 0 28px}
+  .tphase{font-size:15px;font-weight:800;letter-spacing:1.4px;text-transform:uppercase;color:var(--c)}
+  .tstage[data-kind="rest"] .tphase,.tstage[data-kind="paused"] .tphase{color:var(--muted)}
+  .tclock{font-size:min(30vw,132px);font-weight:800;letter-spacing:-3px;line-height:1.05;margin:6px 0 8px}
+  .tstage[data-kind="paused"] .tclock{opacity:.55}
+  .tsub{color:var(--muted);font-size:16px}
+  .tbar{width:100%;height:6px;margin-top:26px;border-radius:3px;background:var(--surface2);overflow:hidden}
+  .tbar i{display:block;height:100%;width:0;background:var(--c);border-radius:3px}
+  .tstage[data-kind="rest"] .tbar i{background:var(--muted)}
+  .tbig{width:100%;height:76px;border-radius:22px;background:var(--c);color:#111;font-size:22px;font-weight:800;text-align:center}
+  .tbig:active{filter:brightness(.9)}
+  .tcount{display:flex;justify-content:space-between;align-items:center;padding:6px 4px 0;font-size:16px;color:var(--muted)}
+  .tcount b{color:var(--text);font-size:20px}
+  .tctls{margin-top:22px;display:grid;gap:10px;text-align:center}
+  .tctl{height:52px;border-radius:var(--pill);background:var(--surface2);font-weight:700;font-size:16px;text-align:center}
+  .tctl.danger{color:var(--red)}
+  .tsum{padding-top:56px}
+  .tsum .tclock{font-size:min(26vw,112px)}
+  .tfull{width:100%;margin-top:6px}
+  .tpill{--c:var(--muted);position:fixed;z-index:9;left:50%;transform:translateX(-50%);top:calc(env(safe-area-inset-top) + 8px);
+         display:flex;align-items:center;gap:8px;height:34px;padding:0 14px 0 12px;border-radius:var(--pill);
+         background:#000;border:1px solid var(--line);box-shadow:0 4px 18px rgba(0,0,0,.45);font-size:14px;white-space:nowrap}
+  .tpill .dot{margin-right:0}
+  .tpill b{font-size:16px;font-weight:800}
+  .tpill span{color:var(--muted);font-weight:600}
+  body.has-timer .hdr{padding-top:calc(env(safe-area-inset-top) + 54px)}
+  body.has-timer :is(#vExec,#vPRs,#vTimer) .navbar{padding-top:calc(env(safe-area-inset-top) + 48px)}

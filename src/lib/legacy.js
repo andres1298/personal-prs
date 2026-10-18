@@ -1,3 +1,5 @@
+import { initTimer } from './timer-ui.js';
+
 export function initLegacyApp(hasBackend, userId = 'demo'){
 const controller = new AbortController();
 const { signal } = controller;
@@ -44,6 +46,7 @@ const PLATE_STYLE = {           // color y alto visual (%)
 /* Íconos */
 const I = {
   bolt:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  timer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 2M9.5 2.5h5M12 2.5V6"/></svg>',
   trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 8v8M8 12h8"/></svg>',
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>',
@@ -86,20 +89,30 @@ async function call(record){
   return data;
 }
 
+async function callBulk(records){
+  const res = await fetch('/api/records/bulk', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ records }), signal });
+  const data = await res.json();
+  if (!res.ok) throw new Error(data.error || 'No se pudo completar la solicitud.');
+  return data;
+}
+
 const demoApi = {
   async getRecords(){ return DEMO_RECORDS.map(r => ({ ...r })); },
-  async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; }   // solo en memoria
+  async addRecord(rec, file){ if (file) rec.video = URL.createObjectURL(file); return rec; },   // solo en memoria
+  async addRecords(recs){ return recs.map(r => ({ ...r })); },
 };
 const liveApi = {
   async getRecords(){ return (await call()).records; },
   async addRecord(rec, file){
     if (file) throw new Error('La subida de videos todavía no está disponible.');
     return (await call(rec)).record;
-  }
+  },
+  async addRecords(recs){ return (await callBulk(recs)).records; },
 };
 const api = {
   getRecords: (...a) => (usingDemo() ? demoApi : liveApi).getRecords(...a),
   addRecord:  (...a) => (usingDemo() ? demoApi : liveApi).addRecord(...a),
+  addRecords: (...a) => (usingDemo() ? demoApi : liveApi).addRecords(...a),
 };
 
 /* =========================================================
@@ -451,8 +464,14 @@ function goFree(){
 
 /* Pantalla encendida */
 let wakeLock = null, wantWake = false;
-async function wake(on){
-  wantWake = on && S.wake !== false;
+// The lift view honors the setting; a running workout timer always keeps the screen on.
+const wakeNeeds = { exec:false, timer:false };
+function wake(on, reason = 'exec'){
+  wakeNeeds[reason] = on;
+  wantWake = (wakeNeeds.exec && S.wake !== false) || wakeNeeds.timer;
+  return applyWake();
+}
+async function applyWake(){
   try {
     if (wantWake && !wakeLock && 'wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
@@ -460,7 +479,7 @@ async function wake(on){
     } else if (!wantWake && wakeLock) { await wakeLock.release(); wakeLock = null; }
   } catch { wakeLock = null; }
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) wake(true); }, { signal });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) applyWake(); }, { signal });
 
 /* =========================================================
    PRs
@@ -476,7 +495,7 @@ function renderPRs(){
   const { type, groups } = CATALOG[UI.prsTab];
   const visible = UI.prsGroup ? groups.filter(g => g.name === UI.prsGroup) : groups;
   $('#vPRs').innerHTML = `
-    <div class="hdr"><h1>PRs</h1></div>
+    <div class="hdr bflex"><h1>PRs</h1><button class="qbtn" data-a="quick" ${LOADING || LOAD_ERR ? 'disabled' : ''}>${I.bolt}Carga rápida</button></div>
     ${banner()}
     <div class="seg three" style="margin-top:0">${Object.keys(CATALOG).map(t =>
       `<button class="${t===UI.prsTab?'on':''}" data-a="prstab" data-v="${t}">${t}</button>`).join('')}</div>
@@ -575,6 +594,80 @@ $('#form').onsubmit = async e => {
 };
 
 /* =========================================================
+   QUICK UPLOAD — only fills movement + RM pairs without records
+   ========================================================= */
+const QUICK = { rm:1, values:{} };   // values: `${move}|${rm}` → typed text
+const quickPromptKey = `prs_quick_prompt_${storageScope}`;
+const weightGroups = () => Object.values(CATALOG).filter(c => c.type === 'weight').flatMap(c => c.groups);
+const escAttr = s => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+const validQuick = s => /^\d{1,4}([.,]\d{1,2})?$/.test(s.trim()) && parseValue(s.trim(), 'weight') > 0;
+const lastRecord = (move, rm) => recordsOf(move, rm).reduce((a, b) => (!a || b.date > a.date ? b : a), null);
+const quickEntries = () => Object.entries(QUICK.values)
+  .map(([k, raw]) => { const [move, rm] = k.split('|'); return { move, rm:+rm, raw }; })
+  .filter(e => e.raw.trim() && !lastRecord(e.move, e.rm));
+
+function openQuick(){
+  QUICK.rm = 1; QUICK.values = {};
+  renderQuick();
+  $('#quickSheet').classList.add('open');
+  $('#quickSheet').scrollTo(0, 0);
+}
+function renderQuick(){
+  const moves = weightGroups().flatMap(g => g.moves);
+  $('#qSeg').innerHTML = RMS.map(n => {
+    const done = moves.every(m => lastRecord(m, n));
+    return `<button class="${n===QUICK.rm?'on':''}" data-a="qrm" data-v="${n}">${n}RM${done ? ' ✓' : ''}</button>`;
+  }).join('');
+  const allDone = moves.every(m => lastRecord(m, QUICK.rm));
+  $('#qList').innerHTML = (allDone ? `<p class="sub" style="text-align:center;margin-bottom:12px">Ya tienes todos los ${QUICK.rm}RM registrados.</p>` : '') +
+    weightGroups().map(g => `
+    <div class="grp">
+      <h3><i class="dot" style="--c:var(${g.color})"></i>${g.name}</h3>
+      <div class="list">${g.moves.map(m => {
+        const last = lastRecord(m, QUICK.rm);
+        if (last) return `<label class="mrow qrow done"><span>${m}</span><input value="${last.value} lb" disabled aria-label="${escAttr(m)} ${QUICK.rm}RM"></label>`;
+        const raw = QUICK.values[`${m}|${QUICK.rm}`] || '';
+        return `<label class="mrow qrow"><span>${m}</span><input class="qin${raw && !validQuick(raw) ? ' bad' : ''}" inputmode="decimal" placeholder="lb" autocomplete="off"
+          data-move="${escAttr(m)}" value="${escAttr(raw)}" aria-label="${escAttr(m)} ${QUICK.rm}RM en libras"></label>`;
+      }).join('')}</div>
+    </div>`).join('');
+  updateQuickSave();
+}
+function updateQuickSave(){
+  const entries = quickEntries();
+  const btn = $('#qSave');
+  btn.disabled = !entries.length || entries.some(e => !validQuick(e.raw));
+  btn.textContent = entries.length ? `Guardar (${entries.length})` : 'Guardar';
+}
+function closeQuickPrompt(){
+  store.set(quickPromptKey, { seen:true });
+  $('#quickPrompt').classList.remove('open');
+}
+document.addEventListener('input', e => {
+  if (!e.target.matches('.qin')) return;
+  QUICK.values[`${e.target.dataset.move}|${QUICK.rm}`] = e.target.value;
+  e.target.classList.toggle('bad', !!e.target.value.trim() && !validQuick(e.target.value));
+  updateQuickSave();
+}, { signal });
+$('#qSave').onclick = async () => {
+  const entries = quickEntries();
+  if (!entries.length || entries.some(e => !validQuick(e.raw))) return;
+  const date = today();
+  const btn = $('#qSave');
+  btn.disabled = true; btn.textContent = 'Guardando…';
+  try {
+    const saved = await api.addRecords(entries.map(e => ({ move:e.move, value:parseValue(e.raw.trim(), 'weight'), date, rm:e.rm })));
+    RECORDS.push(...saved);
+    QUICK.values = {};
+    $('#quickSheet').classList.remove('open');
+    renderAll();
+  } catch (err) {
+    alert(err.message);
+    updateQuickSave();
+  }
+};
+
+/* =========================================================
    AJUSTES
    ========================================================= */
 function renderSettings(){
@@ -593,15 +686,20 @@ function renderSettings(){
 function renderTabs(){
   $('#tabExec').innerHTML = `${I.bolt}<span>Execute</span>`;
   $('#tabPrs').innerHTML = `${I.trophy}<span>PRs</span>`;
+  $('#tabTimer').innerHTML = `${I.timer}<span>Timer</span>`;
   $('#tabAdd').innerHTML = `${I.plus}<span>Registrar</span>`;
   $('#tabExec').classList.toggle('on', S.tab === 'exec');
   $('#tabPrs').classList.toggle('on', S.tab === 'prs');
+  $('#tabTimer').classList.toggle('on', S.tab === 'timer');
   $('#vExec').classList.toggle('hidden', S.tab !== 'exec');
   $('#vPRs').classList.toggle('hidden', S.tab !== 'prs');
+  $('#vTimer').classList.toggle('hidden', S.tab !== 'timer');
 }
 function renderAll(){
   renderTabs();
-  if (S.tab === 'exec') renderExec(); else { renderPRs(); $('#dock').classList.add('hidden'); document.body.classList.remove('docked'); wake(false); }
+  if (S.tab === 'exec') { renderExec(); return; }
+  if (S.tab === 'timer') timer.renderView(); else renderPRs();
+  $('#dock').classList.add('hidden'); document.body.classList.remove('docked'); document.body.classList.remove('focus'); wake(false);
 }
 // íconos fijos de las hojas
 document.querySelector('#detail [data-a="close"]').innerHTML = `${I.back} PRs`;
@@ -675,6 +773,11 @@ document.addEventListener('click', e => {
       document.body.append(form); form.submit(); break;
     }
 
+    case 'quick':      openQuick(); break;
+    case 'qrm':        QUICK.rm = +v; renderQuick(); break;
+    case 'quickstart': closeQuickPrompt(); openQuick(); break;
+    case 'quickskip':  closeQuickPrompt(); break;
+
     case 'prstab':   UI.prsTab = v; UI.prsGroup = null; renderPRs(); break;
     case 'prsgroup': UI.prsGroup = UI.prsGroup === v ? null : v; renderPRs(); break;
     case 'detail':   openDetail(v); break;
@@ -702,8 +805,11 @@ async function loadData(){
   LOADING = false;
   renderAll();
   if ($('#detail').classList.contains('open') && UI.move) openDetail(UI.move, UI.rm);
+  // Offer the quick upload once to accounts that have no records yet.
+  if (!DEMO && !LOAD_ERR && !RECORDS.length && !store.get(quickPromptKey, { seen:false }).seen) $('#quickPrompt').classList.add('open');
 }
+const timer = initTimer({ scope: storageScope, signal, setWake: on => wake(on, 'timer'), isActiveTab: () => S.tab === 'timer' });
 renderAll();
 loadData();
-return () => { controller.abort(); if (chart) chart.destroy(); wake(false); };
+return () => { controller.abort(); timer.destroy(); if (chart) chart.destroy(); wake(false); wake(false, 'timer'); };
 }
