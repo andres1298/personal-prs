@@ -1,17 +1,10 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { request } from './admin-request';
 
 const rowNote = { fontSize: 13, marginTop: 2 };
 const dateFormat = new Intl.DateTimeFormat('es', { day: '2-digit', month: '2-digit' });
-
-async function request(url, options) {
-  const response = await fetch(url, { cache: 'no-store', ...options });
-  if (response.status === 204) return {};
-  const body = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(body.error || 'Algo salió mal. Inténtalo de nuevo.');
-  return body;
-}
 
 export default function InvitationsPanel() {
   const [invitations, setInvitations] = useState([]);
@@ -43,6 +36,15 @@ export default function InvitationsPanel() {
     finally { setBusy(false); }
   }
 
+  async function renew(invitation) {
+    setError(''); setCopied(false);
+    try {
+      const { url } = await request(`/api/invitations/${invitation.id}`, { method: 'POST' });
+      setLink(url);
+      await refresh();
+    } catch (err) { setError(err.message); }
+  }
+
   async function revoke(id) {
     setError('');
     try { await request(`/api/invitations/${id}`, { method: 'DELETE' }); await refresh(); }
@@ -66,11 +68,17 @@ export default function InvitationsPanel() {
       <input readOnly value={link} aria-label="Link de invitación" style={{ flex: 1, minWidth: 0, padding: '8px 10px', fontSize: 14 }} />
       <button className="okbtn" type="button" onClick={copy}>{copied ? 'Copiado' : 'Copiar'}</button>
     </div>}
-    {invitations.map((invitation) => <div className="setrow" key={invitation.id} style={{ marginTop: 10 }}>
-      <div>{invitation.name}
-        <div className="sub" style={rowNote}>{invitation.email} · vence {dateFormat.format(new Date(invitation.expiresAt))}</div>
+    {invitations.length > 0 && <div className="sec">Pendientes</div>}
+    {invitations.map((invitation) => <div className={`setrow admin-row${invitation.expired ? ' off' : ''}`} key={invitation.id}>
+      <div className="who">{invitation.name}
+        <div className="sub" style={rowNote}>
+          {invitation.email} · {invitation.expired ? 'venció' : 'vence'} {dateFormat.format(new Date(invitation.expiresAt))}
+        </div>
       </div>
-      <button className="okbtn" type="button" onClick={() => revoke(invitation.id)}>Revocar</button>
+      <div className="admin-actions">
+        <button className="okbtn" type="button" onClick={() => renew(invitation)} aria-label={`Nuevo link para ${invitation.name}`}>Nuevo link</button>
+        <button className="okbtn" type="button" onClick={() => revoke(invitation.id)} aria-label={`Revocar invitación de ${invitation.name}`}>Revocar</button>
+      </div>
     </div>)}
   </>;
 }

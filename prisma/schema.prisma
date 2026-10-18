@@ -28,11 +28,16 @@ model Profile {
   displayName        String?
   email              String?          @unique
   invitedById        String?          @db.Uuid
+  // Set by an admin to block access; the actor is kept as an audit trail.
+  disabledAt         DateTime?        @db.Timestamptz(3)
+  disabledById       String?          @db.Uuid
   createdAt          DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
   records            PersonalRecord[]
   invitedBy          Profile?         @relation("ProfileInviter", fields: [invitedById], references: [id], onDelete: Restrict)
   invitees           Profile[]        @relation("ProfileInviter")
+  disabledBy         Profile?         @relation("ProfileDisabler", fields: [disabledById], references: [id], onDelete: Restrict)
+  disabledProfiles   Profile[]        @relation("ProfileDisabler")
   invitationsSent    Invitation[]     @relation("InvitationInviter")
   acceptedInvitation Invitation?      @relation("InvitationAcceptance")
 }

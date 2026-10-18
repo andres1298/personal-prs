@@ -27,6 +27,11 @@ async function load(path, prefix, access, failure) {
         return { token: 'secret-token', invitation: { id: 'inv-1', ...input } };
       },
       revokeInvitation: async (id, invitationId) => { calls.push(['revoke', id, invitationId]); return invitationId === 'inv-1'; },
+      renewInvitation: async (id, invitationId) => {
+        calls.push(['renew', id, invitationId]);
+        if (failure === 'database') throw new Error('Private database diagnostic');
+        return invitationId === 'inv-1' ? { token: 'fresh-token', expiresAt: new Date('2026-10-25T00:00:00.000Z') } : null;
+      },
     },
   };
   const module = new SourceTextModule(await readFile(new URL(path, import.meta.url), 'utf8'));
@@ -42,16 +47,17 @@ async function load(path, prefix, access, failure) {
 }
 
 const collection = (access, failure) => load('../src/app/api/invitations/route.js', '../../../', access, failure);
-const item = (access) => load('../src/app/api/invitations/[id]/route.js', '../../../../', access);
+const item = (access, failure) => load('../src/app/api/invitations/[id]/route.js', '../../../../', access, failure);
 
 function post(body = { name: 'Ana', email: 'ana@example.test' }, requestOrigin = origin) {
   return new Request(`${origin}/api/invitations`, {
     method: 'POST', headers: { origin: requestOrigin, 'Content-Type': 'application/json' }, body: JSON.stringify(body),
   });
 }
-function remove(id = 'inv-1', requestOrigin = origin) {
-  return [new Request(`${origin}/api/invitations/${id}`, { method: 'DELETE', headers: { origin: requestOrigin } }), { params: Promise.resolve({ id }) }];
+function remove(id = 'inv-1', requestOrigin = origin, method = 'DELETE') {
+  return [new Request(`${origin}/api/invitations/${id}`, { method, headers: { origin: requestOrigin } }), { params: Promise.resolve({ id }) }];
 }
+const renew = (id = 'inv-1', requestOrigin = origin) => remove(id, requestOrigin, 'POST');
 
 test('anonymous and non-admin sessions never reach the invitation service', async () => {
   for (const [access, status] of [[anonymous, 401], [member, 403]]) {
@@ -60,6 +66,7 @@ test('anonymous and non-admin sessions never reach the invitation service', asyn
     assert.equal((await list.handlers.POST(post())).status, status);
     const single = await item(access);
     assert.equal((await single.handlers.DELETE(...remove())).status, status);
+    assert.equal((await single.handlers.POST(...renew())).status, status);
     assert.deepEqual([...list.calls, ...single.calls], []);
   }
 });
@@ -69,6 +76,7 @@ test('cross-origin writes are rejected before any service call', async () => {
   assert.equal((await list.handlers.POST(post(undefined, 'https://other.example.test'))).status, 403);
   const single = await item(admin);
   assert.equal((await single.handlers.DELETE(...remove('inv-1', 'https://other.example.test'))).status, 403);
+  assert.equal((await single.handlers.POST(...renew('inv-1', 'https://other.example.test'))).status, 403);
   assert.deepEqual([...list.calls, ...single.calls], []);
 });
 
@@ -111,4 +119,18 @@ test('admins revoke their pending invitations', async () => {
   assert.equal((await handlers.DELETE(...remove('inv-1'))).status, 204);
   assert.equal((await handlers.DELETE(...remove('missing'))).status, 404);
   assert.deepEqual(calls, [['revoke', adminId, 'inv-1'], ['revoke', adminId, 'missing']]);
+});
+
+test('admins renew pending invitations into a fresh private link', async () => {
+  const { handlers, calls } = await item(admin);
+  const renewed = await handlers.POST(...renew('inv-1'));
+  assert.equal(renewed.status, 200);
+  assert.equal(renewed.headers.get('Cache-Control'), 'private, no-store');
+  assert.equal((await renewed.json()).url, `${origin}/invite/fresh-token`);
+  assert.equal((await handlers.POST(...renew('missing'))).status, 404);
+  assert.deepEqual(calls, [['renew', adminId, 'inv-1'], ['renew', adminId, 'missing']]);
+  const failing = await item(admin, 'database');
+  const response = await failing.handlers.POST(...renew('inv-1'));
+  assert.equal(response.status, 503);
+  assert.doesNotMatch(await response.text(), /Private/);
 });
