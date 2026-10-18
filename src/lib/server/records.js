@@ -92,14 +92,15 @@ export async function completeTour(authUserId, now = new Date()) {
 export async function ensureAdminProfile(user) {
   const id = requireProfileId(user?.id);
   const email = typeof user.email === 'string' ? user.email.trim().toLowerCase() : null;
-  await getPrisma().profile.upsert({ where: { id }, create: { id, email }, update: {} });
+  // Select only what callers use, so columns from pending migrations are never read.
+  await getPrisma().profile.upsert({ where: { id }, create: { id, email }, update: {}, select: { id: true } });
 }
 
 export async function upsertProfile(authUserId, displayName = null) {
   const id = requireProfileId(authUserId);
   const name = optionalText(displayName, 'Display name');
   const profile = await getPrisma().profile.upsert({
-    where: { id }, create: { id, displayName: name }, update: { displayName: name },
+    where: { id }, create: { id, displayName: name }, update: { displayName: name }, select: { id: true, displayName: true },
   });
   return { id: profile.id, displayName: profile.displayName };
 }
