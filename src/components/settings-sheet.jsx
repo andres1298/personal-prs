@@ -1,7 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { ALL_PLATES, BARS, PLATE_STYLE } from '../lib/plates';
+import { ALL_PLATES, BARS } from '../lib/plates';
+import PlateDisc from './ui/plate-disc';
 import Icon from './ui/icon';
 import Sheet from './ui/sheet';
 import { List, Row } from './ui/list';
@@ -22,8 +23,8 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
       <div className="row plate-toggles">
         {ALL_PLATES.map((plate) => {
           const on = settings.plates.includes(plate);
-          return <button type="button" key={plate} className="plate-toggle num" aria-pressed={on}
-            style={{ '--pc': `var(${PLATE_STYLE[plate][0]})` }} onClick={() => togglePlate(plate)}>{plate}</button>;
+          return <button type="button" key={plate} className="plate-toggle" aria-pressed={on}
+            aria-label={`Disco de ${plate}`} onClick={() => togglePlate(plate)}><PlateDisc plate={plate} active={on} /></button>;
         })}
       </div>
     </List>

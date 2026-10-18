@@ -7,6 +7,8 @@ import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
 import { LargeTitle, NavBar } from '../ui/nav-bar';
 import { SegmentedControl, SymbolTile } from '../ui/controls';
+import PlateDisc from '../ui/plate-disc';
+import GroupIcon from './group-icons';
 
 export const EXERCISE_DEFAULTS = {
   view: 'pick', cat: null, move: null, free: false, rm: 1, base: 0, pct: 80,
@@ -59,7 +61,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={{ '--c': `var(${group.color})` }}
           onClick={() => go({ cat: group.name, view: 'moves' })}>
-          <SymbolTile color={group.color} size="sm"><Icon name="barbell" weight={2.4} /></SymbolTile>
+          <GroupIcon name={group.name} className="category-figure" />
           <b>{group.name}</b>
           <small>{count ? `${count} con PR` : 'Sin PRs'}</small>
         </button>;
@@ -244,10 +246,10 @@ function LoadCard({ load, ex, setEx, settings, simple, onAdd, onRemove }) {
     </div>}
     {!simple && <>
       <div className="plate-chips">
-        {[...settings.plates].sort((a, b) => a - b).map((plate) => <button type="button" key={plate} className="num"
-          style={plateVars(plate)} onClick={() => onAdd(plate)} aria-label={`Agregar disco de ${plate}`}>+{plate}</button>)}
+        {[...settings.plates].sort((a, b) => a - b).map((plate) => <button type="button" key={plate}
+          onClick={() => onAdd(plate)} aria-label={`Agregar disco de ${plate}`}><PlateDisc plate={plate} /></button>)}
       </div>
-      <p className="hint">Toca un color para agregar · toca un disco para quitarlo</p>
+      <p className="hint">Toca un disco para agregarlo · tócalo en la barra para quitarlo</p>
     </>}
   </section>;
 }
