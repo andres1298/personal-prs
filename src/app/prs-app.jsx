@@ -13,6 +13,7 @@ import MoveDetailSheet from '../components/prs/move-detail-sheet';
 import RecordFormSheet from '../components/prs/record-form-sheet';
 import QuickUploadSheet from '../components/prs/quick-upload-sheet';
 import SettingsSheet from '../components/settings-sheet';
+import GuidedTour from '../components/tour/guided-tour';
 import { TimerProvider } from '../components/timer/timer-provider';
 import { TimerPill, TimerRunSheet, TimerView } from '../components/timer/timer-views';
 
@@ -43,6 +44,8 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
   const [form, setForm] = useState(null);           // { id, move, rm }
   const [quickOpen, setQuickOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tour, updateTour, tourReady] = useStoredState(`prs_tour_${scope}`, { seen: false });
+  const [tourOpen, setTourOpen] = useState(false);
   const formCount = useRef(0);
 
   const setEx = useCallback((patch) => updateEx((current) => ({
@@ -55,17 +58,38 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
   // Simple mode hides the tab bar while lifting.
   const focus = running && !!settings.simple;
 
-  // Offer the quick upload once to accounts that have no records yet.
+  // The guided tour opens by itself the first time the app is used on this device.
+  useEffect(() => {
+    if (ready && tourReady && !tour.seen) setTourOpen(true);
+  }, [ready, tourReady, tour.seen]);
+
+  // Offer the quick upload once to accounts that have no records yet, after the tour.
+  const tourPending = !tourReady || !tour.seen || tourOpen;
   useEffect(() => {
     const key = `prs_quick_prompt_${scope}`;
-    if (!hasBackend || loading || error || records.length || readStored(key, {}).seen) return;
+    if (tourPending || !hasBackend || loading || error || records.length || readStored(key, {}).seen) return;
     writeStored(key, { seen: true });
     alert({
       title: '¿Quieres hacer un cargado rápido de tus pesos?',
       message: 'Escribe tus PRs de una vez y empieza a calcular tus cargas.',
       actions: [{ label: 'Ahora no', role: 'cancel' }, { label: 'Empezar', value: true }],
     }).then((start) => start && setQuickOpen(true));
-  }, [hasBackend, loading, error, records.length, scope, alert]);
+  }, [tourPending, hasBackend, loading, error, records.length, scope, alert]);
+
+  // Each tour step shows its tab; Execute steps need the movement picker.
+  const showTourStep = useCallback((step) => {
+    if (step.tab) updateSettings((current) => (current.tab === step.tab ? {} : { tab: step.tab }));
+    if (step.tab === 'exec') updateEx((current) => (current.view === 'pick' ? current : { ...current, view: 'pick' }));
+  }, [updateSettings, updateEx]);
+  const closeTour = useCallback(() => {
+    updateTour({ seen: true });
+    setTourOpen(false);
+  }, [updateTour]);
+  const replayTour = () => {
+    setSettingsOpen(false);
+    // Let the settings sheet slide away first.
+    setTimeout(() => setTourOpen(true), 380);
+  };
 
   const goTab = (next) => {
     if (next === tab) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -112,7 +136,8 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
     <RecordFormSheet form={form} hasBackend={hasBackend} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} />
+      demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} />
     <TimerRunSheet />
+    <GuidedTour open={tourOpen} onStep={showTourStep} onClose={closeTour} />
   </>;
 }

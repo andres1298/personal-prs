@@ -67,7 +67,7 @@ export function TimerView() {
       <span className="live-copy"><small>Timer en curso</small><b>{current.name}</b></span>
       <span className="live-clock num rounded">{clockOf(timer.run, timer.view)}</span>
     </button>}
-    <List header="Plantillas">
+    <List header="Plantillas" data-tour="timer-templates">
       {TIMER_TYPES.map((type) => <Row key={type} className="template-row" leading={<TemplateTile type={type} size="lg" />}
         title={TEMPLATES[type].name} subtitle={describe(timer.configs[type])} chevron
         onClick={() => { timer.unlock(); setEditing({ ...timer.configs[type] }); }} />)}

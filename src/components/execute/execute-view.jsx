@@ -45,7 +45,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
   const resumeTarget = canResume ? computeLoad(ex, settings, settings.simple).target : 0;
   return <>
     <LargeTitle title="Execute" subtitle="¿Qué vas a levantar?"
-      trailing={<button type="button" className="nav-icon" aria-label="Ajustes" onClick={onOpenSettings}><Icon name="gear" /></button>} />
+      trailing={<button type="button" className="nav-icon" aria-label="Ajustes" data-tour="settings" onClick={onOpenSettings}><Icon name="gear" /></button>} />
     {banner}
     {canResume && <button type="button" className="resume-card" onClick={() => go({ view: 'run' })}>
       <span className="resume-copy">
@@ -55,7 +55,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
       <span className="resume-weight num rounded">{resumeTarget}<small>lb</small></span>
       <Icon name="chevronRight" weight={2.6} />
     </button>}
-    <div className="category-grid">
+    <div className="category-grid" data-tour="categories">
       {CATALOG.Lift.groups.map((group) => {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={{ '--c': `var(${group.color})` }}
@@ -66,7 +66,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
       })}
     </div>
     <List>
-      <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre"
+      <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre" data-tour="free-calc"
         subtitle="Cualquier peso y porcentaje" chevron onClick={() => go({ view: 'run', free: true, editBase: false })} />
     </List>
   </>;
