@@ -1,111 +1,118 @@
 'use client';
 
-import { useEffect } from 'react';
-import AdminPanel from './admin-panel';
+import Link from 'next/link';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { ALL_PLATES } from '../lib/plates';
+import { readStored, useStoredState, useWakeLock, writeStored } from '../components/hooks';
+import useRecords from '../components/use-records';
+import { AlertProvider, useAlert } from '../components/ui/alert';
+import TabBar from '../components/tab-bar';
+import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch } from '../components/execute/execute-view';
+import PrsView from '../components/prs/prs-view';
+import MoveDetailSheet from '../components/prs/move-detail-sheet';
+import RecordFormSheet from '../components/prs/record-form-sheet';
+import QuickUploadSheet from '../components/prs/quick-upload-sheet';
+import SettingsSheet from '../components/settings-sheet';
+import { TimerProvider } from '../components/timer/timer-provider';
+import { TimerPill, TimerRunSheet, TimerView } from '../components/timer/timer-views';
 
-export default function App({ hasBackend, userId = 'demo', isAdmin = false }) {
+const SETTINGS_DEFAULTS = { bar: 45, plates: [...ALL_PLATES], lastPct: 70, wake: true, simple: false, tab: 'exec' };
+
+export default function App(props) {
+  const scope = props.hasBackend ? props.userId : 'demo';
+  return <AlertProvider>
+    <TimerProvider scope={scope}>
+      <PrsApp {...props} scope={scope} />
+    </TimerProvider>
+  </AlertProvider>;
+}
+
+function Banner({ loading, demo, error, onRetry }) {
+  if (loading) return <div className="banner" role="status"><span className="spinner" aria-hidden="true" />Cargando tus PRs…</div>;
+  if (demo) return <div className="banner warn"><span>Datos de ejemplo · cambios solo en esta sesión</span><Link href="/">Iniciar sesión</Link></div>;
+  if (error) return <div className="banner warn" role="alert"><span>{error}</span><button type="button" onClick={onRetry}>Reintentar</button></div>;
+  return null;
+}
+
+function PrsApp({ hasBackend, isAdmin = false, scope }) {
+  const alert = useAlert();
+  const { records, loading, error, reload, addRecord, addRecords } = useRecords(hasBackend);
+  const [settings, updateSettings, ready] = useStoredState(`prs_settings_${scope}`, SETTINGS_DEFAULTS);
+  const [ex, updateEx] = useStoredState(`prs_exec_${scope}`, EXERCISE_DEFAULTS, restoreExercise);
+  const [detail, setDetail] = useState(null);       // { move, rm }
+  const [form, setForm] = useState(null);           // { id, move, rm }
+  const [quickOpen, setQuickOpen] = useState(false);
+  const [settingsOpen, setSettingsOpen] = useState(false);
+  const formCount = useRef(0);
+
+  const setEx = useCallback((patch) => updateEx((current) => ({
+    ...(typeof patch === 'function' ? patch(current) : patch), ts: Date.now(),
+  })), [updateEx]);
+
+  const tab = settings.tab;
+  const running = tab === 'exec' && ex.view === 'run';
+  useWakeLock(running && settings.wake !== false);
+  // Simple mode hides the tab bar while lifting.
+  const focus = running && !!settings.simple;
+
+  // Offer the quick upload once to accounts that have no records yet.
   useEffect(() => {
-    let cleanup;
-    let active = true;
-    Promise.all([import('chart.js/auto'), import('../lib/legacy')]).then(([chartModule, legacy]) => {
-      if (!active) return;
-      window.Chart = chartModule.default;
-      cleanup = legacy.initLegacyApp(hasBackend, userId);
-    });
-    return () => {
-      active = false;
-      cleanup?.();
-    };
-  }, [hasBackend, userId]);
+    const key = `prs_quick_prompt_${scope}`;
+    if (!hasBackend || loading || error || records.length || readStored(key, {}).seen) return;
+    writeStored(key, { seen: true });
+    alert({
+      title: '¿Quieres hacer un cargado rápido de tus pesos?',
+      message: 'Escribe tus PRs de una vez y empieza a calcular tus cargas.',
+      actions: [{ label: 'Ahora no', role: 'cancel' }, { label: 'Empezar', value: true }],
+    }).then((start) => start && setQuickOpen(true));
+  }, [hasBackend, loading, error, records.length, scope, alert]);
+
+  const goTab = (next) => {
+    if (next === tab) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
+    updateSettings({ tab: next });
+    window.scrollTo({ top: 0 });
+  };
+  const openForm = (move, rm) => {
+    formCount.current += 1;
+    setForm({ id: formCount.current, move, rm });
+  };
+  const onAdd = () => openForm(tab === 'exec' && ex.move && !ex.free ? ex.move : undefined, tab === 'exec' ? ex.rm : undefined);
+
+  async function saveRecord(record, file) {
+    await addRecord(record, file);
+    setForm(null);
+    if (detail?.move === record.move) setDetail({ move: record.move, rm: record.rm });
+  }
+  async function saveQuick(list) {
+    await addRecords(list);
+    setQuickOpen(false);
+  }
+
+  const banner = <Banner loading={loading} demo={!hasBackend} error={error} onRetry={reload} />;
+  if (!ready) return <div className="app-loading" aria-busy="true" />;
 
   return <>
-    <section id="vExec" className="wrap" />
-    <section id="vPRs" className="wrap hidden" />
-    <section id="vTimer" className="wrap hidden" />
+    <TimerPill />
+    <main className="page" data-focus={focus}>
+      <section className="tab-view wrap" hidden={tab !== 'exec'}>
+        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)} />
+      </section>
+      <section className="tab-view wrap" hidden={tab !== 'prs'}>
+        <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={(move) => setDetail({ move })} />
+      </section>
+      <section className="tab-view wrap" hidden={tab !== 'timer'}>
+        <TimerView />
+      </section>
+    </main>
+    <TabBar tab={tab} onTab={goTab} onAdd={onAdd} hidden={focus} />
 
-    <div className="dock hidden" id="dock"><div className="pstrip" id="pstrip" /></div>
-    <button className="tpill hidden" id="timerPill" data-a="t-open" />
-
-    <nav className="tabbar" aria-label="Navegación principal">
-      <button className="tab" data-a="tab" data-v="exec" id="tabExec" />
-      <button className="tab" data-a="tab" data-v="prs" id="tabPrs" />
-      <button className="tab" data-a="tab" data-v="timer" id="tabTimer" />
-      <button className="tab" data-a="add" id="tabAdd" />
-    </nav>
-
-    <section className="sheet" id="timerCfg"><div className="wrap" id="tCfgBody" /></section>
-    <section className="sheet" id="timerRun"><div className="wrap" id="tRunBody" /></section>
-
-    <section className="sheet" id="detail">
-      <div className="wrap">
-        <div className="navbar"><button className="nbtn" data-a="close" /><div className="ttl" id="dName" /><button className="nbtn r" data-a="add" data-v="detail" aria-label="Registrar" /></div>
-        <p className="sub" id="dCat" style={{ textAlign: 'center', marginTop: 0 }} />
-        <div className="seg three" id="dSeg" />
-        <div style={{ textAlign: 'center' }}>
-          <div className="big" id="dPR" />
-          <div className="kg" id="dKg" />
-          <p className="sub" id="dDate" />
-        </div>
-        <div className="chartbox"><canvas id="chart" height="200" /></div>
-        <button className="primary" id="dExec" data-a="dexec" />
-        <div className="sec">Historial</div>
-        <div className="list hist" id="dHist" />
-      </div>
-    </section>
-
-    <section className="sheet" id="formSheet">
-      <div className="wrap">
-        <div className="navbar"><button className="nbtn" data-a="close">Cancelar</button><div className="ttl">Nuevo registro</div><span /></div>
-        <form id="form" style={{ marginTop: 8 }}>
-          <label>Movimiento <select id="fMove" required /></label>
-          <div className="two">
-            <label><span id="fValueLabel">Peso (lb)</span><input id="fValue" required inputMode="decimal" /></label>
-            <label id="fRmWrap">Tipo
-              <select id="fRm"><option value="1">1RM</option><option value="3">3RM</option><option value="5">5RM</option></select>
-            </label>
-          </div>
-          <label>Fecha <input id="fDate" type="date" required /></label>
-          <label>Video (opcional) <input id="fVideo" type="file" accept="video/*" disabled={hasBackend} />
-            {hasBackend && <span className="sub">La subida de videos estará disponible próximamente.</span>}
-          </label>
-          <label>Notas <textarea id="fNotes" rows="2" /></label>
-          <button className="primary" id="fSave" style={{ marginTop: 8 }}>Guardar</button>
-        </form>
-      </div>
-    </section>
-
-    <section className="sheet" id="quickSheet">
-      <div className="wrap">
-        <div className="navbar"><button className="nbtn" data-a="close">Cancelar</button><div className="ttl">Carga rápida</div><span /></div>
-        <p className="sub" style={{ textAlign: 'center', marginTop: 0 }}>Completa los pesos que te faltan. Se guardan con fecha de hoy.</p>
-        <div className="seg three" id="qSeg" />
-        <div id="qList" />
-        <button className="primary qsave" id="qSave" />
-      </div>
-    </section>
-
-    <div className="modal" id="quickPrompt" role="dialog" aria-modal="true" aria-labelledby="qpTitle">
-      <div className="modal-card">
-        <h2 id="qpTitle">¿Quieres hacer un cargado rápido de tus pesos?</h2>
-        <p className="sub">Escribe tus PRs de una vez y empieza a calcular tus cargas.</p>
-        <button className="primary" data-a="quickstart">Empezar</button>
-        <button className="quiet" data-a="quickskip">Ahora no</button>
-      </div>
-    </div>
-
-    <section className="sheet" id="setSheet">
-      <div className="wrap">
-        <div className="navbar"><span /><div className="ttl">Barra y discos</div><button className="nbtn r" data-a="close" style={{ fontWeight: 700 }}>Listo</button></div>
-        <div className="sec">Barra</div>
-        <div className="opts" id="sBar" />
-        <div className="sec">Discos que tienes</div>
-        <div className="opts" id="sPlates" />
-        <div className="sec">App</div>
-        <div className="setrow" style={{ marginBottom: 10 }}><div>Datos<div className="sub" id="sKeyTxt" style={{ fontSize: 13, marginTop: 2 }} /></div><button className="okbtn" id="sKeyBtn" /></div>
-        <div className="setrow" style={{ marginBottom: 10 }}><div>Modo simple<div className="sub" style={{ fontSize: 13, marginTop: 2 }}>Solo ejercicio, peso, % y la barra final</div></div><button className="switch" id="sSimple" data-a="simple" /></div>
-        <div className="setrow"><div>Pantalla siempre encendida<div className="sub" style={{ fontSize: 13, marginTop: 2 }}>Mientras estás en un levantamiento</div></div><button className="switch" id="sWake" data-a="wake" /></div>
-        {isAdmin && <AdminPanel />}
-      </div>
-    </section>
+    <MoveDetailSheet detail={detail} records={records} onClose={() => setDetail(null)}
+      onChangeRm={(rm) => setDetail((d) => ({ ...d, rm }))} onAdd={openForm}
+      onExecute={(move) => { setDetail(null); updateSettings({ tab: 'exec' }); setEx(selectMovePatch(records, move)); window.scrollTo({ top: 0 }); }} />
+    <RecordFormSheet form={form} hasBackend={hasBackend} onClose={() => setForm(null)} onSave={saveRecord} />
+    <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
+    <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
+      demo={!hasBackend} isAdmin={isAdmin} />
+    <TimerRunSheet />
   </>;
 }

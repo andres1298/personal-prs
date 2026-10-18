@@ -1,3 +1,5 @@
+import Link from 'next/link';
+import { AuthShell } from '../../auth-panel';
 import { findValidInvitation, MIN_PASSWORD_LENGTH } from '../../../lib/server/invitations';
 
 export const dynamic = 'force-dynamic';
@@ -17,25 +19,22 @@ export default async function InvitationPage({ params, searchParams }) {
   const invitation = await findValidInvitation(token);
 
   if (!invitation) {
-    return <main className="auth-panel wrap">
-      <img src="/icon-192.png" width="72" height="72" alt="" />
-      <h1>Mis PRs</h1>
-      <p role="status">Este link ya no es válido. Pide una nueva invitación.</p>
-      <a className="auth-demo" href="/">Ir al inicio</a>
-    </main>;
+    return <AuthShell title="Mis PRs">
+      <p className="auth-message" role="status">Este link ya no es válido. Pide una nueva invitación.</p>
+      <Link className="plain-button wide" href="/">Ir al inicio</Link>
+    </AuthShell>;
   }
 
-  return <main className="auth-panel wrap">
-    <img src="/icon-192.png" width="72" height="72" alt="" />
-    <h1>Hola {invitation.name}</h1>
-    <p className="sub">Crea tu contraseña para entrar a Mis PRs.</p>
-    {error && <p role="alert">{formErrors[error] ?? 'No se pudo crear la cuenta. Inténtalo de nuevo.'}</p>}
+  return <AuthShell title={`Hola ${invitation.name}`} subtitle="Crea tu contraseña para entrar a Mis PRs.">
+    {error && <p className="auth-message error" role="alert">{formErrors[error] ?? 'No se pudo crear la cuenta. Inténtalo de nuevo.'}</p>}
     <form className="auth-form" action="/auth/invite" method="post">
       <input type="hidden" name="token" value={token} />
-      <label>Correo <input name="email" type="email" value={invitation.email} autoComplete="username" readOnly /></label>
-      <label>Contraseña <input name="password" type="password" minLength={MIN_PASSWORD_LENGTH} autoComplete="new-password" required /></label>
-      <label>Repite la contraseña <input name="confirm" type="password" minLength={MIN_PASSWORD_LENGTH} autoComplete="new-password" required /></label>
-      <button className="primary">Crear cuenta</button>
+      <div className="list form-group">
+        <label className="field"><span>Correo</span><input name="email" type="email" value={invitation.email} autoComplete="username" readOnly /></label>
+        <label className="field"><span>Contraseña</span><input name="password" type="password" minLength={MIN_PASSWORD_LENGTH} autoComplete="new-password" placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`} required /></label>
+        <label className="field"><span>Repetir</span><input name="confirm" type="password" minLength={MIN_PASSWORD_LENGTH} autoComplete="new-password" placeholder="Repite la contraseña" required /></label>
+      </div>
+      <button className="filled-button">Crear cuenta</button>
     </form>
-  </main>;
+  </AuthShell>;
 }

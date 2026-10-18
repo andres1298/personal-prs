@@ -11,7 +11,7 @@ export const metadata = {
   appleWebApp: {
     capable: true,
     title: 'PRs',
-    statusBarStyle: 'black-translucent',
+    statusBarStyle: 'default',
   },
 };
 
@@ -20,7 +20,11 @@ export const viewport = {
   initialScale: 1,
   userScalable: false,
   viewportFit: 'cover',
-  themeColor: '#0e0e0f',
+  colorScheme: 'light dark',
+  themeColor: [
+    { media: '(prefers-color-scheme: light)', color: '#f2f2f7' },
+    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+  ],
 };
 
 export default function RootLayout({ children }) {
