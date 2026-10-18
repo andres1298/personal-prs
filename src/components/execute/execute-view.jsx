@@ -8,7 +8,6 @@ import { List, Row } from '../ui/list';
 import { LargeTitle, NavBar } from '../ui/nav-bar';
 import { SegmentedControl, SymbolTile } from '../ui/controls';
 import PlateDisc from '../ui/plate-disc';
-import GroupIcon from './group-icons';
 
 export const EXERCISE_DEFAULTS = {
   view: 'pick', cat: null, move: null, free: false, rm: 1, base: 0, pct: 80,
@@ -61,7 +60,6 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={{ '--c': `var(${group.color})` }}
           onClick={() => go({ cat: group.name, view: 'moves' })}>
-          <GroupIcon name={group.name} className="category-figure" />
           <b>{group.name}</b>
           <small>{count ? `${count} con PR` : 'Sin PRs'}</small>
         </button>;
