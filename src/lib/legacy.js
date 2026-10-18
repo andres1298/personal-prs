@@ -1,3 +1,5 @@
+import { initTimer } from './timer-ui.js';
+
 export function initLegacyApp(hasBackend, userId = 'demo'){
 const controller = new AbortController();
 const { signal } = controller;
@@ -44,6 +46,7 @@ const PLATE_STYLE = {           // color y alto visual (%)
 /* Íconos */
 const I = {
   bolt:'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg>',
+  timer:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="13.5" r="7.5"/><path d="M12 10v3.5l2.5 2M9.5 2.5h5M12 2.5V6"/></svg>',
   trophy:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0z"/><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3"/></svg>',
   plus:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><circle cx="12" cy="12" r="9.5"/><path d="M12 8v8M8 12h8"/></svg>',
   back:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m15 5-7 7 7 7"/></svg>',
@@ -461,8 +464,14 @@ function goFree(){
 
 /* Pantalla encendida */
 let wakeLock = null, wantWake = false;
-async function wake(on){
-  wantWake = on && S.wake !== false;
+// The lift view honors the setting; a running workout timer always keeps the screen on.
+const wakeNeeds = { exec:false, timer:false };
+function wake(on, reason = 'exec'){
+  wakeNeeds[reason] = on;
+  wantWake = (wakeNeeds.exec && S.wake !== false) || wakeNeeds.timer;
+  return applyWake();
+}
+async function applyWake(){
   try {
     if (wantWake && !wakeLock && 'wakeLock' in navigator) {
       wakeLock = await navigator.wakeLock.request('screen');
@@ -470,7 +479,7 @@ async function wake(on){
     } else if (!wantWake && wakeLock) { await wakeLock.release(); wakeLock = null; }
   } catch { wakeLock = null; }
 }
-document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) wake(true); }, { signal });
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && wantWake) applyWake(); }, { signal });
 
 /* =========================================================
    PRs
@@ -677,15 +686,20 @@ function renderSettings(){
 function renderTabs(){
   $('#tabExec').innerHTML = `${I.bolt}<span>Execute</span>`;
   $('#tabPrs').innerHTML = `${I.trophy}<span>PRs</span>`;
+  $('#tabTimer').innerHTML = `${I.timer}<span>Timer</span>`;
   $('#tabAdd').innerHTML = `${I.plus}<span>Registrar</span>`;
   $('#tabExec').classList.toggle('on', S.tab === 'exec');
   $('#tabPrs').classList.toggle('on', S.tab === 'prs');
+  $('#tabTimer').classList.toggle('on', S.tab === 'timer');
   $('#vExec').classList.toggle('hidden', S.tab !== 'exec');
   $('#vPRs').classList.toggle('hidden', S.tab !== 'prs');
+  $('#vTimer').classList.toggle('hidden', S.tab !== 'timer');
 }
 function renderAll(){
   renderTabs();
-  if (S.tab === 'exec') renderExec(); else { renderPRs(); $('#dock').classList.add('hidden'); document.body.classList.remove('docked'); wake(false); }
+  if (S.tab === 'exec') { renderExec(); return; }
+  if (S.tab === 'timer') timer.renderView(); else renderPRs();
+  $('#dock').classList.add('hidden'); document.body.classList.remove('docked'); document.body.classList.remove('focus'); wake(false);
 }
 // íconos fijos de las hojas
 document.querySelector('#detail [data-a="close"]').innerHTML = `${I.back} PRs`;
@@ -794,7 +808,8 @@ async function loadData(){
   // Offer the quick upload once to accounts that have no records yet.
   if (!DEMO && !LOAD_ERR && !RECORDS.length && !store.get(quickPromptKey, { seen:false }).seen) $('#quickPrompt').classList.add('open');
 }
+const timer = initTimer({ scope: storageScope, signal, setWake: on => wake(on, 'timer'), isActiveTab: () => S.tab === 'timer' });
 renderAll();
 loadData();
-return () => { controller.abort(); if (chart) chart.destroy(); wake(false); };
+return () => { controller.abort(); timer.destroy(); if (chart) chart.destroy(); wake(false); wake(false, 'timer'); };
 }

@@ -21,14 +21,20 @@ export default function App({ hasBackend, userId = 'demo', isAdmin = false }) {
   return <>
     <section id="vExec" className="wrap" />
     <section id="vPRs" className="wrap hidden" />
+    <section id="vTimer" className="wrap hidden" />
 
     <div className="dock hidden" id="dock"><div className="pstrip" id="pstrip" /></div>
+    <button className="tpill hidden" id="timerPill" data-a="t-open" />
 
     <nav className="tabbar" aria-label="Navegación principal">
       <button className="tab" data-a="tab" data-v="exec" id="tabExec" />
       <button className="tab" data-a="tab" data-v="prs" id="tabPrs" />
+      <button className="tab" data-a="tab" data-v="timer" id="tabTimer" />
       <button className="tab" data-a="add" id="tabAdd" />
     </nav>
+
+    <section className="sheet" id="timerCfg"><div className="wrap" id="tCfgBody" /></section>
+    <section className="sheet" id="timerRun"><div className="wrap" id="tRunBody" /></section>
 
     <section className="sheet" id="detail">
       <div className="wrap">
