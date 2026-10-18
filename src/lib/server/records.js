@@ -2,8 +2,11 @@ import 'server-only';
 import { getPrisma } from './prisma.js';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+// Weight catalog size times the three supported repetition maximums.
+export const MAX_BULK_RECORDS = 63;
 
 export class RecordInputError extends Error {}
+export class RecordConflictError extends Error {}
 
 function requireProfileId(profileId) {
   if (typeof profileId !== 'string' || !uuidPattern.test(profileId)) {
@@ -106,6 +109,42 @@ export async function createRecord(authUserId, input) {
     data: { ...data, profileId }, include: { movement: true },
   });
   return recordDto(record);
+}
+
+// Quick upload only fills gaps: every movement and repetition pair must be new for the owner.
+export async function createRecords(authUserId, inputs) {
+  const profileId = requireProfileId(authUserId);
+  if (!Array.isArray(inputs) || inputs.length === 0 || inputs.length > MAX_BULK_RECORDS) {
+    throw new RecordInputError(`Provide between 1 and ${MAX_BULK_RECORDS} records.`);
+  }
+  const records = [];
+  const pairs = new Set();
+  for (const input of inputs) {
+    const data = await validatedRecord(input);
+    if (data.measurementType !== 'WEIGHT') throw new RecordInputError('Quick upload accepts weight records only.');
+    const pair = `${data.movementId}:${data.repetitionMax}`;
+    if (pairs.has(pair)) throw new RecordInputError('Each movement and repetition pair may appear once.');
+    pairs.add(pair);
+    records.push(data);
+  }
+  try {
+    return await getPrisma().$transaction(async (tx) => {
+      const existing = await tx.personalRecord.findFirst({
+        where: { profileId, OR: records.map(({ movementId, repetitionMax }) => ({ movementId, repetitionMax })) },
+        select: { id: true },
+      });
+      if (existing) throw new RecordConflictError('A movement and repetition pair already has a record.');
+      const created = [];
+      for (const data of records) {
+        created.push(await tx.personalRecord.create({ data: { ...data, profileId }, include: { movement: true } }));
+      }
+      return created.map(recordDto);
+    }, { isolationLevel: 'Serializable' });
+  } catch (error) {
+    // P2034: a concurrent save touched the same rows; treat it like an existing record.
+    if (error?.code === 'P2034') throw new RecordConflictError('A concurrent save created conflicting records.');
+    throw error;
+  }
 }
 
 export async function updateRecord(authUserId, recordId, input) {
