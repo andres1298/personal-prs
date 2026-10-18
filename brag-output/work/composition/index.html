@@ -1,0 +1,283 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<title>Mis PRs — brag</title>
+<style>
+  :root {
+    --bg: #000; --surface: #1c1c1e; --label2: rgba(235,235,245,.6);
+    --red: #ff453a; --blue: #0a84ff; --amber: #ff9f0a; --green: #30d158; --purple: #bf5af2; --teal: #40c8e0; --indigo: #5e5ce6;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1920px; height: 1080px; overflow: hidden; background: var(--bg); color: #fff; font-family: Inter, sans-serif; }
+  #stage { position: absolute; inset: 0; overflow: hidden; }
+  .glow { position: absolute; width: 1600px; height: 1600px; border-radius: 50%; opacity: 0; will-change: transform; background: radial-gradient(circle at center, var(--c) 0%, transparent 62%); }
+  .abs { position: absolute; will-change: transform, opacity; }
+  .display { font-family: "Inter Display", Inter, sans-serif; letter-spacing: -0.03em; }
+
+  /* Hook */
+  #hookMath { left: 0; right: 0; top: 330px; text-align: center; font-size: 150px; font-weight: 800; }
+  #hookMath .pct { color: var(--blue); }
+  .scrawl { font-size: 46px; font-weight: 500; color: rgba(235,235,245,.38); white-space: nowrap; }
+  #hookQ { left: 0; right: 0; top: 560px; text-align: center; font-size: 112px; font-weight: 800; }
+  #hookQ em { font-style: normal; color: var(--amber); }
+
+  /* Left copy column */
+  .copy { left: 170px; width: 820px; }
+  .kicker { font-size: 34px; font-weight: 700; letter-spacing: .02em; text-transform: uppercase; margin-bottom: 22px; display: flex; align-items: center; gap: 14px; }
+  .kicker i { width: 16px; height: 16px; border-radius: 50%; background: currentColor; display: inline-block; }
+  .line { font-size: 84px; font-weight: 800; line-height: 1.05; }
+  .sub { font-size: 44px; font-weight: 500; color: var(--label2); line-height: 1.25; margin-top: 26px; }
+
+  #brandRow { display: flex; align-items: center; gap: 40px; }
+  #brandRow img { width: 190px; height: 190px; border-radius: 44px; box-shadow: 0 30px 80px rgba(0,0,0,.6), 0 0 0 1px rgba(255,255,255,.08); }
+  #brandRow h1 { font-size: 150px; font-weight: 900; }
+
+  #counter { margin-top: 44px; display: flex; align-items: baseline; gap: 26px; font-weight: 800; }
+  #counter .p { font-size: 72px; color: var(--blue); width: 190px; }
+  #counter .arrow { font-size: 56px; color: var(--label2); }
+  #counter .w { font-size: 150px; font-variant-numeric: tabular-nums; }
+  #counter .w small { font-size: 60px; color: var(--label2); margin-left: 10px; }
+
+  .pills { display: flex; flex-wrap: wrap; gap: 20px; margin-top: 36px; max-width: 800px; }
+  .pill { font-size: 48px; font-weight: 800; padding: 16px 34px; border-radius: 999px; color: #000; }
+
+  /* Phone */
+  #phone { left: 1180px; top: 70px; width: 452px; height: 948px; border-radius: 76px; background: #0b0b0d; padding: 14px;
+    box-shadow: 0 0 0 2px #2c2c30, 0 0 0 6px #111114, 0 60px 140px rgba(0,0,0,.7); transform-origin: 50% 50%; }
+  #screen { position: relative; width: 424px; height: 920px; border-radius: 62px; overflow: hidden; background: #000; }
+  #screen img { position: absolute; left: 0; top: 0; width: 424px; height: 920px; opacity: 0; will-change: transform, opacity; }
+  #island { position: absolute; left: 50%; top: 14px; width: 120px; height: 34px; margin-left: -60px; border-radius: 20px; background: #000; z-index: 5; }
+  #tap { position: absolute; width: 64px; height: 64px; margin: -32px 0 0 -32px; border-radius: 50%; background: rgba(255,255,255,.55);
+    box-shadow: 0 0 0 3px rgba(255,255,255,.85); z-index: 6; opacity: 0; }
+
+  /* Outro */
+  #outro { left: 0; right: 0; top: 0; bottom: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; }
+  #outro img { width: 260px; height: 260px; border-radius: 60px; box-shadow: 0 40px 100px rgba(0,0,0,.7), 0 0 0 1px rgba(255,255,255,.08); }
+  #outro h1 { font-size: 150px; font-weight: 900; margin-top: 40px; }
+  #outro p { font-size: 46px; font-weight: 500; color: var(--label2); margin-top: 18px; max-width: 1600px; white-space: nowrap; }
+</style>
+</head>
+<body>
+<div id="stage">
+  <div class="glow" id="g1" style="--c: var(--blue)"></div>
+  <div class="glow" id="g2" style="--c: var(--red)"></div>
+  <div class="glow" id="g3" style="--c: var(--amber)"></div>
+
+  <!-- Scene 1: hook -->
+  <div class="abs display" id="hookMath"><span id="hookType"></span></div>
+  <div class="abs scrawl" id="s1" style="left:250px; top:190px">= 221 lb</div>
+  <div class="abs scrawl" id="s2" style="left:1290px; top:230px">− 45 lb de barra</div>
+  <div class="abs scrawl" id="s3" style="left:200px; top:800px">÷ 2 lados = 88 lb</div>
+  <div class="abs scrawl" id="s4" style="left:1250px; top:830px">¿45 + 35 + 5 + …?</div>
+  <div class="abs display" id="hookQ">¿Y qué <em>discos</em> pongo?</div>
+
+  <!-- Scene 2: reveal -->
+  <div class="abs copy" id="reveal" style="top: 330px">
+    <div id="brandRow"><img src="../icon-512.png" alt=""><h1 class="display">Mis PRs</h1></div>
+    <div class="sub" style="font-size:56px; color:#fff; font-weight:700; margin-top:46px">Tu calculadora de discos<br>para CrossFit.</div>
+  </div>
+
+  <!-- Scene 3 -->
+  <div class="abs copy" id="c3a" style="top: 360px">
+    <div class="kicker" style="color: var(--blue)"><i></i>Execute</div>
+    <div class="line display">Elige tu PR<br>y el porcentaje.</div>
+  </div>
+  <div class="abs copy" id="c3b" style="top: 300px">
+    <div class="kicker" style="color: var(--red)"><i></i>Back Squat · PR 260 lb</div>
+    <div class="line display">Los discos por lado,<br>al instante.</div>
+    <div id="counter"><span class="p" id="cp">70%</span><span class="arrow">→</span><span class="w"><span id="cw">180</span><small>lb</small></span></div>
+  </div>
+
+  <!-- Scene 4 -->
+  <div class="abs copy" id="c4" style="top: 380px">
+    <div class="kicker" style="color: var(--green)"><i></i>Calentamiento</div>
+    <div class="line display">Tu calentamiento,<br>paso a paso.</div>
+  </div>
+
+  <!-- Scene 5 -->
+  <div class="abs copy" id="c5" style="top: 380px">
+    <div class="kicker" style="color: var(--amber)"><i></i>PRs</div>
+    <div class="line display">Cada PR,<br>con su progreso.</div>
+  </div>
+
+  <!-- Scene 6 -->
+  <div class="abs copy" id="c6" style="top: 330px">
+    <div class="kicker" style="color: var(--teal)"><i></i>Timer</div>
+    <div class="line display">Y el reloj del WOD.</div>
+    <div class="pills">
+      <span class="pill" id="p1" style="background: var(--green)">AMRAP</span>
+      <span class="pill" id="p2" style="background: var(--teal)">EMOM</span>
+      <span class="pill" id="p3" style="background: var(--indigo); color:#fff">TABATA</span>
+      <span class="pill" id="p4" style="background: var(--amber)">FOR TIME</span>
+    </div>
+  </div>
+
+  <!-- Phone with real app screens -->
+  <div class="abs" id="phone">
+    <div id="screen">
+      <div id="island"></div>
+      <img id="i01" src="../shots/01-picker.png" alt="">
+      <img id="i02" src="../shots/02-moves.png" alt="">
+      <img id="i03" src="../shots/03-editor.png" alt="">
+      <img id="i03b" src="../shots/03-editor-75.png" alt="">
+      <img id="i03c" src="../shots/03-editor-80.png" alt="">
+      <img id="i03d" src="../shots/03-editor-85.png" alt="">
+      <img id="i04" src="../shots/04-bench.png" alt="">
+      <img id="i06" src="../shots/06-warmup.png" alt="">
+      <img id="i07" src="../shots/07-warmup-done.png" alt="">
+      <img id="i08" src="../shots/08-prs.png" alt="">
+      <img id="i09" src="../shots/09-detail.png" alt="">
+      <img id="i10" src="../shots/10-timer.png" alt="">
+      <div id="tap"></div>
+    </div>
+  </div>
+
+  <!-- Scene 7: outro -->
+  <div class="abs" id="outro">
+    <img src="../icon-512.png" alt="">
+    <h1 class="display">Mis PRs</h1>
+    <p>Registra tus marcas personales y calcula pesos para entrenar.</p>
+  </div>
+</div>
+
+<script>
+// Every frame is a pure function of time: render(t) sets all styles from scratch.
+const $ = (id) => document.getElementById(id);
+const clamp = (x, a = 0, b = 1) => Math.min(b, Math.max(a, x));
+const prog = (t, a, b) => clamp((t - a) / (b - a));
+const easeOut = (x) => 1 - Math.pow(1 - x, 3);
+const easeInOut = (x) => (x < .5 ? 4 * x * x * x : 1 - Math.pow(-2 * x + 2, 3) / 2);
+const backOut = (x) => { const c = 1.6; return 1 + (c + 1) * Math.pow(x - 1, 3) + c * Math.pow(x - 1, 2); };
+// Fade in over [a, a+din], hold, fade out over [b-dout, b].
+const window_ = (t, a, b, din = .35, dout = .25) => Math.min(easeOut(prog(t, a, a + din)), 1 - prog(t, b - dout, b));
+
+function set(el, { o = 1, x = 0, y = 0, s = 1, blur = 0 } = {}) {
+  el.style.opacity = o;
+  el.style.transform = `translate(${x}px, ${y}px) scale(${s})`;
+  el.style.filter = blur ? `blur(${blur}px)` : 'none';
+  el.style.visibility = o <= 0.001 ? 'hidden' : 'visible';
+}
+// Copy block: rises in, then leaves upward.
+function copy(el, t, a, b) {
+  const inP = easeOut(prog(t, a, a + .45));
+  const outP = prog(t, b - .3, b);
+  set(el, { o: Math.min(inP, 1 - outP), y: (1 - inP) * 50 - outP * 30 });
+}
+
+// Phone screen timeline. Each entry: [imageId, start, kind]. kind: push | fade | sheet | cut
+const SCREENS = [
+  ['i01', 0, 'cut'], ['i02', 6.5, 'push'], ['i03', 7.5, 'push'],
+  ['i03b', 8.55, 'fade'], ['i03c', 9.05, 'fade'], ['i03d', 9.55, 'fade'],
+  ['i04', 10.5, 'fade'], ['i06', 11.65, 'fade'], ['i07', 12.95, 'fade'],
+  ['i08', 14.0, 'fade'], ['i09', 14.75, 'sheet'], ['i10', 17.0, 'fade'],
+];
+// Simulated taps in screen pixels (393-wide app space, scaled by 424/393).
+const TAPS = [
+  [6.2, 103, 170], [7.2, 190, 124], [8.4, 273, 211], [8.9, 273, 211], [9.4, 273, 211], [10.25, 321, 163],
+  [11.45, 285, 387], [12.35, 46, 460], [12.75, 46, 536], [13.8, 160, 812], [14.55, 190, 254], [16.85, 253, 812],
+];
+const K = 424 / 393;
+
+function renderScreens(t) {
+  let current = 0;
+  SCREENS.forEach(([, start], i) => { if (t >= start) current = i; });
+  SCREENS.forEach(([id, start, kind], i) => {
+    const el = $(id);
+    const isCur = i === current, isPrev = i === current - 1;
+    if (!isCur && !isPrev) { set(el, { o: 0 }); el.style.zIndex = 0; return; }
+    const [, curStart, curKind] = SCREENS[current];
+    const dur = curKind === 'push' ? .38 : curKind === 'sheet' ? .5 : curKind === 'fade' ? .18 : 0;
+    const p = dur ? easeInOut(prog(t, curStart, curStart + dur)) : 1;
+    if (isCur) {
+      el.style.zIndex = 2;
+      if (curKind === 'push') set(el, { x: (1 - p) * 424 });
+      else if (curKind === 'sheet') set(el, { y: (1 - p) * 920, o: clamp(p * 3) });
+      else set(el, { o: p });
+    } else {
+      el.style.zIndex = 1;
+      if (curKind === 'push') set(el, { x: -p * 120, o: 1 - p * .4 });
+      else set(el, { o: p >= 1 ? 0 : 1 });
+    }
+  });
+  // Tap ripple
+  const tap = $('tap');
+  let shown = false;
+  for (const [at, x, y] of TAPS) {
+    const p = prog(t, at, at + .4);
+    if (t >= at && t < at + .4) {
+      tap.style.left = `${x * K}px`; tap.style.top = `${y * K}px`;
+      set(tap, { o: p < .35 ? 1 : 1 - (p - .35) / .65, s: .55 + .6 * easeOut(p) });
+      shown = true;
+    }
+  }
+  if (!shown) set(tap, { o: 0 });
+}
+
+function render(t) {
+  // Ambient glows drift slowly; their mix follows the scene accent.
+  const drift = (a, r, ph) => [Math.cos(t * .35 + ph) * r, Math.sin(t * .28 + ph) * r];
+  const [ax, ay] = drift(0, 80, 0), [bx, by] = drift(0, 90, 2), [cx, cy] = drift(0, 70, 4);
+  const intro = t < 3 ? .5 : 1;
+  set($('g1'), { o: .2 * intro, x: 1000 + ax, y: -700 + ay });
+  set($('g2'), { o: (t > 5.8 && t < 11.5 ? .2 : .12) * intro, x: -700 + bx, y: 200 + by });
+  set($('g3'), { o: (t > 13.9 && t < 17 ? .2 : .1) * intro, x: 900 + cx, y: 300 + cy });
+
+  // Scene 1: hook
+  const full = '260 lb × <span class="pct">85%</span>';
+  const plain = '260 lb × 85%';
+  const n = Math.round(clamp((t - .1) / .65) * plain.length);
+  $('hookType').innerHTML = n >= plain.length ? full : n > 9 ? `260 lb × <span class="pct">${plain.slice(9, n)}</span>` : plain.slice(0, n);
+  const hookOut = prog(t, 2.75, 3.0);
+  const mathUp = easeInOut(prog(t, 1.25, 1.6));
+  set($('hookMath'), { o: (1 - hookOut) * (n ? 1 : 0), y: -mathUp * 110, s: 1 - mathUp * .25 });
+  ['s1', 's2', 's3', 's4'].forEach((id, i) => {
+    const a = .6 + i * .18;
+    const p = easeOut(prog(t, a, a + .35));
+    set($(id), { o: p * (1 - hookOut), y: (1 - p) * 20 + Math.sin(t * 1.3 + i) * 6, blur: 1.5 });
+  });
+  const q = easeOut(prog(t, 1.45, 1.8));
+  set($('hookQ'), { o: q * (1 - hookOut), y: (1 - q) * 40, s: .96 + .04 * q });
+
+  // Scene 2: reveal
+  copy($('reveal'), t, 3.1, 5.95);
+
+  // Scenes 3–6 copy
+  copy($('c3a'), t, 6.05, 8.2);
+  copy($('c3b'), t, 8.25, 11.45);
+  const steps = [[0, '70%', 180], [8.55, '75%', 195], [9.05, '80%', 205], [9.55, '85%', 220]];
+  let st = steps[0]; steps.forEach((s) => { if (t >= s[0]) st = s; });
+  $('cp').textContent = st[1]; $('cw').textContent = st[2];
+  const bump = st[0] ? 1 + .08 * (1 - easeOut(prog(t, st[0], st[0] + .25))) : 1;
+  $('cw').parentElement.style.display = 'inline-block';
+  $('cw').parentElement.style.transform = `scale(${bump})`;
+  copy($('c4'), t, 11.55, 13.95);
+  copy($('c5'), t, 14.05, 16.95);
+  copy($('c6'), t, 17.05, 18.45);
+  ['p1', 'p2', 'p3', 'p4'].forEach((id, i) => {
+    const a = 17.25 + i * .14;
+    const p = prog(t, a, a + .3);
+    set($(id), { o: clamp(p * 2), s: .6 + .4 * backOut(p) });
+  });
+
+  // Phone: rises at the reveal, gently zooms during the plate math, leaves for the outro.
+  const rise = easeOut(prog(t, 3.2, 3.9));
+  const leave = easeInOut(prog(t, 18.45, 18.95));
+  const zoom = easeInOut(prog(t, 8.2, 8.8)) - easeInOut(prog(t, 11.2, 11.7));
+  set($('phone'), { o: Math.min(rise, 1 - leave), y: (1 - rise) * 260 + leave * 200, s: 1 + zoom * .06 });
+  renderScreens(t);
+
+  // Scene 7: outro
+  const op = prog(t, 18.75, 19.35);
+  set($('outro'), { o: easeOut(op), s: .94 + .06 * backOut(op) });
+  const sub = $('outro').querySelector('p');
+  const sp = easeOut(prog(t, 19.15, 19.6));
+  sub.style.opacity = sp; sub.style.transform = `translateY(${(1 - sp) * 20}px)`;
+}
+window.render = render;
+window.ready = Promise.all([...document.images].map((img) => img.decode().catch(() => {}))).then(() => document.fonts.ready);
+const params = new URLSearchParams(location.search);
+render(Number(params.get('t') || 0));
+</script>
+</body>
+</html>

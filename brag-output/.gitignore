@@ -1,0 +1,7 @@
+# Regenerable render intermediates
+work/frames/
+work/check/
+work/stills/
+work/*.png
+!work/icon-512.png
+work/render.log
