@@ -35,7 +35,7 @@ function Banner({ loading, demo, error, onRetry }) {
   return null;
 }
 
-function PrsApp({ hasBackend, isAdmin = false, scope }) {
+function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, scope }) {
   const alert = useAlert();
   const { records, loading, error, reload, addRecord, addRecords } = useRecords(hasBackend);
   const [settings, updateSettings, ready] = useStoredState(`prs_settings_${scope}`, SETTINGS_DEFAULTS);
@@ -59,13 +59,15 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
   // Simple mode hides the tab bar while lifting.
   const focus = running && !!settings.simple;
 
-  // The guided tour opens by itself the first time the app is used on this device.
+  // The guided tour opens by itself for new members (and once per device in the demo).
+  // The device flag also covers the moment between closing the tour and the server saving it.
+  const autoTour = (hasBackend ? newMember : true) && !tour.seen;
   useEffect(() => {
-    if (ready && tourReady && !tour.seen) setTourOpen(true);
-  }, [ready, tourReady, tour.seen]);
+    if (ready && tourReady && autoTour) setTourOpen(true);
+  }, [ready, tourReady, autoTour]);
 
   // Offer the quick upload once to accounts that have no records yet, after the tour.
-  const tourPending = !tourReady || !tour.seen || tourOpen;
+  const tourPending = !tourReady || autoTour || tourOpen;
   useEffect(() => {
     const key = `prs_quick_prompt_${scope}`;
     if (tourPending || !hasBackend || loading || error || records.length || readStored(key, {}).seen) return;
@@ -91,11 +93,12 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
     });
   }, [updateSettings, updateEx, records]);
   const closeTour = useCallback(() => {
+    if (hasBackend && newMember && !tour.seen) fetch('/api/tour', { method: 'POST' }).catch(() => {});
     updateTour({ seen: true });
     setTourOpen(false);
     if (tourSnapshot.current) updateEx(tourSnapshot.current);
     tourSnapshot.current = null;
-  }, [updateTour, updateEx]);
+  }, [hasBackend, newMember, tour.seen, updateTour, updateEx]);
   const replayTour = () => {
     setSettingsOpen(false);
     // Let the settings sheet slide away first.
