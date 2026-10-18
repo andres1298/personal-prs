@@ -78,17 +78,29 @@ export async function findProfile(authUserId) {
   return getPrisma().profile.findUnique({ where: { id: requireProfileId(authUserId) }, select: { id: true, disabledAt: true } });
 }
 
+// True while the member has not finished or skipped the guided tour.
+export async function hasPendingTour(authUserId) {
+  const profile = await getPrisma().profile.findUnique({ where: { id: requireProfileId(authUserId) }, select: { tourCompletedAt: true } });
+  return Boolean(profile && !profile.tourCompletedAt);
+}
+
+// Only the first completion is kept; replays from Settings do not change it.
+export async function completeTour(authUserId, now = new Date()) {
+  await getPrisma().profile.updateMany({ where: { id: requireProfileId(authUserId), tourCompletedAt: null }, data: { tourCompletedAt: now } });
+}
+
 export async function ensureAdminProfile(user) {
   const id = requireProfileId(user?.id);
   const email = typeof user.email === 'string' ? user.email.trim().toLowerCase() : null;
-  await getPrisma().profile.upsert({ where: { id }, create: { id, email }, update: {} });
+  // Select only what callers use, so columns from pending migrations are never read.
+  await getPrisma().profile.upsert({ where: { id }, create: { id, email }, update: {}, select: { id: true } });
 }
 
 export async function upsertProfile(authUserId, displayName = null) {
   const id = requireProfileId(authUserId);
   const name = optionalText(displayName, 'Display name');
   const profile = await getPrisma().profile.upsert({
-    where: { id }, create: { id, displayName: name }, update: { displayName: name },
+    where: { id }, create: { id, displayName: name }, update: { displayName: name }, select: { id: true, displayName: true },
   });
   return { id: profile.id, displayName: profile.displayName };
 }

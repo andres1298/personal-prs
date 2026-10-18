@@ -37,7 +37,7 @@ function validatedInput({ name, email } = {}) {
 export async function createInvitation(inviterId, input, now = new Date()) {
   const { name, email } = validatedInput(input);
   const prisma = getPrisma();
-  if (await prisma.profile.findUnique({ where: { email } })) throw new InvitationError('already_member');
+  if (await prisma.profile.findUnique({ where: { email }, select: { id: true } })) throw new InvitationError('already_member');
   const token = randomBytes(32).toString('base64url');
   const invitation = await prisma.invitation.create({
     data: { tokenHash: hashToken(token), name, email, invitedById: inviterId, expiresAt: new Date(now.getTime() + INVITATION_TTL_MS) },
@@ -103,6 +103,7 @@ export async function acceptInvitation(token, password, now = new Date()) {
     await prisma.$transaction(async (tx) => {
       await tx.profile.create({
         data: { id: data.user.id, displayName: invitation.name, email: invitation.email, invitedById: invitation.invitedById },
+        select: { id: true },
       });
       await tx.invitation.update({ where: { tokenHash }, data: { acceptedProfileId: data.user.id } });
     });

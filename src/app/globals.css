@@ -658,6 +658,68 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .auth-message.error { color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
 .auth-footnote { color: var(--label2); font-size: 13px; }
 
+/* ---------- Guided tour ---------- */
+:root { --tour-dim: rgba(0, 0, 0, .52); }
+@media (prefers-color-scheme: dark) { :root { --tour-dim: rgba(0, 0, 0, .72); } }
+.tour-root { position: fixed; inset: 0; z-index: 95; }
+.tour-spot {
+  position: fixed; pointer-events: none; box-shadow: 0 0 0 200vmax var(--tour-dim);
+  opacity: 0; transition: top .55s var(--spring), left .55s var(--spring), width .55s var(--spring), height .55s var(--spring),
+    border-radius .55s var(--spring), opacity .3s;
+}
+.tour-root[data-state="open"] .tour-spot { opacity: 1; }
+.tour-spot::after {
+  content: ""; position: absolute; inset: -3px; border-radius: inherit; border: 2px solid var(--tint);
+  animation: tour-pulse 1.8s var(--ease-out) infinite; transition: opacity .25s;
+}
+.tour-spot[data-empty="true"]::after { opacity: 0; }
+@keyframes tour-pulse { 0% { transform: scale(1); opacity: .9; } 70%, 100% { transform: scale(1.06); opacity: 0; } }
+.tour-card {
+  position: fixed; display: grid; gap: 14px; padding: 18px 18px 14px; border-radius: var(--radius-card);
+  background: var(--material); border: .5px solid var(--glass-edge); box-shadow: var(--shadow);
+  -webkit-backdrop-filter: saturate(180%) blur(30px); backdrop-filter: saturate(180%) blur(30px);
+  opacity: 0; transform: translateY(10px) scale(.94);
+  transition: top .55s var(--spring), left .55s var(--spring), transform .4s var(--spring), opacity .25s;
+}
+.tour-card[data-place="above"] { transform-origin: bottom center; }
+/* Covering a tall target on short screens: opaque, so the text behind does not bleed through. */
+.tour-card[data-place="over"] { background: var(--surface); }
+.tour-root[data-state="open"] .tour-card { opacity: 1; transform: none; }
+.tour-content { display: grid; gap: 6px; animation: tour-next .4s var(--ease-out); }
+.tour-content[data-direction="back"] { animation-name: tour-back; }
+@keyframes tour-next { from { opacity: 0; transform: translateX(18px); } }
+@keyframes tour-back { from { opacity: 0; transform: translateX(-18px); } }
+.tour-content h2 { font-size: 20px; line-height: 1.2; font-weight: 700; letter-spacing: .38px; }
+.tour-content p { color: var(--label2); font-size: 15px; line-height: 1.4; letter-spacing: -.24px; }
+.tour-content .tour-count { color: var(--tint); font-size: 13px; font-weight: 600; letter-spacing: -.08px; }
+.tour-badge {
+  width: 52px; height: 52px; margin-bottom: 6px; display: grid; place-items: center; border-radius: 16px;
+  background: var(--tint); color: #fff; animation: tour-badge .6s var(--bounce);
+}
+.tour-badge svg { width: 28px; height: 28px; }
+@keyframes tour-badge { from { transform: scale(.4) rotate(-12deg); opacity: 0; } }
+.tour-progress { display: flex; gap: 5px; }
+.tour-progress i {
+  height: 6px; width: 6px; border-radius: 3px; background: var(--fill); transition: width .4s var(--spring), background-color .3s;
+}
+.tour-progress i[data-state="done"] { background: color-mix(in srgb, var(--tint) 45%, transparent); }
+.tour-progress i[data-state="current"] { width: 20px; background: var(--tint); }
+.tour-actions { display: flex; align-items: center; gap: 8px; min-height: 44px; }
+.tour-actions-end { display: flex; align-items: center; gap: 8px; margin-left: auto; }
+.tour-skip { height: 44px; padding: 0 4px; color: var(--label2); font-size: 15px; transition: opacity .15s; }
+.tour-skip:active { opacity: .5; }
+.tour-back {
+  width: 44px; height: 44px; display: grid; place-items: center; border-radius: 50%; background: var(--fill3); color: var(--tint);
+  transition: transform .2s var(--ease-out);
+}
+.tour-back svg { width: 20px; height: 20px; }
+.tour-next {
+  height: 44px; display: inline-flex; align-items: center; gap: 4px; padding: 0 16px 0 20px; border-radius: 999px;
+  background: var(--tint); color: #fff; font-size: 17px; font-weight: 600; transition: transform .2s var(--ease-out);
+}
+.tour-next svg { width: 18px; height: 18px; }
+.tour-back:active, .tour-next:active { transform: scale(.94); }
+
 /* ---------- Motion preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

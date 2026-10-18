@@ -6,7 +6,7 @@ Prisma owns the application schema and server persistence. Supabase Auth owns id
 
 | Model | Purpose |
 | --- | --- |
-| `Profile` | A UUID supplied by verified Supabase Auth, optional display name and audit timestamps. |
+| `Profile` | A UUID supplied by verified Supabase Auth, optional display name, audit timestamps and when the member finished the guided tour (`null` for new members). |
 | `Movement` | Stable catalog slug, unique name, category, group and measurement type. |
 | `PersonalRecord` | UUIDv7, required profile/movement, decimal measurement, practice date, repetition maximum, notes and optional video references. |
 

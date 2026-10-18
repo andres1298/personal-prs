@@ -1,7 +1,9 @@
 import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { getPrisma } from '../src/lib/server/prisma.js';
-import { createRecord, listRecords, updateRecord, deleteRecord, upsertProfile, toLegacyRecord } from '../src/lib/server/records.js';
+import {
+  completeTour, createRecord, deleteRecord, hasPendingTour, listRecords, toLegacyRecord, updateRecord, upsertProfile,
+} from '../src/lib/server/records.js';
 import { movementCatalog, seedMovements } from '../prisma/catalog.mjs';
 
 // Require a deliberate choice of a disposable database; never run against live data.
@@ -24,6 +26,15 @@ try {
   await upsertProfile(ownerId, 'Test owner');
   await upsertProfile(ownerId, 'Updated owner');
   await upsertProfile(otherId, 'Other owner');
+  // New members have a pending tour; completing it is per member and keeps the first time.
+  assert.equal(await hasPendingTour(ownerId), true);
+  assert.equal(await hasPendingTour(randomUUID()), false);
+  const firstCompletion = new Date('2026-03-01T00:00:00Z');
+  await completeTour(ownerId, firstCompletion);
+  await completeTour(ownerId);
+  assert.equal(await hasPendingTour(ownerId), false);
+  assert.equal(await hasPendingTour(otherId), true);
+  assert.equal((await prisma.profile.findUnique({ where: { id: ownerId } })).tourCompletedAt.toISOString(), firstCompletion.toISOString());
   const created = await createRecord(ownerId, input);
   assert.equal(created.value, '225.125');
   assert.equal(created.performedOn, input.performedOn);
@@ -77,7 +88,7 @@ try {
   assert.equal(protections.length, 3);
   await deleteRecord(ownerId, created.id);
   assert.equal((await listRecords(ownerId)).some((record) => record.id === created.id), false);
-  console.log('Prisma integration checks passed: catalog, CRUD, ownership filters, constraints and serialization.');
+  console.log('Prisma integration checks passed: catalog, CRUD, ownership filters, constraints, serialization and tour state.');
 } catch {
   console.error('Prisma integration checks failed. Inspect the isolated test environment privately.');
   process.exitCode = 1;

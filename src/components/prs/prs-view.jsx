@@ -23,13 +23,13 @@ export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
   };
 
   return <>
-    <LargeTitle title="PRs" trailing={<button type="button" className="nav-text" onClick={onQuick} disabled={busy}>
+    <LargeTitle title="PRs" trailing={<button type="button" className="nav-text" data-tour="quick-upload" onClick={onQuick} disabled={busy}>
       <Icon name="bolt" fill /> Carga rápida
     </button>} />
     {banner}
     <SegmentedControl label="Categoría" value={tab} onChange={(next) => { setTab(next); setGroup(null); }}
       options={Object.keys(CATALOG).map((key) => ({ value: key, label: key }))} />
-    <div className="chips" role="group" aria-label="Grupos">
+    <div className="chips" role="group" aria-label="Grupos" data-tour="prs-groups">
       {groups.map((g) => {
         const count = g.moves.filter((move) => records.some((r) => r.move === move)).length;
         return <button type="button" key={g.name} className="chip" aria-pressed={g.name === group} style={{ '--c': `var(${g.color})` }}

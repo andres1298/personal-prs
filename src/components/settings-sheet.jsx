@@ -9,7 +9,7 @@ import { List, Row } from './ui/list';
 import { SegmentedControl, Switch, SymbolTile } from './ui/controls';
 import AdminPanel from '../app/admin-panel';
 
-export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin }) {
+export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin, onTour }) {
   const togglePlate = (plate) => updateSettings((s) => ({
     plates: s.plates.includes(plate) ? s.plates.filter((p) => p !== plate) : [...s.plates, plate],
   }));
@@ -37,6 +37,8 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
         subtitle="Mientras estás en un levantamiento">
         <Switch checked={settings.wake !== false} label="Pantalla siempre encendida" onChange={(wake) => updateSettings({ wake })} />
       </Row>
+      <Row leading={<SymbolTile color="--purple"><Icon name="sparkles" /></SymbolTile>} title="Ver tour de la app"
+        subtitle="Repasa el flujo básico paso a paso" chevron onClick={onTour} />
     </List>
     <List header="Cuenta">
       <Row leading={<SymbolTile color="--blue"><Icon name="person" /></SymbolTile>} title="Datos"

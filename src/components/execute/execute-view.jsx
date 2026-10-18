@@ -30,6 +30,13 @@ export function selectMovePatch(records, move) {
   };
 }
 
+// Exercise the guided tour shows: the first lift with a PR, or a free calculation.
+export function tourExercise(records) {
+  const move = CATALOG.Lift.groups.flatMap((group) => group.moves).find((name) => firstRm(records, name));
+  if (move) return { ...selectMovePatch(records, move), editBase: false };
+  return { ...EXERCISE_DEFAULTS, view: 'run', free: true, base: 225, pct: DEFAULT_PCT };
+}
+
 const scrollTop = () => window.scrollTo({ top: 0 });
 
 export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings }) {
@@ -45,7 +52,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
   const resumeTarget = canResume ? computeLoad(ex, settings, settings.simple).target : 0;
   return <>
     <LargeTitle title="Execute" subtitle="¿Qué vas a levantar?"
-      trailing={<button type="button" className="nav-icon" aria-label="Ajustes" onClick={onOpenSettings}><Icon name="gear" /></button>} />
+      trailing={<button type="button" className="nav-icon" aria-label="Ajustes" data-tour="settings" onClick={onOpenSettings}><Icon name="gear" /></button>} />
     {banner}
     {canResume && <button type="button" className="resume-card" onClick={() => go({ view: 'run' })}>
       <span className="resume-copy">
@@ -55,7 +62,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
       <span className="resume-weight num rounded">{resumeTarget}<small>lb</small></span>
       <Icon name="chevronRight" weight={2.6} />
     </button>}
-    <div className="category-grid">
+    <div className="category-grid" data-tour="categories">
       {CATALOG.Lift.groups.map((group) => {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={{ '--c': `var(${group.color})` }}
@@ -66,7 +73,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
       })}
     </div>
     <List>
-      <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre"
+      <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre" data-tour="free-calc"
         subtitle="Cualquier peso y porcentaje" chevron onClick={() => go({ view: 'run', free: true, editBase: false })} />
     </List>
   </>;
@@ -128,7 +135,7 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
       </>}
     />
 
-    <section className="card weight-card">
+    <section className="card weight-card" data-tour="weight">
       <div className="card-head">
         <span><Icon name="number" weight={2.4} /> Peso total</span>
         <span className="card-head-detail num">{ex.base > 0 && `${toKg(load.target)} kg`}</span>
@@ -147,7 +154,7 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
         : <p className="empty compact">{ex.free ? 'Escribe un peso y el porcentaje para empezar' : 'Sin PR para este RM'}</p>}
     </section>
 
-    {ex.base > 0 && <div className={simple ? 'simple' : ''}>
+    {ex.base > 0 && <div className={simple ? 'simple' : ''} data-tour="exec-panel">
       {!simple && <SegmentedControl label="Vista" value={ex.panel} onChange={(panel) => setEx({ panel })}
         options={[{ value: 'load', label: 'Barra' }, { value: 'warm', label: 'Calentamiento' }]} />}
       {ex.panel === 'load' || simple
@@ -180,7 +187,7 @@ function BaseEditor({ ex, setEx, records, resetAdj }) {
     </div>;
   }
   const step = (delta) => setEx({ pct: Math.min(150, Math.max(5, Math.round((ex.pct + delta) * 10) / 10)), ...resetAdj });
-  return <div className="base-editor">
+  return <div className="base-editor" data-tour="base-editor">
     <div className="base-editor-row">
       {ex.free
         ? <label className="base-input"><input className="num" inputMode="decimal" placeholder="Peso" value={baseText} autoFocus={!ex.base}
@@ -217,7 +224,7 @@ function LoadCard({ load, ex, setEx, settings, simple, onAdd, onRemove }) {
   }
   const option = load.options[load.selected];
   const small = load.plates.length > 5;
-  return <section className="card load-card">
+  return <section className="card load-card" data-tour="barbell">
     <div className="card-head">
       <span><Icon name="barbell" weight={2.4} /> Por lado · <b className="num">{num(sum(load.plates))} lb</b></span>
       <span className="card-head-detail">Barra {settings.bar} lb</span>

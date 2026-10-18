@@ -31,6 +31,8 @@ model Profile {
   // Set by an admin to block access; the actor is kept as an audit trail.
   disabledAt         DateTime?        @db.Timestamptz(3)
   disabledById       String?          @db.Uuid
+  // Set when the member finishes or skips the guided tour; null means a new member.
+  tourCompletedAt    DateTime?        @db.Timestamptz(3)
   createdAt          DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
   records            PersonalRecord[]

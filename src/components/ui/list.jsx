@@ -1,8 +1,8 @@
 import Icon from './icon';
 
 // Inset grouped list, as in iOS Settings.
-export function List({ header, footer, children, className = '' }) {
-  return <section className={`list-section ${className}`}>
+export function List({ header, footer, children, className = '', ...rest }) {
+  return <section className={`list-section ${className}`} {...rest}>
     {header && <h3 className="list-header">{header}</h3>}
     <div className="list">{children}</div>
     {footer && <p className="list-footer">{footer}</p>}

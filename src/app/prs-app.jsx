@@ -1,18 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ALL_PLATES } from '../lib/plates';
 import { readStored, useStoredState, useWakeLock, writeStored } from '../components/hooks';
 import useRecords from '../components/use-records';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
-import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch } from '../components/execute/execute-view';
+import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch, tourExercise } from '../components/execute/execute-view';
 import PrsView from '../components/prs/prs-view';
 import MoveDetailSheet from '../components/prs/move-detail-sheet';
 import RecordFormSheet from '../components/prs/record-form-sheet';
 import QuickUploadSheet from '../components/prs/quick-upload-sheet';
 import SettingsSheet from '../components/settings-sheet';
+import GuidedTour, { TOUR_STEPS } from '../components/tour/guided-tour';
 import { TimerProvider } from '../components/timer/timer-provider';
 import { TimerPill, TimerRunSheet, TimerView } from '../components/timer/timer-views';
 
@@ -34,7 +35,7 @@ function Banner({ loading, demo, error, onRetry }) {
   return null;
 }
 
-function PrsApp({ hasBackend, isAdmin = false, scope }) {
+function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, scope }) {
   const alert = useAlert();
   const { records, loading, error, reload, addRecord, addRecords } = useRecords(hasBackend);
   const [settings, updateSettings, ready] = useStoredState(`prs_settings_${scope}`, SETTINGS_DEFAULTS);
@@ -43,6 +44,9 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
   const [form, setForm] = useState(null);           // { id, move, rm }
   const [quickOpen, setQuickOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [tour, updateTour, tourReady] = useStoredState(`prs_tour_${scope}`, { seen: false });
+  const [tourOpen, setTourOpen] = useState(false);
+  const tourSnapshot = useRef(null);
   const formCount = useRef(0);
 
   const setEx = useCallback((patch) => updateEx((current) => ({
@@ -55,17 +59,51 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
   // Simple mode hides the tab bar while lifting.
   const focus = running && !!settings.simple;
 
-  // Offer the quick upload once to accounts that have no records yet.
+  // The guided tour opens by itself for new members (and once per device in the demo).
+  // The device flag also covers the moment between closing the tour and the server saving it.
+  const autoTour = (hasBackend ? newMember : true) && !tour.seen;
+  useEffect(() => {
+    if (ready && tourReady && autoTour) setTourOpen(true);
+  }, [ready, tourReady, autoTour]);
+
+  // Offer the quick upload once to accounts that have no records yet, after the tour.
+  const tourPending = !tourReady || autoTour || tourOpen;
   useEffect(() => {
     const key = `prs_quick_prompt_${scope}`;
-    if (!hasBackend || loading || error || records.length || readStored(key, {}).seen) return;
+    if (tourPending || !hasBackend || loading || error || records.length || readStored(key, {}).seen) return;
     writeStored(key, { seen: true });
     alert({
       title: '¿Quieres hacer un cargado rápido de tus pesos?',
       message: 'Escribe tus PRs de una vez y empieza a calcular tus cargas.',
       actions: [{ label: 'Ahora no', role: 'cancel' }, { label: 'Empezar', value: true }],
     }).then((start) => start && setQuickOpen(true));
-  }, [hasBackend, loading, error, records.length, scope, alert]);
+  }, [tourPending, hasBackend, loading, error, records.length, scope, alert]);
+
+  // Simple mode has no warm-up ladder, so its step is left out.
+  const tourSteps = useMemo(() => TOUR_STEPS.filter((step) => !(settings.simple && step.advanced)), [settings.simple]);
+  // Each tour step shows its tab and Execute screen. The working screen uses a sample
+  // lift, so the exercise in progress is kept aside and restored when the tour closes.
+  const showTourStep = useCallback((step) => {
+    if (step.tab) updateSettings((current) => (current.tab === step.tab ? {} : { tab: step.tab }));
+    if (!step.exec) return;
+    updateEx((current) => {
+      tourSnapshot.current ??= current;
+      const sample = step.exec.view === 'run' ? tourExercise(records) : {};
+      return { ...current, ...sample, ...step.exec };
+    });
+  }, [updateSettings, updateEx, records]);
+  const closeTour = useCallback(() => {
+    if (hasBackend && newMember && !tour.seen) fetch('/api/tour', { method: 'POST' }).catch(() => {});
+    updateTour({ seen: true });
+    setTourOpen(false);
+    if (tourSnapshot.current) updateEx(tourSnapshot.current);
+    tourSnapshot.current = null;
+  }, [hasBackend, newMember, tour.seen, updateTour, updateEx]);
+  const replayTour = () => {
+    setSettingsOpen(false);
+    // Let the settings sheet slide away first.
+    setTimeout(() => setTourOpen(true), 380);
+  };
 
   const goTab = (next) => {
     if (next === tab) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
@@ -112,7 +150,8 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
     <RecordFormSheet form={form} hasBackend={hasBackend} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} />
+      demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} />
     <TimerRunSheet />
+    <GuidedTour open={tourOpen} steps={tourSteps} onStep={showTourStep} onClose={closeTour} />
   </>;
 }
