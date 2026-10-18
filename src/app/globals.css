@@ -346,12 +346,12 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .category-card {
   --c: var(--gray); display: grid; justify-items: center; align-content: center; gap: 4px; padding: 16px 12px; min-height: 104px;
   border-radius: var(--radius-card); text-align: center;
-  background: color-mix(in srgb, var(--c) 8%, transparent); box-shadow: inset 0 0 0 1.5px var(--c);
+  background: color-mix(in srgb, var(--c) 12%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 24%, transparent);
   transition: transform .2s var(--ease-out), background-color .2s;
 }
-.category-card b { font-size: 19px; font-weight: 600; color: var(--c); }
+.category-card b { font-size: 18px; font-weight: 600; color: var(--c); }
 .category-card small { color: var(--label2); font-size: 15px; letter-spacing: -.24px; }
-.category-card:active { transform: scale(.96); background: color-mix(in srgb, var(--c) 16%, transparent); }
+.category-card:active { transform: scale(.96); background: color-mix(in srgb, var(--c) 18%, var(--surface)); }
 
 /* ---------- Execute: workbench ---------- */
 .card { background: var(--surface); border-radius: var(--radius-card); padding: 14px 16px 16px; margin-bottom: 16px; }
