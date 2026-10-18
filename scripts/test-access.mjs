@@ -72,3 +72,11 @@ test('members need an invited profile and are never admins', async () => {
   const anonymous = await accessFor({ id: otherId, is_anonymous: true }, { profile: { id: otherId } });
   assert.equal(anonymous.access.authorized, false);
 });
+
+test('a disabled profile loses access while keeping its session', async () => {
+  const disabled = await accessFor({ id: otherId }, { admins: ownerId, profile: { id: otherId, disabledAt: new Date() } });
+  assert.equal(disabled.access.user.id, otherId);
+  assert.deepEqual([disabled.access.authorized, disabled.access.isAdmin], [false, false]);
+  const enabled = await accessFor({ id: otherId }, { admins: ownerId, profile: { id: otherId, disabledAt: null } });
+  assert.equal(enabled.access.authorized, true);
+});

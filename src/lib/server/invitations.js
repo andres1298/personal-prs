@@ -45,11 +45,22 @@ export async function createInvitation(inviterId, input, now = new Date()) {
   return { token, invitation: { id: invitation.id, name, email, expiresAt: invitation.expiresAt } };
 }
 
+// Expired links stay listed so the admin can renew or revoke them.
 export async function listPendingInvitations(inviterId, now = new Date()) {
   const rows = await getPrisma().invitation.findMany({
-    where: { invitedById: inviterId, ...pendingWhere(now) }, select: publicFields, orderBy: { createdAt: 'desc' },
+    where: { invitedById: inviterId, acceptedAt: null, revokedAt: null }, select: publicFields, orderBy: { createdAt: 'desc' },
   });
-  return rows.map(({ id, name, email, expiresAt }) => ({ id, name, email, expiresAt }));
+  return rows.map(({ id, name, email, expiresAt }) => ({ id, name, email, expiresAt, expired: expiresAt <= now }));
+}
+
+// Issuing a new token invalidates the previous link, so a lost link can be resent safely.
+export async function renewInvitation(inviterId, id, now = new Date()) {
+  const token = randomBytes(32).toString('base64url');
+  const expiresAt = new Date(now.getTime() + INVITATION_TTL_MS);
+  const { count } = await getPrisma().invitation.updateMany({
+    where: { id, invitedById: inviterId, acceptedAt: null, revokedAt: null }, data: { tokenHash: hashToken(token), expiresAt },
+  });
+  return count === 1 ? { token, expiresAt } : null;
 }
 
 export async function revokeInvitation(inviterId, id, now = new Date()) {

@@ -34,14 +34,23 @@ Vercel's Supabase integration installs the public Supabase variables, `SUPABASE_
 
 Only the SHA-256 hash of each link token is stored. Treat a link like a password until it is used or revoked.
 
+## Administration window
+
+Administrators see **Ajustes → Administración → Abrir**, a small window with two tabs:
+
+- **Usuarios**: every profile with name, email, join date, status and how many records it has. Only the count is exposed; record values never leave the server. Each non-admin account has a switch to disable or re-enable access. Disabling stores when and by which administrator; re-enabling clears both.
+- **Invitaciones**: create links, and for each unaccepted link (expired ones included) generate a **Nuevo link** or **Revocar**. A new link replaces the previous token, so the old link stops working, and the 7-day expiry restarts.
+
+A disabled account keeps its Auth session but is treated as having no access on every private request, including records. Administrators listed in `SUPABASE_ADMIN_USER_IDS` cannot be disabled from the window; remove them from that variable instead.
+
 ## Recover a stuck invitation
 
 If a network failure happens after Supabase created the account but before the app saved the profile, the invitee may see "Ya existe una cuenta con este correo" and a new invitation fails the same way. In **Authentication → Users**, find that email: if its UUID has no row in `Profile`, delete the Auth user, then create a new invitation.
 
 ## Session and data boundaries
 
-- Access is granted to administrators listed in `SUPABASE_ADMIN_USER_IDS` and to accounts with a profile. Profiles are created only by accepting an invitation (or for administrators on first access); user-editable metadata never grants access.
-- The server calls `getUser()` on every private request, which includes session revocation. Private records return 401 without a valid session and 403 without access. Invitation operations re-check the administrator role on every request.
+- Access is granted to administrators listed in `SUPABASE_ADMIN_USER_IDS` and to accounts with an enabled profile. Profiles are created only by accepting an invitation (or for administrators on first access); user-editable metadata never grants access.
+- The server calls `getUser()` on every private request, which includes session revocation. Private records return 401 without a valid session and 403 without access. Invitation and user-management operations re-check the administrator role on every request.
 - Writes, sign-in, invitation acceptance and sign-out require the request's exact origin. Private responses use `Cache-Control: private, no-store`.
 - Acceptance claims the invitation with a conditional update, so concurrent submissions create at most one account. If account creation fails, the claim is released.
 - Tables retain RLS with no policies; Prisma uses server access with explicit owner filters.
@@ -54,6 +63,7 @@ If a network failure happens after Supabase created the account but before the a
 2. Create an invitation, open it in a private window, set a password and confirm you land in the app.
 3. Reopen the same link: it must show that the link is no longer valid. Revoke another pending link and confirm it stops working.
 4. With two accounts, verify each sees only its records.
-5. Run `node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-accept-route.mjs scripts/test-bulk-records.mjs scripts/test-bulk-record-route.mjs scripts/test-timer-engine.mjs`, `npm run build` and `git diff --check`. These tests isolate Auth and persistence; they do not replace the browser checks above.
+5. In **Administración → Usuarios**, disable the second account, confirm it loses access on reload, then re-enable it. Generate a **Nuevo link** for a pending invitation and confirm the previous link no longer works.
+6. Run `node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-accept-route.mjs scripts/test-members.mjs scripts/test-bulk-records.mjs scripts/test-bulk-record-route.mjs scripts/test-timer-engine.mjs`, `npm run build` and `git diff --check`. These tests isolate Auth and persistence; they do not replace the browser checks above.
 
 References: [SSR clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [password sign-in](https://supabase.com/docs/guides/auth/passwords), [admin createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser).

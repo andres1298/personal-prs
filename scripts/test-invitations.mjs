@@ -117,7 +117,7 @@ test('rejects inviting an existing member', async () => {
   assert.equal(db.invitations.length, 0);
 });
 
-test('lists only pending invitations of the inviter', async () => {
+test('lists unaccepted, unrevoked invitations of the inviter and flags expired ones', async () => {
   const { api, db } = await service();
   await api.createInvitation(adminId, { name: 'Ana', email: 'ana@example.test' }, now);
   const { invitation: revoked } = await api.createInvitation(adminId, { name: 'Bea', email: 'bea@example.test' }, now);
@@ -125,8 +125,32 @@ test('lists only pending invitations of the inviter', async () => {
   db.invitations.push({ ...db.invitations[0], id: 'foreign', invitedById: otherAdminId, tokenHash: 'foreign' });
   await api.revokeInvitation(adminId, revoked.id, now);
   const pending = await api.listPendingInvitations(adminId, now);
-  assert.deepEqual(pending.map((item) => item.email), ['ana@example.test']);
-  assert.deepEqual(Object.keys(pending[0]).sort(), ['email', 'expiresAt', 'id', 'name']);
+  assert.deepEqual(pending.map((item) => [item.email, item.expired]), [['ana@example.test', false], ['old@example.test', true]]);
+  assert.deepEqual(Object.keys(pending[0]).sort(), ['email', 'expired', 'expiresAt', 'id', 'name']);
+});
+
+test('renewing a link invalidates the old token and restarts the expiry', async () => {
+  const { api, db } = await service();
+  const past = new Date(now.getTime() - week - 1);
+  const { token: oldToken, invitation } = await api.createInvitation(adminId, { name: 'Ana', email: 'ana@example.test' }, past);
+  assert.equal(await api.findValidInvitation(oldToken, now), null);
+  const renewed = await api.renewInvitation(adminId, invitation.id, now);
+  assert.notEqual(renewed.token, oldToken);
+  assert.equal(renewed.expiresAt.getTime() - now.getTime(), week);
+  assert.equal(db.invitations[0].tokenHash, api.hashToken(renewed.token));
+  assert.equal(await api.findValidInvitation(oldToken, now), null);
+  assert.deepEqual(await api.findValidInvitation(renewed.token, now), { name: 'Ana', email: 'ana@example.test' });
+});
+
+test('only the inviter can renew, and never accepted or revoked links', async () => {
+  const { api } = await service();
+  const { invitation } = await api.createInvitation(adminId, { name: 'Ana', email: 'ana@example.test' }, now);
+  assert.equal(await api.renewInvitation(otherAdminId, invitation.id, now), null);
+  const { token, invitation: accepted } = await api.createInvitation(adminId, { name: 'Bea', email: 'bea@example.test' }, now);
+  await api.acceptInvitation(token, 'long-password', now);
+  assert.equal(await api.renewInvitation(adminId, accepted.id, now), null);
+  await api.revokeInvitation(adminId, invitation.id, now);
+  assert.equal(await api.renewInvitation(adminId, invitation.id, now), null);
 });
 
 test('accepts once and creates profile with inviter', async () => {

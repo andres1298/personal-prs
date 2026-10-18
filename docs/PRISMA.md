@@ -22,7 +22,9 @@ Profiles and movements with records cannot be deleted until their records are ex
 
 The Next.js interface reads and creates records through `/api/records`, which verifies Supabase Auth and a private user allowlist before using the internal persistence API. The owner always comes from verified Auth. Updates and deletes remain internal. See [AUTH.md](AUTH.md) for configuration and verification. Historical import, complete database isolation and videos still require their own validation.
 
-All three application tables enable RLS with no access policies. This initially denies access for roles subject to RLS. A database owner or role with bypass privileges can still access them: Prisma does not automatically forward the Supabase user's JWT or guarantee user isolation through RLS. Issue #6 must implement and verify the actual server identity boundary, role privileges and ownership policies before exposing authenticated data flows. Direct SQL access using privileged credentials remains server-only.
+All three application tables enable RLS with no access policies. This initially denies access for roles subject to RLS. A database owner or role with bypass privileges can still access them: Prisma does not automatically forward the Supabase user's JWT or guarantee user isolation through RLS. Issue #6 must implement and verify the actual server identity boundary, role privileges and ownership policies before exposing authenticated data flows. Direct SQL access using privileged credentials remains server-only. Prisma's own `_prisma_migrations` history table also enables RLS with no policies so the Supabase Data API cannot expose it.
+
+Migration files are checked out with LF line endings (`.gitattributes`): Prisma stores a byte-level checksum of each applied file, so deploying the same migration from a CRLF checkout would report it as modified.
 
 ## Configuration
 

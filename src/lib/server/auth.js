@@ -41,7 +41,9 @@ export async function getAccess() {
     await ensureAdminProfile(user);
     return { user, authorized: true, isAdmin: true };
   }
-  // Members gain access only through a profile created by accepting an invitation.
-  const authorized = Boolean(user && !user.is_anonymous && await findProfile(user.id));
+  // Members gain access only through a profile created by accepting an invitation
+  // and lose it as soon as an admin disables that profile.
+  const profile = user && !user.is_anonymous ? await findProfile(user.id) : null;
+  const authorized = Boolean(profile && !profile.disabledAt);
   return { user, authorized, isAdmin: false };
 }
