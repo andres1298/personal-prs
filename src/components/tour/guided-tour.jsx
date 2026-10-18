@@ -7,7 +7,8 @@ import { useModalLayer, usePresence } from '../ui/sheet';
 
 /**
  * Steps of the basic app flow. `target` matches a `data-tour` attribute; steps
- * without one show a centered card. `tab` is the tab the step needs visible.
+ * without one show a centered card. `tab` is the tab the step needs visible and
+ * `exec` the Execute screen state it needs (the working screen uses a sample lift).
  */
 export const TOUR_STEPS = [
   {
@@ -15,15 +16,31 @@ export const TOUR_STEPS = [
     body: 'En un minuto te mostramos cómo calcular tus cargas, guardar tus récords y usar el timer.',
   },
   {
-    tab: 'exec', target: 'categories', title: 'Elige qué vas a levantar',
-    body: 'Toca una categoría y luego un movimiento. La app toma tu PR y calcula el peso al porcentaje que quieras, con los discos por lado.',
+    tab: 'exec', exec: { view: 'pick' }, target: 'categories', title: 'Elige qué vas a levantar',
+    body: 'Toca una categoría y luego un movimiento. La app toma tu PR y calcula la carga al porcentaje que quieras.',
   },
   {
-    tab: 'exec', target: 'free-calc', title: 'Cálculo libre',
+    tab: 'exec', exec: { view: 'run', editBase: false, panel: 'load' }, target: 'weight', title: 'Tu peso de trabajo',
+    body: 'Al elegir un movimiento ves el peso al porcentaje elegido, redondeado a lo que puedes armar, y su equivalente en kg.',
+  },
+  {
+    tab: 'exec', exec: { view: 'run', editBase: true, panel: 'load' }, target: 'base-editor', title: 'Cambia el RM y el porcentaje',
+    body: 'Toca la línea del PR para editarla: elige 1RM, 3RM o 5RM y ajusta el % con −10, −5, +5 y +10 o escribiéndolo.',
+  },
+  {
+    tab: 'exec', exec: { view: 'run', editBase: false, panel: 'load' }, target: 'barbell', title: 'Los discos por lado',
+    body: 'Así se arma la barra con tus discos. Cambia de combinación con las flechas, toca un disco de abajo para agregarlo o uno de la barra para quitarlo.',
+  },
+  {
+    tab: 'exec', exec: { view: 'run', editBase: false, panel: 'warm' }, target: 'exec-panel', title: 'Escalera de calentamiento',
+    body: 'Series de aproximación hasta tu peso objetivo. Márcalas a medida que las completas.', advanced: true,
+  },
+  {
+    tab: 'exec', exec: { view: 'pick' }, target: 'free-calc', title: 'Cálculo libre',
     body: '¿Sin PR guardado? Escribe cualquier peso y porcentaje y obtén la carga al momento.',
   },
   {
-    tab: 'exec', target: 'settings', title: 'Tu barra y tus discos',
+    tab: 'exec', exec: { view: 'pick' }, target: 'settings', title: 'Tu barra y tus discos',
     body: 'En Ajustes eliges la barra y los discos que tienes. Las combinaciones y el calentamiento solo usan esos discos.',
   },
   {
@@ -43,7 +60,7 @@ export const TOUR_STEPS = [
     body: 'AMRAP, EMOM, TABATA y For Time. El timer sigue corriendo y visible aunque cambies de pestaña.',
   },
   {
-    tab: 'exec', target: 'tabs', title: 'Muévete entre secciones',
+    tab: 'exec', exec: { view: 'pick' }, target: 'tabs', title: 'Muévete entre secciones',
     body: 'Execute, PRs y Timer siempre están aquí abajo.',
   },
   {
@@ -57,6 +74,8 @@ const GAP = 14;
 const PAD = 8;
 const CARD_WIDTH = 340;
 const CARD_ESTIMATE = 210;
+// A target that has not rendered by then (e.g. no plate combination) gets a centered card.
+const TARGET_WAIT_MS = 800;
 
 const prefersReducedMotion = () => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
 const findTarget = (name) => (name ? document.querySelector(`[data-tour="${name}"]`) : null);
@@ -148,11 +167,12 @@ export default function GuidedTour({ open, steps = TOUR_STEPS, onStep, onClose }
   useEffect(() => {
     if (!mounted) return undefined;
     let frame;
+    const since = performance.now();
     const tick = () => {
       const node = findTarget(step.target);
       const visible = isVisible(node);
       // Keep the previous spot while a target is still rendering so it glides instead of collapsing.
-      if (visible || !step.target) {
+      if (visible || !step.target || performance.now() - since > TARGET_WAIT_MS) {
         const next = { spot: visible ? spotFor(node) : null, vw: window.innerWidth, vh: window.innerHeight };
         setLayout((current) => (sameLayout(current, next) ? current : next));
       }

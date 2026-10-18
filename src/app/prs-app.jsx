@@ -1,19 +1,19 @@
 'use client';
 
 import Link from 'next/link';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ALL_PLATES } from '../lib/plates';
 import { readStored, useStoredState, useWakeLock, writeStored } from '../components/hooks';
 import useRecords from '../components/use-records';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
-import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch } from '../components/execute/execute-view';
+import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch, tourExercise } from '../components/execute/execute-view';
 import PrsView from '../components/prs/prs-view';
 import MoveDetailSheet from '../components/prs/move-detail-sheet';
 import RecordFormSheet from '../components/prs/record-form-sheet';
 import QuickUploadSheet from '../components/prs/quick-upload-sheet';
 import SettingsSheet from '../components/settings-sheet';
-import GuidedTour from '../components/tour/guided-tour';
+import GuidedTour, { TOUR_STEPS } from '../components/tour/guided-tour';
 import { TimerProvider } from '../components/timer/timer-provider';
 import { TimerPill, TimerRunSheet, TimerView } from '../components/timer/timer-views';
 
@@ -46,6 +46,7 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [tour, updateTour, tourReady] = useStoredState(`prs_tour_${scope}`, { seen: false });
   const [tourOpen, setTourOpen] = useState(false);
+  const tourSnapshot = useRef(null);
   const formCount = useRef(0);
 
   const setEx = useCallback((patch) => updateEx((current) => ({
@@ -76,15 +77,25 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
     }).then((start) => start && setQuickOpen(true));
   }, [tourPending, hasBackend, loading, error, records.length, scope, alert]);
 
-  // Each tour step shows its tab; Execute steps need the movement picker.
+  // Simple mode has no warm-up ladder, so its step is left out.
+  const tourSteps = useMemo(() => TOUR_STEPS.filter((step) => !(settings.simple && step.advanced)), [settings.simple]);
+  // Each tour step shows its tab and Execute screen. The working screen uses a sample
+  // lift, so the exercise in progress is kept aside and restored when the tour closes.
   const showTourStep = useCallback((step) => {
     if (step.tab) updateSettings((current) => (current.tab === step.tab ? {} : { tab: step.tab }));
-    if (step.tab === 'exec') updateEx((current) => (current.view === 'pick' ? current : { ...current, view: 'pick' }));
-  }, [updateSettings, updateEx]);
+    if (!step.exec) return;
+    updateEx((current) => {
+      tourSnapshot.current ??= current;
+      const sample = step.exec.view === 'run' ? tourExercise(records) : {};
+      return { ...current, ...sample, ...step.exec };
+    });
+  }, [updateSettings, updateEx, records]);
   const closeTour = useCallback(() => {
     updateTour({ seen: true });
     setTourOpen(false);
-  }, [updateTour]);
+    if (tourSnapshot.current) updateEx(tourSnapshot.current);
+    tourSnapshot.current = null;
+  }, [updateTour, updateEx]);
   const replayTour = () => {
     setSettingsOpen(false);
     // Let the settings sheet slide away first.
@@ -138,6 +149,6 @@ function PrsApp({ hasBackend, isAdmin = false, scope }) {
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
       demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} />
     <TimerRunSheet />
-    <GuidedTour open={tourOpen} onStep={showTourStep} onClose={closeTour} />
+    <GuidedTour open={tourOpen} steps={tourSteps} onStep={showTourStep} onClose={closeTour} />
   </>;
 }
