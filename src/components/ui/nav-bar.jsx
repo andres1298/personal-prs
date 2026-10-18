@@ -3,18 +3,36 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from './icon';
 
-// True once the element has scrolled under the navigation bar.
-function useScrolledPast() {
-  const ref = useRef(null);
-  const [past, setPast] = useState(false);
+// Tracks the title against the bar's real bottom edge, which grows with the safe area and the timer pill:
+// `scrolled` once the title slides under the bar, `collapsed` once it is fully hidden.
+function useBarState() {
+  const barRef = useRef(null);
+  const titleRef = useRef(null);
+  const [state, setState] = useState({ scrolled: false, collapsed: false });
   useEffect(() => {
-    const node = ref.current;
-    if (!node) return undefined;
-    const observer = new IntersectionObserver(([entry]) => setPast(!entry.isIntersecting), { rootMargin: '-60px 0px 0px 0px' });
-    observer.observe(node);
-    return () => observer.disconnect();
+    let frame = 0;
+    const update = () => {
+      frame = 0;
+      const bar = barRef.current;
+      const title = titleRef.current;
+      if (!bar || !title) return;
+      const edge = bar.getBoundingClientRect().bottom;
+      const box = title.getBoundingClientRect();
+      const scrolled = box.top < edge - 0.5;
+      const collapsed = box.bottom <= edge;
+      setState((prev) => (prev.scrolled === scrolled && prev.collapsed === collapsed ? prev : { scrolled, collapsed }));
+    };
+    const schedule = () => { if (!frame) frame = requestAnimationFrame(update); };
+    update();
+    window.addEventListener('scroll', schedule, { passive: true });
+    window.addEventListener('resize', schedule);
+    return () => {
+      cancelAnimationFrame(frame);
+      window.removeEventListener('scroll', schedule);
+      window.removeEventListener('resize', schedule);
+    };
   }, []);
-  return [ref, past];
+  return [barRef, titleRef, state];
 }
 
 export function BackButton({ label, onClick }) {
@@ -25,14 +43,14 @@ export function BackButton({ label, onClick }) {
 
 /** Large title that collapses into the inline title of a translucent bar on scroll. */
 export function LargeTitle({ title, subtitle, trailing }) {
-  const [ref, past] = useScrolledPast();
+  const [barRef, titleRef, { scrolled, collapsed }] = useBarState();
   return <>
-    <div className="navbar" data-collapsed={past}>
+    <div className="navbar" ref={barRef} data-scrolled={scrolled} data-collapsed={collapsed}>
       <span />
-      <span className="navbar-title" aria-hidden={!past}>{title}</span>
+      <span className="navbar-title" aria-hidden={!collapsed}>{title}</span>
       <span className="navbar-side end">{trailing}</span>
     </div>
-    <header className="large-title" ref={ref}>
+    <header className="large-title" ref={titleRef}>
       <h1>{title}</h1>
       {subtitle && <p>{subtitle}</p>}
     </header>
@@ -41,13 +59,13 @@ export function LargeTitle({ title, subtitle, trailing }) {
 
 /** Bar with a back button for pushed screens; the large title collapses into it. */
 export function NavBar({ back, title, trailing }) {
-  const [ref, past] = useScrolledPast();
+  const [barRef, titleRef, { scrolled, collapsed }] = useBarState();
   return <>
-    <div className="navbar" data-collapsed={past}>
+    <div className="navbar" ref={barRef} data-scrolled={scrolled} data-collapsed={collapsed}>
       <span className="navbar-side">{back && <BackButton {...back} />}</span>
-      <span className="navbar-title" aria-hidden={!past}>{title}</span>
+      <span className="navbar-title" aria-hidden={!collapsed}>{title}</span>
       <span className="navbar-side end">{trailing}</span>
     </div>
-    <h1 className="page-title" ref={ref}>{title}</h1>
+    <h1 className="page-title" ref={titleRef}>{title}</h1>
   </>;
 }
