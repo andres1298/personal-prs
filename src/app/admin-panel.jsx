@@ -1,49 +1,29 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useState } from 'react';
 import InvitationsPanel from './invitations-panel';
 import MembersPanel from './members-panel';
+import Icon from '../components/ui/icon';
+import Sheet from '../components/ui/sheet';
+import { List, Row } from '../components/ui/list';
+import { SegmentedControl, SymbolTile } from '../components/ui/controls';
 
-const tabs = [['members', 'Usuarios'], ['invitations', 'Invitaciones']];
+const tabs = [{ value: 'members', label: 'Usuarios' }, { value: 'invitations', label: 'Invitaciones' }];
 
 export default function AdminPanel() {
-  const dialog = useRef(null);
   const [open, setOpen] = useState(false);
   const [tab, setTab] = useState('members');
 
-  function show() {
-    setOpen(true);
-    dialog.current.showModal();
-  }
-
-  // Clicks on the backdrop target the dialog itself but land outside its box.
-  function closeOnBackdrop(event) {
-    const box = dialog.current.getBoundingClientRect();
-    const inside = event.clientX >= box.left && event.clientX <= box.right && event.clientY >= box.top && event.clientY <= box.bottom;
-    if (event.target === dialog.current && !inside) dialog.current.close();
-  }
-
   return <>
-    <div className="sec">Administración</div>
-    <div className="setrow">
-      <div>Usuarios e invitaciones<div className="sub" style={{ fontSize: 13, marginTop: 2 }}>Gestiona quién tiene acceso a la app</div></div>
-      <button className="okbtn" type="button" onClick={show}>Abrir</button>
-    </div>
-    <dialog
-      ref={dialog} className="admin-dialog" aria-labelledby="adminTitle"
-      onClose={() => setOpen(false)} onClick={closeOnBackdrop}
-    >
-      <header>
-        <h2 id="adminTitle">Administración</h2>
-        <button className="nbtn" type="button" onClick={() => dialog.current.close()} style={{ fontWeight: 700 }}>Cerrar</button>
-      </header>
-      <div className="seg" role="tablist">
-        {tabs.map(([key, label]) => <button
-          key={key} type="button" role="tab" aria-selected={tab === key} className={tab === key ? 'on' : ''} onClick={() => setTab(key)}
-        >{label}</button>)}
-      </div>
+    <List header="Administración">
+      <Row leading={<SymbolTile color="--green"><Icon name="people" /></SymbolTile>} title="Usuarios e invitaciones"
+        subtitle="Gestiona quién tiene acceso a la app" chevron onClick={() => setOpen(true)} />
+    </List>
+    <Sheet open={open} onClose={() => setOpen(false)} title="Administración" layer={2}
+      trailing={<button type="button" className="nav-text strong" onClick={() => setOpen(false)}>Cerrar</button>}>
+      <SegmentedControl label="Sección" value={tab} onChange={setTab} options={tabs} />
       {/* Panels mount only while open so every opening loads fresh data. */}
-      {open && <div className="admin-body">{tab === 'members' ? <MembersPanel /> : <InvitationsPanel />}</div>}
-    </dialog>
+      {open && (tab === 'members' ? <MembersPanel /> : <InvitationsPanel />)}
+    </Sheet>
   </>;
 }
