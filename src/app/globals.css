@@ -491,8 +491,6 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .pr-kg { font-size: 20px; color: var(--label2); font-weight: 600; }
 .pr-date { color: var(--label2); font-size: 15px; margin-top: 6px; }
 .chart-card { padding: 16px 12px 10px; }
-.video-link { display: inline-flex; align-items: center; gap: 4px; margin-left: 10px; font-size: 15px; }
-.video-link svg { width: 16px; height: 16px; }
 .sheet-lead { color: var(--label2); font-size: 15px; text-align: center; margin: -4px 8px 16px; }
 .quick-row input {
   width: 110px; flex: none; height: 36px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--fill3);

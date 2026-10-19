@@ -16,7 +16,7 @@ const ownerId = randomUUID();
 const otherId = randomUUID();
 const input = {
   movementId: 'back-squat', value: '225.125', performedOn: '2026-02-28', repetitionMax: 3,
-  notes: 'Test record', videoUrl: 'https://example.com/test-video', videoId: 'test-video',
+  notes: 'Test record',
 };
 
 try {
@@ -38,11 +38,9 @@ try {
   const created = await createRecord(ownerId, input);
   assert.equal(created.value, '225.125');
   assert.equal(created.performedOn, input.performedOn);
-  assert.equal(created.videoId, input.videoId);
-  assert.equal(created.videoUrl, input.videoUrl);
   assert.deepEqual(toLegacyRecord(created), {
     move: 'Back Squat', value: 225.125, date: input.performedOn, rm: 3,
-    notes: input.notes, video: input.videoUrl, videoId: input.videoId,
+    notes: input.notes,
   });
   assert.equal((await listRecords(ownerId)).length, 1);
   assert.equal((await listRecords(otherId)).length, 0);
@@ -50,7 +48,7 @@ try {
   await assert.rejects(deleteRecord(otherId, created.id));
   for (const invalid of [
     { value: '0' }, { value: '-1' }, { value: '1.2345' }, { value: '1000000000' },
-    { performedOn: '2026-02-30' }, { repetitionMax: 2 }, { videoUrl: 'javascript:alert(1)' },
+    { performedOn: '2026-02-30' }, { repetitionMax: 2 },
     { movementId: 'unknown-movement' },
   ]) await assert.rejects(createRecord(ownerId, { ...input, ...invalid }));
 

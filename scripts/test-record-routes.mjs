@@ -67,9 +67,9 @@ test('authorized reads and creation use only the verified server identity', asyn
   ]);
 });
 
-test('owner injection, untrusted video references and invalid payloads do not write', async () => {
+test('owner injection and invalid payloads do not write', async () => {
   const { handlers, calls } = await routes({ user: { id: ownerId }, authorized: true });
-  for (const record of [null, [], { ...validRecord, profileId: ownerId }, { ...validRecord, videoUrl: 'https://other.example.test/video' }, { ...validRecord, notes: 'x'.repeat(5001) }]) {
+  for (const record of [null, [], { ...validRecord, profileId: ownerId }, { ...validRecord, notes: 'x'.repeat(5001) }]) {
     assert.equal((await handlers.POST(post(record))).status, 400);
   }
   assert.equal((await handlers.POST(post(validRecord, 'https://other.example.test'))).status, 403);

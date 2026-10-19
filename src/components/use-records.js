@@ -15,15 +15,12 @@ async function send(url, body) {
 // Demo records stay in memory; live ones go through the server-verified session.
 const demoApi = {
   getRecords: async () => DEMO_RECORDS.map((record) => ({ ...record })),
-  addRecord: async (record, file) => (file ? { ...record, video: URL.createObjectURL(file) } : record),
+  addRecord: async (record) => record,
   addRecords: async (records) => records.map((record) => ({ ...record })),
 };
 const liveApi = {
   getRecords: async () => (await send('/api/records')).records,
-  addRecord: async (record, file) => {
-    if (file) throw new Error('La subida de videos todavía no está disponible.');
-    return (await send('/api/records', record)).record;
-  },
+  addRecord: async (record) => (await send('/api/records', record)).record,
   addRecords: async (records) => (await send('/api/records/bulk', { records })).records,
 };
 
@@ -52,8 +49,8 @@ export default function useRecords(hasBackend) {
     return () => { current = false; };
   }, [load]);
 
-  const addRecord = useCallback(async (record, file) => {
-    const saved = await api.addRecord(record, file);
+  const addRecord = useCallback(async (record) => {
+    const saved = await api.addRecord(record);
     setRecords((list) => [...list, saved]);
     return saved;
   }, [api]);

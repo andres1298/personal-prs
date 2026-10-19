@@ -24,7 +24,7 @@ function fakeDatabase({ records = [], failCreateAt = null, serializationFailure 
       create: async ({ data }) => {
         if (++creates === failCreateAt) throw new Error('Private create failure');
         const movement = movements.find((item) => item.id === data.movementId);
-        const row = { id: `rec-${creates}`, notes: null, videoUrl: null, videoId: null, ...data, movement };
+        const row = { id: `rec-${creates}`, notes: null, ...data, movement };
         row.value = { toFixed: (digits) => Number(data.value).toFixed(digits) };
         return row;
       },

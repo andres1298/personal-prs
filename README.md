@@ -16,7 +16,7 @@ Configure the project URL, publishable key, secret key, database connection and 
 
 The home page requests sign-in. `/?demo=1` explicitly opens sample data; demo records stay in memory and are never written to Supabase. Authorized sessions read and create personal records through `/api/records`. The server derives ownership from verified Auth. Failed live requests show an error rather than replacing real records with samples. Settings stay on the device, separately for each account and demo mode.
 
-Apps Script is no longer used by Next.js. The original `index.html` remains as a historical reference. Historical records have not been imported automatically. Live video upload is temporarily disabled pending private Storage integration; existing database video references are retained.
+Apps Script is no longer used by Next.js. The original `index.html` remains as a historical reference. Historical records have not been imported automatically. Videos are no longer part of the app; legacy video columns remain in the database but are neither read nor written.
 
 ## Database and verification
 

@@ -8,7 +8,7 @@ import { SegmentedControl } from '../ui/controls';
 
 const FIRST_MOVE = CATALOG.Lift.groups[0].moves[0];
 
-function RecordForm({ initial, hasBackend, onSave, formId, onSavingChange }) {
+function RecordForm({ initial, onSave, formId, onSavingChange }) {
   const alert = useAlert();
   const [move, setMove] = useState(initial.move || FIRST_MOVE);
   const [value, setValue] = useState('');
@@ -16,7 +16,6 @@ function RecordForm({ initial, hasBackend, onSave, formId, onSavingChange }) {
   const [date, setDate] = useState(today());
   const [notes, setNotes] = useState('');
   const [invalid, setInvalid] = useState(false);
-  const video = useRef(null);
   const { type } = moveInfo(move);
 
   async function submit(event) {
@@ -26,7 +25,7 @@ function RecordForm({ initial, hasBackend, onSave, formId, onSavingChange }) {
     if (!(record.value > 0)) { setInvalid(true); return; }
     onSavingChange(true);
     try {
-      await onSave(record, video.current?.files[0]);
+      await onSave(record);
     } catch (err) {
       await alert({ title: 'No se pudo guardar', message: err.message });
     } finally {
@@ -59,20 +58,15 @@ function RecordForm({ initial, hasBackend, onSave, formId, onSavingChange }) {
     {type === 'weight' && <SegmentedControl label="Repeticiones máximas" value={rm} onChange={setRm}
       options={RMS.map((n) => ({ value: n, label: `${n}RM` }))} />}
     <div className="list form-group">
-      <label className="field">
-        <span>Video</span>
-        <input ref={video} type="file" accept="video/*" disabled={hasBackend} />
-      </label>
       <label className="field stacked">
         <span>Notas</span>
         <textarea rows={3} value={notes} placeholder="Opcional" onChange={(event) => setNotes(event.target.value)} />
       </label>
     </div>
-    {hasBackend && <p className="list-footer">La subida de videos estará disponible próximamente.</p>}
   </form>;
 }
 
-export default function RecordFormSheet({ form, hasBackend, onClose, onSave }) {
+export default function RecordFormSheet({ form, onClose, onSave }) {
   const last = useRef(form);
   if (form) last.current = form;
   const [saving, setSaving] = useState(false);
@@ -80,7 +74,7 @@ export default function RecordFormSheet({ form, hasBackend, onClose, onSave }) {
   return <Sheet open={!!form} onClose={onClose} title="Nuevo registro" layer={1}
     leading={<button type="button" className="nav-text" onClick={onClose}>Cancelar</button>}
     trailing={<button type="submit" form={formId} className="nav-text strong" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button>}>
-    {last.current && <RecordForm key={last.current.id} initial={last.current} hasBackend={hasBackend} onSave={onSave}
+    {last.current && <RecordForm key={last.current.id} initial={last.current} onSave={onSave}
       formId={formId} onSavingChange={setSaving} />}
   </Sheet>;
 }

@@ -120,8 +120,8 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   };
   const onAdd = () => openForm(tab === 'exec' && ex.move && !ex.free ? ex.move : undefined, tab === 'exec' ? ex.rm : undefined);
 
-  async function saveRecord(record, file) {
-    await addRecord(record, file);
+  async function saveRecord(record) {
+    await addRecord(record);
     setForm(null);
     if (detail?.move === record.move) setDetail({ move: record.move, rm: record.rm });
   }
@@ -151,7 +151,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     <MoveDetailSheet detail={detail} records={records} onClose={() => setDetail(null)}
       onChangeRm={(rm) => setDetail((d) => ({ ...d, rm }))} onAdd={openForm}
       onExecute={(move) => { setDetail(null); updateSettings({ tab: 'exec' }); setEx(selectMovePatch(records, move)); window.scrollTo({ top: 0 }); }} />
-    <RecordFormSheet form={form} hasBackend={hasBackend} onClose={() => setForm(null)} onSave={saveRecord} />
+    <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
       demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} />
