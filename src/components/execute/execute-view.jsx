@@ -61,7 +61,6 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
           <b>{ex.free ? 'Cálculo libre' : ex.move} · {num(ex.pct)}%</b>
         </span>
         <span className="resume-weight num rounded">{resumeTarget}<small>lb</small></span>
-        <Icon name="chevronRight" weight={2.6} />
       </button>
       <button type="button" className="resume-dismiss" aria-label="Quitar cálculo anterior"
         onClick={() => go({ move: null, free: false, base: 0, extra: [], minus: [], done: [] })}>
