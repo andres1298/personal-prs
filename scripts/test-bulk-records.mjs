@@ -10,14 +10,25 @@ const movements = [
   { id: 'snatch', name: 'Snatch', measurementType: 'WEIGHT' },
   { id: 'back-squat', name: 'Back Squat', measurementType: 'WEIGHT' },
   { id: 'fran', name: 'Fran', measurementType: 'TIME' },
+  { id: 'my-thruster', name: 'Thruster', measurementType: 'WEIGHT', ownerId: ownerId },
+  { id: 'their-clean', name: 'Their Clean', measurementType: 'WEIGHT', ownerId: otherId },
 ];
 
-function fakeDatabase({ records = [], failCreateAt = null, serializationFailure = false } = {}) {
+function fakeDatabase({ records = [], hidden = [], failCreateAt = null, serializationFailure = false } = {}) {
   let creates = 0;
   const db = {
     records,
     transactionOptions: [],
-    movement: { findUnique: async ({ where }) => movements.find((movement) => movement.id === where.id) ?? null },
+    // Finds by id or name among shared movements and the ones owned by the requested profile.
+    movement: {
+      findFirst: async ({ where: { OR, ...key } }) => movements.find((movement) =>
+        Object.entries(key).every(([field, value]) => movement[field] === value) &&
+        OR.some((owner) => (movement.ownerId ?? null) === owner.ownerId)) ?? null,
+    },
+    hiddenMovement: {
+      findUnique: async ({ where: { profileId_movementId: pair } }) =>
+        hidden.find((item) => item.profileId === pair.profileId && item.movementId === pair.movementId) ?? null,
+    },
     personalRecord: {
       findFirst: async ({ where }) => records.find((record) => record.profileId === where.profileId &&
         where.OR.some((pair) => pair.movementId === record.movementId && pair.repetitionMax === record.repetitionMax)) ?? null,
@@ -81,7 +92,7 @@ test('creates every weight record for the verified owner in one serializable tra
 test('rejects empty, oversized, time-based, repeated and invalid batches before writing', async () => {
   const { api, db } = await service();
   for (const batch of [
-    [], null, { ...snatch }, Array.from({ length: 64 }, () => snatch),
+    [], null, { ...snatch }, Array.from({ length: 154 }, () => snatch),
     [{ movementId: 'fran', value: 300, performedOn: '2026-10-17', repetitionMax: null }],
     [snatch, { ...snatch, value: 140 }],
     [snatch, { ...squat, value: -5 }],
@@ -115,6 +126,30 @@ test('a failed insert leaves no partial batch and concurrent saves surface as co
   assert.deepEqual(failing.db.records, []);
   const racing = await service({ serializationFailure: true });
   await assert.rejects(racing.api.createRecords(ownerId, [snatch]), racing.api.RecordConflictError);
+});
+
+test('custom movements belong to their owner and accept the same repetitions as shared ones', async () => {
+  const { api, db } = await service();
+  const mine = { movementName: 'Thruster', value: 95, performedOn: '2026-10-17', repetitionMax: 5 };
+  const created = await api.createRecords(ownerId, [mine, { ...mine, repetitionMax: 3 }]);
+  assert.deepEqual(created.map((record) => [record.movementId, record.movementName, record.repetitionMax]), [
+    ['my-thruster', 'Thruster', 5], ['my-thruster', 'Thruster', 3],
+  ]);
+  assert.equal(db.records.length, 2);
+  // Another member's movement is unknown, and custom movements keep the 1, 3 and 5 rule.
+  await assert.rejects(api.createRecords(ownerId, [{ ...mine, movementName: 'Their Clean' }]), api.RecordInputError);
+  await assert.rejects(api.createRecords(otherId, [mine]), api.RecordInputError);
+  await assert.rejects(api.createRecords(ownerId, [{ ...mine, repetitionMax: 2 }]), api.RecordInputError);
+  assert.equal(db.records.length, 2);
+});
+
+test('a movement the member turned off no longer accepts records, but other members still can', async () => {
+  const { api, db } = await service({ hidden: [{ profileId: ownerId, movementId: 'snatch' }] });
+  await assert.rejects(api.createRecords(ownerId, [snatch]), api.RecordInputError);
+  await assert.rejects(api.createRecords(ownerId, [{ ...snatch, movementId: undefined, movementName: 'Snatch' }]), api.RecordInputError);
+  assert.deepEqual(db.records, []);
+  await api.createRecords(otherId, [snatch]);
+  assert.equal(db.records.length, 1);
 });
 
 test('requires a verified owner identity', async () => {

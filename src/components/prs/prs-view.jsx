@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { CATALOG, bestRecord, firstRm, formatValue } from '../../lib/catalog';
+import { CATALOG_TABS, bestRecord, firstRm, formatValue, getCatalog } from '../../lib/catalog';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
 import { LargeTitle } from '../ui/nav-bar';
@@ -10,7 +10,7 @@ import { SegmentedControl } from '../ui/controls';
 export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
   const [tab, setTab] = useState('Lift');
   const [group, setGroup] = useState(null);
-  const { type, groups } = CATALOG[tab];
+  const { type, groups } = getCatalog()[tab];
   const visible = group ? groups.filter((g) => g.name === group) : groups;
 
   const label = (move) => {
@@ -28,7 +28,7 @@ export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
     </button>} />
     {banner}
     <SegmentedControl label="Categoría" value={tab} onChange={(next) => { setTab(next); setGroup(null); }}
-      options={Object.keys(CATALOG).map((key) => ({ value: key, label: key }))} />
+      options={CATALOG_TABS.map((key) => ({ value: key, label: key }))} />
     <div className="chips" role="group" aria-label="Grupos" data-tour="prs-groups">
       {groups.map((g) => {
         const count = g.moves.filter((move) => records.some((r) => r.move === move)).length;

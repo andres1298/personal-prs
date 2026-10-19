@@ -4,7 +4,7 @@
 export const LB_TO_KG = 0.45359237;
 export const RMS = [1, 3, 5];
 
-export const CATALOG = {
+const BASE_CATALOG = {
   Lift: { type: 'weight', groups: [
     { name: 'Squats', color: '--red', moves: ['Back Squat', 'Front Squat', 'Overhead Squat'] },
     { name: 'Cleans', color: '--blue', moves: ['Clean', 'Hang Power Clean', 'Hang Squat Clean', 'Muscle Clean', 'Power Clean', 'Squat Clean'] },
@@ -41,14 +41,69 @@ export const DEMO_RECORDS = [
 
 const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--muted', moves: [] } };
 
-export function moveInfo(move) {
-  for (const tab in CATALOG) {
-    for (const group of CATALOG[tab].groups) if (group.moves.includes(move)) return { tab, type: CATALOG[tab].type, group };
-  }
-  return OTHER;
+/* ---------- Active catalog ---------- */
+// The catalog depends on the member (own movements, shared ones turned off), but the
+// query helpers below are called from many views. The app sets the member's catalog
+// once per render with setCatalog; until then the shared base catalog applies.
+// `info` also knows turned-off movements, so their history keeps its unit and group.
+const TABS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks' };
+export const CUSTOM_GROUP = { name: 'Mis movimientos', color: '--indigo' };
+const BASE_GROUPS = new Map(Object.values(BASE_CATALOG).flatMap(({ groups }) => groups.map((group) => [group.name, group])));
+const BASE_ORDER = new Map(Object.values(BASE_CATALOG).flatMap(({ groups }) => groups.flatMap((group) => group.moves)).map((move, index) => [move, index]));
+
+function indexCatalog(catalog) {
+  const info = new Map();
+  for (const tab in catalog) for (const group of catalog[tab].groups) for (const move of group.moves) info.set(move, { tab, type: catalog[tab].type, group });
+  return { catalog, info };
 }
 
-export const weightGroups = () => Object.values(CATALOG).filter((c) => c.type === 'weight').flatMap((c) => c.groups);
+let active = indexCatalog(BASE_CATALOG);
+
+/**
+ * Builds a member's catalog from /api/movements rows
+ * ({ name, category, groupName, measurementType, custom, hidden }).
+ * Shared movements keep the base order; new ones follow. Hidden ones leave the catalog
+ * but stay known to moveInfo. Own movements form one group per tab.
+ */
+export function buildCatalog(movements) {
+  const full = { Lift: { type: 'weight', groups: [] }, Cardio: { type: 'time', groups: [] }, Benchmarks: { type: 'time', groups: [] } };
+  const ordered = [...movements].sort((a, b) =>
+    (BASE_ORDER.get(a.name) ?? Infinity) - (BASE_ORDER.get(b.name) ?? Infinity) || a.name.localeCompare(b.name));
+  // Own movements go last so the shared groups keep their place.
+  ordered.sort((a, b) => Number(a.custom) - Number(b.custom));
+  for (const movement of ordered) {
+    const tab = full[TABS[movement.category]] ?? full.Benchmarks;
+    const label = movement.custom ? CUSTOM_GROUP.name : movement.groupName;
+    let group = tab.groups.find((g) => g.name === label);
+    if (!group) {
+      group = { name: label, color: movement.custom ? CUSTOM_GROUP.color : BASE_GROUPS.get(label)?.color ?? '--muted', moves: [], hidden: new Set() };
+      tab.groups.push(group);
+    }
+    group.moves.push(movement.name);
+    if (movement.hidden) group.hidden.add(movement.name);
+  }
+  const info = indexCatalog(full).info;
+  const visible = {};
+  for (const tab in full) {
+    visible[tab] = { type: full[tab].type, groups: full[tab].groups
+      .map(({ hidden, moves, ...group }) => ({ ...group, moves: moves.filter((move) => !hidden.has(move)) }))
+      .filter((group) => group.moves.length) };
+  }
+  return { catalog: visible, info };
+}
+
+export function setCatalog(next) {
+  active = next ?? indexCatalog(BASE_CATALOG);
+}
+
+export const getCatalog = () => active.catalog;
+export const CATALOG_TABS = Object.keys(BASE_CATALOG);
+
+export function moveInfo(move) {
+  return active.info.get(move) ?? OTHER;
+}
+
+export const weightGroups = () => Object.values(active.catalog).filter((c) => c.type === 'weight').flatMap((c) => c.groups);
 
 /* ---------- Formatting ---------- */
 export const num = (x) => (Math.round(x * 10) / 10).toLocaleString('es-CR');

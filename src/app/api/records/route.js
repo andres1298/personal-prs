@@ -45,7 +45,7 @@ export async function POST(request) {
       return json({ error: 'Revisa los datos del registro.' }, 400);
     }
     const record = await createRecord(access.user.id, {
-      movementId: input.move.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-'),
+      movementName: input.move,
       value: input.value,
       performedOn: input.date,
       repetitionMax: input.rm ?? null,

@@ -25,7 +25,7 @@ export async function POST(request) {
     let input;
     try {
       const body = await request.text();
-      if (body.length > 16000) return json({ error: 'Demasiados registros.' }, 413);
+      if (body.length > 24000) return json({ error: 'Demasiados registros.' }, 413);
       input = JSON.parse(body);
     } catch { return json({ error: 'Registros inválidos.' }, 400); }
     const items = input?.records;
@@ -34,7 +34,7 @@ export async function POST(request) {
       return json({ error: 'Revisa los pesos ingresados.' }, 400);
     }
     const records = await createRecords(access.user.id, items.map((item) => ({
-      movementId: item.move.toLowerCase().replace(/&/g, 'and').replace(/[^a-z0-9]+/g, '-'),
+      movementName: item.move,
       value: item.value,
       performedOn: item.date,
       repetitionMax: item.rm ?? null,

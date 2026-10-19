@@ -5,6 +5,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { ALL_PLATES } from '../lib/plates';
 import { readStored, useStoredState, useWakeLock, writeStored } from '../components/hooks';
 import useRecords from '../components/use-records';
+import useMovements from '../components/use-movements';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
 import SignalLoader from '../components/ui/signal-loader';
@@ -13,6 +14,8 @@ import PrsView from '../components/prs/prs-view';
 import MoveDetailSheet from '../components/prs/move-detail-sheet';
 import RecordFormSheet from '../components/prs/record-form-sheet';
 import QuickUploadSheet from '../components/prs/quick-upload-sheet';
+import MyMovementsSheet from '../components/movements/my-movements-sheet';
+import NewMovementSheet from '../components/movements/new-movement-sheet';
 import SettingsSheet from '../components/settings-sheet';
 import GuidedTour, { TOUR_STEPS } from '../components/tour/guided-tour';
 import { TimerProvider } from '../components/timer/timer-provider';
@@ -38,13 +41,19 @@ function Banner({ loading, demo, error, onRetry }) {
 
 function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, scope }) {
   const alert = useAlert();
-  const { records, loading, error, reload, addRecord, addRecords } = useRecords(hasBackend);
+  const { records, loading: loadingRecords, error: recordsError, reload: reloadRecords, addRecord, addRecords } = useRecords(hasBackend);
+  const movements = useMovements(hasBackend);
+  const loading = loadingRecords || movements.loading;
+  const error = recordsError || movements.error;
+  const reload = () => { reloadRecords(); movements.reload(); };
   const [settings, updateSettings, ready] = useStoredState(`prs_settings_${scope}`, SETTINGS_DEFAULTS);
   const [ex, updateEx] = useStoredState(`prs_exec_${scope}`, EXERCISE_DEFAULTS, restoreExercise);
   const [detail, setDetail] = useState(null);       // { move, rm }
   const [form, setForm] = useState(null);           // { id, move, rm }
   const [quickOpen, setQuickOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
+  const [myMovementsOpen, setMyMovementsOpen] = useState(false);
+  const [newMovementOpen, setNewMovementOpen] = useState(false);
   const [tour, updateTour, tourReady] = useStoredState(`prs_tour_${scope}`, { seen: false });
   const [tourOpen, setTourOpen] = useState(false);
   const tourSnapshot = useRef(null);
@@ -125,6 +134,16 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     setForm(null);
     if (detail?.move === record.move) setDetail({ move: record.move, rm: record.rm });
   }
+  // Deleting a movement also deletes its records, so the list is loaded again and any
+  // screen that was showing the movement is cleared.
+  async function deleteMovement(id, confirmed) {
+    const result = await movements.removeMovement(id, confirmed);
+    const name = movements.movements.find((movement) => movement.id === id)?.name;
+    if (result.deletedRecords) reloadRecords();
+    if (detail?.move === name) setDetail(null);
+    if (ex.move === name) setEx({ view: 'pick', move: null, free: false, base: 0, extra: [], minus: [], done: [] });
+    return result;
+  }
   async function saveQuick(list) {
     await addRecords(list);
     setQuickOpen(false);
@@ -151,10 +170,14 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     <MoveDetailSheet detail={detail} records={records} onClose={() => setDetail(null)}
       onChangeRm={(rm) => setDetail((d) => ({ ...d, rm }))} onAdd={openForm}
       onExecute={(move) => { setDetail(null); updateSettings({ tab: 'exec' }); setEx(selectMovePatch(records, move)); window.scrollTo({ top: 0 }); }} />
-    <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
+    <RecordFormSheet form={form} demo={!hasBackend} onClose={() => setForm(null)} onSave={saveRecord}
+      onNewMovement={() => setNewMovementOpen(true)} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} />
+      demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
+    <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
+      onNew={() => setNewMovementOpen(true)} onHide={movements.setHidden} onDelete={deleteMovement} />
+    <NewMovementSheet open={newMovementOpen} onClose={() => setNewMovementOpen(false)} onCreate={movements.createMovement} />
     <TimerRunSheet />
     <GuidedTour open={tourOpen} steps={tourSteps} onStep={showTourStep} onClose={closeTour} />
   </>;

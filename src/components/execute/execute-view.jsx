@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { CATALOG, RMS, bestRecord, firstRm, moveInfo, num, num2, toKg } from '../../lib/catalog';
+import { RMS, bestRecord, firstRm, getCatalog, moveInfo, num, num2, toKg } from '../../lib/catalog';
 import { DEFAULT_PCT, PLATE_STYLE, computeLoad, sum } from '../../lib/plates';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
@@ -32,7 +32,7 @@ export function selectMovePatch(records, move) {
 
 // Exercise the guided tour shows: the first lift with a PR, or a free calculation.
 export function tourExercise(records) {
-  const move = CATALOG.Lift.groups.flatMap((group) => group.moves).find((name) => firstRm(records, name));
+  const move = getCatalog().Lift.groups.flatMap((group) => group.moves).find((name) => firstRm(records, name));
   if (move) return { ...selectMovePatch(records, move), editBase: false };
   return { ...EXERCISE_DEFAULTS, view: 'run', free: true, base: 225, pct: DEFAULT_PCT };
 }
@@ -68,7 +68,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
       </button>
     </div>}
     <div className="category-grid" data-tour="categories">
-      {CATALOG.Lift.groups.map((group) => {
+      {getCatalog().Lift.groups.map((group) => {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={{ '--c': `var(${group.color})` }}
           onClick={() => go({ cat: group.name, view: 'moves' })}>
@@ -86,7 +86,8 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
 
 /* ---------- Movements of a group ---------- */
 function Moves({ ex, go, records }) {
-  const group = CATALOG.Lift.groups.find((g) => g.name === ex.cat) || CATALOG.Lift.groups[0];
+  const { groups } = getCatalog().Lift;
+  const group = groups.find((g) => g.name === ex.cat) || groups[0] || { name: '', color: '--muted', moves: [] };
   const withPR = group.moves.filter((move) => firstRm(records, move));
   const without = group.moves.filter((move) => !firstRm(records, move));
   const row = (move) => {

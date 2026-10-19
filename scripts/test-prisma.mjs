@@ -4,6 +4,9 @@ import { getPrisma } from '../src/lib/server/prisma.js';
 import {
   completeTour, createRecord, deleteRecord, hasPendingTour, listRecords, toLegacyRecord, updateRecord, upsertProfile,
 } from '../src/lib/server/records.js';
+import {
+  createMovement, deleteMovement, MovementConfirmationError, MovementForbiddenError, setMovementHidden,
+} from '../src/lib/server/movements.js';
 import { movementCatalog, seedMovements } from '../prisma/catalog.mjs';
 
 // Require a deliberate choice of a disposable database; never run against live data.
@@ -86,12 +89,37 @@ try {
   assert.equal(protections.length, 3);
   await deleteRecord(ownerId, created.id);
   assert.equal((await listRecords(ownerId)).some((record) => record.id === created.id), false);
-  console.log('Prisma integration checks passed: catalog, CRUD, ownership filters, constraints, serialization and tour state.');
+
+  // Custom movements are private, can be hidden or deleted by their owner, and shared ones cannot be deleted.
+  const custom = await createMovement(ownerId, { name: 'Test Thruster', measurementType: 'WEIGHT' });
+  const theirs = await createMovement(otherId, { name: 'Test Thruster', measurementType: 'WEIGHT' });
+  assert.notEqual(custom.id, theirs.id);
+  const customRecord = { movementName: 'Test Thruster', value: '95', performedOn: '2026-03-02', repetitionMax: 5 };
+  assert.equal((await createRecord(ownerId, customRecord)).movementId, custom.id);
+  assert.equal((await createRecord(otherId, customRecord)).movementId, theirs.id);
+  await assert.rejects(createRecord(otherId, { ...customRecord, movementName: undefined, movementId: custom.id }));
+  await assert.rejects(createRecord(ownerId, { ...customRecord, repetitionMax: 2 }));
+  await assert.rejects(prisma.movement.create({
+    data: { id: 'duplicate-squat', name: 'Back Squat', category: 'LIFT', groupName: 'Squats', measurementType: 'WEIGHT' },
+  }));
+  await setMovementHidden(ownerId, 'back-squat', true);
+  await assert.rejects(createRecord(ownerId, input));
+  await createRecord(otherId, input);
+  await setMovementHidden(ownerId, 'back-squat', false);
+  await createRecord(ownerId, input);
+  await assert.rejects(deleteMovement(ownerId, custom.id), MovementConfirmationError);
+  await assert.rejects(deleteMovement(ownerId, 'back-squat', true), MovementForbiddenError);
+  assert.deepEqual(await deleteMovement(ownerId, custom.id, true), { deletedRecords: 1 });
+  assert.equal(await prisma.movement.count({ where: { id: custom.id } }), 0);
+  assert.equal((await listRecords(otherId)).some((record) => record.movementId === theirs.id), true);
+  console.log('Prisma integration checks passed: catalog, CRUD, ownership filters, constraints, serialization, tour state and custom movements.');
 } catch {
   console.error('Prisma integration checks failed. Inspect the isolated test environment privately.');
   process.exitCode = 1;
 } finally {
   await prisma.personalRecord.deleteMany({ where: { profileId: { in: [ownerId, otherId] } } });
+  await prisma.hiddenMovement.deleteMany({ where: { profileId: { in: [ownerId, otherId] } } });
+  await prisma.movement.deleteMany({ where: { ownerId: { in: [ownerId, otherId] } } });
   await prisma.profile.deleteMany({ where: { id: { in: [ownerId, otherId] } } });
   await prisma.$disconnect();
 }

@@ -20,7 +20,7 @@ async function routes(access, failure) {
     'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
     '../../../../lib/server/auth': { getAccess: async () => access, hasSameOrigin },
     '../../../../lib/server/records': {
-      MAX_BULK_RECORDS: 63,
+      MAX_BULK_RECORDS: 153,
       RecordInputError,
       RecordConflictError,
       createRecords: async (id, inputs) => {
@@ -67,8 +67,8 @@ test('authorized batches are created with the verified server identity', async (
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
   assert.equal((await response.json()).records.length, 2);
   assert.deepEqual(calls, [['createRecords', ownerId, [
-    { movementId: 'clean-and-jerk', value: 185, performedOn: '2026-10-17', repetitionMax: 1 },
-    { movementId: 'back-squat', value: 225.5, performedOn: '2026-10-17', repetitionMax: 5 },
+    { movementName: 'Clean & Jerk', value: 185, performedOn: '2026-10-17', repetitionMax: 1 },
+    { movementName: 'Back Squat', value: 225.5, performedOn: '2026-10-17', repetitionMax: 5 },
   ]]]);
 });
 
@@ -82,11 +82,11 @@ test('cross-origin, malformed, oversized and injected payloads do not write', as
     { records: [{ ...validBatch.records[0], notes: 'x' }] },
     { records: [{ ...validBatch.records[0], value: '185' }] },
     { records: [{ ...validBatch.records[0], move: 'x'.repeat(101) }] },
-    { records: Array.from({ length: 64 }, () => validBatch.records[0]) },
+    { records: Array.from({ length: 154 }, () => validBatch.records[0]) },
   ]) {
     assert.equal((await handlers.POST(post(body))).status, 400, JSON.stringify(body)?.slice(0, 80));
   }
-  assert.equal((await handlers.POST(post('x'.repeat(16001)))).status, 413);
+  assert.equal((await handlers.POST(post('x'.repeat(24001)))).status, 413);
   assert.deepEqual(calls, []);
 });
 
