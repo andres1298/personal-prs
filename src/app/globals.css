@@ -141,6 +141,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .nav-back span { overflow: hidden; text-overflow: ellipsis; }
 .nav-back svg { width: 24px; height: 24px; }
 .nav-text.strong { font-weight: 600; }
+.nav-text.danger { color: var(--red); }
 .nav-text svg { width: 18px; height: 18px; }
 .nav-icon { width: 44px; justify-content: center; }
 .nav-icon svg { width: 24px; height: 24px; }

@@ -9,7 +9,7 @@ import { List, Row } from './ui/list';
 import { SegmentedControl, Switch, SymbolTile } from './ui/controls';
 import AdminPanel from '../app/admin-panel';
 
-export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin, onTour }) {
+export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin, onTour, onMyMovements }) {
   const togglePlate = (plate) => updateSettings((s) => ({
     plates: s.plates.includes(plate) ? s.plates.filter((p) => p !== plate) : [...s.plates, plate],
   }));
@@ -40,6 +40,10 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
       <Row leading={<SymbolTile color="--purple"><Icon name="sparkles" /></SymbolTile>} title="Ver tour de la app"
         subtitle="Repasa el flujo básico paso a paso" chevron onClick={onTour} />
     </List>
+    {!demo && <List header="Movimientos">
+      <Row leading={<SymbolTile color="--indigo"><Icon name="barbell" /></SymbolTile>} title="Mis movimientos"
+        subtitle="Crea los tuyos o desactiva los del catálogo" chevron onClick={onMyMovements} />
+    </List>}
     <List header="Cuenta">
       <Row leading={<SymbolTile color="--blue"><Icon name="person" /></SymbolTile>} title="Datos"
         subtitle={demo ? 'Datos de ejemplo · cambios solo en esta sesión' : 'Conectado a tu cuenta'} />

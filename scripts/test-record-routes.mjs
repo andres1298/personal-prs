@@ -63,7 +63,7 @@ test('authorized reads and creation use only the verified server identity', asyn
   assert.equal(created.status, 201);
   assert.deepEqual(calls, [
     ['list', ownerId],
-    ['create', ownerId, { movementId: 'clean-and-jerk', value: 185, performedOn: '2026-10-03', repetitionMax: 3, notes: 'Test' }],
+    ['create', ownerId, { movementName: 'Clean & Jerk', value: 185, performedOn: '2026-10-03', repetitionMax: 3, notes: 'Test' }],
   ]);
 });
 

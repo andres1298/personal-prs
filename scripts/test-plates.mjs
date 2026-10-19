@@ -2,7 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { ALL_PLATES, buildLadder, computeLoad, plateOptions, round5, subtractPlates } from '../src/lib/plates.js';
 import {
-  bestRecord, firstRm, formatValue, isValidQuickWeight, latestRecord, moveInfo, parseValue, recordsOf, today,
+  bestRecord, buildCatalog, firstRm, formatValue, getCatalog, isValidQuickWeight, latestRecord, moveInfo, parseValue, recordsOf, setCatalog,
+  today, weightGroups,
 } from '../src/lib/catalog.js';
 
 const gym = { bar: 45, plates: [...ALL_PLATES] };
@@ -71,4 +72,38 @@ test('values parse and format in lb and m:ss', () => {
   assert.ok(!isValidQuickWeight('0'));
   assert.ok(!isValidQuickWeight('12345'));
   assert.match(today(new Date('2026-10-18T12:00:00')), /^2026-10-1[78]$/);
+});
+
+test('a member catalog adds own movements, hides turned-off ones and keeps their history readable', () => {
+  const row = (name, category, groupName, measurementType, extra = {}) => ({ name, category, groupName, measurementType, custom: false, hidden: false, ...extra });
+  const rows = [
+    row('Fran', 'BENCHMARK', 'Girls', 'TIME', { hidden: true }),
+    row('Sled Push', 'BENCHMARK', 'Custom', 'TIME', { custom: true }),
+    row('Front Squat', 'LIFT', 'Squats', 'WEIGHT'),
+    row('Back Squat', 'LIFT', 'Squats', 'WEIGHT'),
+    row('Thruster', 'LIFT', 'Custom', 'WEIGHT', { custom: true }),
+    row('Grace', 'BENCHMARK', 'Girls', 'TIME'),
+  ];
+  try {
+    setCatalog(buildCatalog(rows));
+    const catalog = getCatalog();
+    // Shared movements keep the base order and own ones form a last group.
+    assert.deepEqual(catalog.Lift.groups.map((group) => [group.name, group.moves]), [
+      ['Squats', ['Back Squat', 'Front Squat']], ['Mis movimientos', ['Thruster']],
+    ]);
+    assert.deepEqual(catalog.Benchmarks.groups.map((group) => [group.name, group.moves]), [
+      ['Girls', ['Grace']], ['Mis movimientos', ['Sled Push']],
+    ]);
+    assert.deepEqual(weightGroups().flatMap((group) => group.moves), ['Back Squat', 'Front Squat', 'Thruster']);
+    assert.equal(moveInfo('Thruster').type, 'weight');
+    assert.equal(moveInfo('Sled Push').type, 'time');
+    // A turned-off movement leaves the lists but its records keep their unit.
+    assert.equal(moveInfo('Fran').type, 'time');
+    assert.equal(moveInfo('Fran').group.name, 'Girls');
+    assert.equal(catalog.Benchmarks.groups.some((group) => group.moves.includes('Fran')), false);
+    // Turning off every movement of a tab leaves it empty instead of failing.
+    setCatalog(buildCatalog(rows.map((item) => ({ ...item, hidden: true }))));
+    assert.deepEqual(getCatalog().Lift.groups, []);
+  } finally { setCatalog(null); }
+  assert.equal(getCatalog().Lift.groups[0].moves[0], 'Back Squat');
 });

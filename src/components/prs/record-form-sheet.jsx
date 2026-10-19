@@ -1,16 +1,16 @@
 'use client';
 
 import { useRef, useState } from 'react';
-import { CATALOG, RMS, moveInfo, parseValue, today } from '../../lib/catalog';
+import { RMS, getCatalog, moveInfo, parseValue, today } from '../../lib/catalog';
 import { useAlert } from '../ui/alert';
 import Sheet from '../ui/sheet';
 import { SegmentedControl } from '../ui/controls';
 
-const FIRST_MOVE = CATALOG.Lift.groups[0].moves[0];
+const firstMove = () => getCatalog().Lift.groups[0]?.moves[0] ?? '';
 
-function RecordForm({ initial, onSave, formId, onSavingChange }) {
+function RecordForm({ initial, demo, onSave, onNewMovement, formId, onSavingChange }) {
   const alert = useAlert();
-  const [move, setMove] = useState(initial.move || FIRST_MOVE);
+  const [move, setMove] = useState(initial.move || firstMove());
   const [value, setValue] = useState('');
   const [rm, setRm] = useState(initial.rm || 1);
   const [date, setDate] = useState(today());
@@ -38,12 +38,13 @@ function RecordForm({ initial, onSave, formId, onSavingChange }) {
       <label className="field">
         <span>Movimiento</span>
         <select value={move} onChange={(event) => { setMove(event.target.value); setInvalid(false); }}>
-          {Object.entries(CATALOG).map(([tab, category]) => category.groups.map((group) =>
+          {Object.entries(getCatalog()).map(([tab, category]) => category.groups.map((group) =>
             <optgroup key={`${tab}-${group.name}`} label={`${tab} · ${group.name}`}>
               {group.moves.map((m) => <option key={m}>{m}</option>)}
             </optgroup>))}
         </select>
       </label>
+      {!demo && <button type="button" className="row row-button tint-row" onClick={onNewMovement}>Nuevo movimiento</button>}
       <label className="field">
         <span>{type === 'time' ? 'Tiempo' : 'Peso'}</span>
         <input required inputMode={type === 'time' ? 'numeric' : 'decimal'} placeholder={type === 'time' ? 'mm:ss' : 'lb'}
@@ -66,7 +67,7 @@ function RecordForm({ initial, onSave, formId, onSavingChange }) {
   </form>;
 }
 
-export default function RecordFormSheet({ form, onClose, onSave }) {
+export default function RecordFormSheet({ form, demo, onClose, onSave, onNewMovement }) {
   const last = useRef(form);
   if (form) last.current = form;
   const [saving, setSaving] = useState(false);
@@ -74,7 +75,7 @@ export default function RecordFormSheet({ form, onClose, onSave }) {
   return <Sheet open={!!form} onClose={onClose} title="Nuevo registro" layer={1}
     leading={<button type="button" className="nav-text" onClick={onClose}>Cancelar</button>}
     trailing={<button type="submit" form={formId} className="nav-text strong" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button>}>
-    {last.current && <RecordForm key={last.current.id} initial={last.current} onSave={onSave}
+    {last.current && <RecordForm key={last.current.id} initial={last.current} demo={demo} onSave={onSave} onNewMovement={onNewMovement}
       formId={formId} onSavingChange={setSaving} />}
   </Sheet>;
 }

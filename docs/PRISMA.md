@@ -7,10 +7,17 @@ Prisma owns the application schema and server persistence. Supabase Auth owns id
 | Model | Purpose |
 | --- | --- |
 | `Profile` | A UUID supplied by verified Supabase Auth, optional display name, audit timestamps and when the member finished the guided tour (`null` for new members). |
-| `Movement` | Stable catalog slug, unique name, category, group and measurement type. |
+| `Movement` | Catalog slug (shared) or UUID (custom), name, category, group, measurement type and optional owner. `ownerId` null marks the shared catalog; otherwise the movement is private to that profile. |
+| `HiddenMovement` | A shared movement a profile turned off for itself. Records are kept. |
 | `PersonalRecord` | UUIDv7, required profile/movement, decimal measurement, practice date, repetition maximum, notes. Legacy `videoUrl`/`videoId` columns remain but are unused. |
 
 Weights use pounds; times use seconds. `value` is `Decimal(12,3)` (up to nine integer digits and three fractional digits). Server input validation rejects extra precision rather than silently rounding. Database constraints reject nonpositive measurements, NaN, invalid repetition maxima and out-of-range dates. Weight records require 1, 3 or 5 repetitions; time records require null. A composite movement foreign key enforces measurement type consistency.
+
+## Custom and hidden movements
+
+Names are unique per owner (`@@unique([ownerId, name])`). Because PostgreSQL treats null owners as distinct, a partial unique index in the migration (`Movement_shared_name_key`) keeps shared names unique, and the service rejects an own name that matches a shared one (case-insensitive). Two members may each own a movement with the same name. Custom movements use the same rules as shared ones: weight records accept 1, 3 or 5 repetitions. Each member can own at most 30.
+
+`src/lib/server/movements.js` is the only writer. Members can list shared plus own movements, create their own, turn shared ones off or on, and delete their own. Shared movements are never deleted from user routes. Deleting an own movement that has records needs explicit confirmation (`/api/movements/[id]?confirm=true`); without it the route answers 409 with the record count and changes nothing. With it, the records and the movement are deleted in one transaction. Record creation resolves the movement by id or name among shared and own movements, and rejects one the member turned off.
 
 `performedOn` uses PostgreSQL `date`. Audit timestamps use `timestamptz`. DTOs serialize measurements as decimal strings and practice dates as `YYYY-MM-DD`; `toLegacyRecord` converts the measurement to a JavaScript number for the existing interface.
 
@@ -22,7 +29,7 @@ Profiles and movements with records cannot be deleted until their records are ex
 
 The Next.js interface reads and creates records through `/api/records`, which verifies Supabase Auth and a private user allowlist before using the internal persistence API. The owner always comes from verified Auth. Updates and deletes remain internal. See [AUTH.md](AUTH.md) for configuration and verification. Historical import and complete database isolation still require their own validation.
 
-All three application tables enable RLS with no access policies. This initially denies access for roles subject to RLS. A database owner or role with bypass privileges can still access them: Prisma does not automatically forward the Supabase user's JWT or guarantee user isolation through RLS. Issue #6 must implement and verify the actual server identity boundary, role privileges and ownership policies before exposing authenticated data flows. Direct SQL access using privileged credentials remains server-only. Prisma's own `_prisma_migrations` history table also enables RLS with no policies so the Supabase Data API cannot expose it.
+All application tables enable RLS with no access policies. This initially denies access for roles subject to RLS. A database owner or role with bypass privileges can still access them: Prisma does not automatically forward the Supabase user's JWT or guarantee user isolation through RLS. Issue #6 must implement and verify the actual server identity boundary, role privileges and ownership policies before exposing authenticated data flows. Direct SQL access using privileged credentials remains server-only. Prisma's own `_prisma_migrations` history table also enables RLS with no policies so the Supabase Data API cannot expose it.
 
 Migration files are checked out with LF line endings (`.gitattributes`): Prisma stores a byte-level checksum of each applied file, so deploying the same migration from a CRLF checkout would report it as modified.
 

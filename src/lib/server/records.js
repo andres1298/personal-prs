@@ -2,8 +2,8 @@ import 'server-only';
 import { getPrisma } from './prisma.js';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-// Weight catalog size times the three supported repetition maximums.
-export const MAX_BULK_RECORDS = 63;
+// Shared weight movements plus the custom movement limit, times the three repetition maximums.
+export const MAX_BULK_RECORDS = (21 + 30) * 3;
 
 export class RecordInputError extends Error {}
 export class RecordConflictError extends Error {}
@@ -34,10 +34,23 @@ function recordDto(record) {
   };
 }
 
-async function validatedRecord(input) {
-  if (!input || typeof input !== 'object') throw new RecordInputError('Record input is required.');
-  const movement = await getPrisma().movement.findUnique({ where: { id: input.movementId } });
+// A record may use a shared movement or one the member owns, found by id or by name,
+// and never one the member turned off.
+async function findMovement(profileId, input) {
+  const key = typeof input.movementId === 'string' ? { id: input.movementId }
+    : typeof input.movementName === 'string' ? { name: input.movementName } : null;
+  if (!key) throw new RecordInputError('Unknown movement.');
+  const prisma = getPrisma();
+  const movement = await prisma.movement.findFirst({ where: { ...key, OR: [{ ownerId: null }, { ownerId: profileId }] } });
   if (!movement) throw new RecordInputError('Unknown movement.');
+  const hidden = await prisma.hiddenMovement.findUnique({ where: { profileId_movementId: { profileId, movementId: movement.id } } });
+  if (hidden) throw new RecordInputError('This movement is turned off.');
+  return movement;
+}
+
+async function validatedRecord(profileId, input) {
+  if (!input || typeof input !== 'object') throw new RecordInputError('Record input is required.');
+  const movement = await findMovement(profileId, input);
 
   const value = String(input.value);
   if (!/^\d{1,9}(\.\d{1,3})?$/.test(value) || Number(value) <= 0) {
@@ -108,7 +121,7 @@ export async function listRecords(authUserId) {
 
 export async function createRecord(authUserId, input) {
   const profileId = requireProfileId(authUserId);
-  const data = await validatedRecord(input);
+  const data = await validatedRecord(profileId, input);
   const record = await getPrisma().personalRecord.create({
     data: { ...data, profileId }, include: { movement: true },
   });
@@ -124,7 +137,7 @@ export async function createRecords(authUserId, inputs) {
   const records = [];
   const pairs = new Set();
   for (const input of inputs) {
-    const data = await validatedRecord(input);
+    const data = await validatedRecord(profileId, input);
     if (data.measurementType !== 'WEIGHT') throw new RecordInputError('Quick upload accepts weight records only.');
     const pair = `${data.movementId}:${data.repetitionMax}`;
     if (pairs.has(pair)) throw new RecordInputError('Each movement and repetition pair may appear once.');
@@ -153,7 +166,7 @@ export async function createRecords(authUserId, inputs) {
 
 export async function updateRecord(authUserId, recordId, input) {
   const profileId = requireProfileId(authUserId);
-  const data = await validatedRecord(input);
+  const data = await validatedRecord(profileId, input);
   const record = await getPrisma().personalRecord.update({
     where: { id: recordId, profileId }, data, include: { movement: true },
   });

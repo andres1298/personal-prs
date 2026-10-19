@@ -36,6 +36,8 @@ model Profile {
   createdAt          DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
   records            PersonalRecord[]
+  ownedMovements     Movement[]       @relation("MovementOwner")
+  hiddenMovements    HiddenMovement[]
   invitedBy          Profile?         @relation("ProfileInviter", fields: [invitedById], references: [id], onDelete: Restrict)
   invitees           Profile[]        @relation("ProfileInviter")
   disabledBy         Profile?         @relation("ProfileDisabler", fields: [disabledById], references: [id], onDelete: Restrict)
@@ -64,14 +66,32 @@ model Invitation {
 
 model Movement {
   id              String           @id
-  name            String           @unique
+  name            String
   category        MovementCategory
   groupName       String
   measurementType MeasurementType
+  // Null marks the shared catalog; otherwise the movement is private to its owner.
+  ownerId         String?          @db.Uuid
   records         PersonalRecord[]
+  owner           Profile?         @relation("MovementOwner", fields: [ownerId], references: [id], onDelete: Restrict)
+  hiddenBy        HiddenMovement[]
 
   // The composite foreign key prevents records from changing measurement units.
   @@unique([id, measurementType])
+  // Names are unique per owner. A partial index in the migration also keeps shared names
+  // unique, because PostgreSQL treats null owners as distinct.
+  @@unique([ownerId, name])
+}
+
+// A shared movement a member turned off for themselves; their records are kept.
+model HiddenMovement {
+  profileId  String   @db.Uuid
+  movementId String
+  createdAt  DateTime @default(now()) @db.Timestamptz(3)
+  profile    Profile  @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  movement   Movement @relation(fields: [movementId], references: [id], onDelete: Cascade)
+
+  @@id([profileId, movementId])
 }
 
 model PersonalRecord {
