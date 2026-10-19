@@ -348,7 +348,6 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .resume-copy b { font-size: 17px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .resume-weight { font-size: 28px; font-weight: 700; }
 .resume-weight small { font-size: 15px; opacity: .8; margin-left: 3px; }
-.resume-main > svg { width: 18px; height: 18px; opacity: .7; }
 .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
 .category-card {
   --c: var(--gray); display: grid; justify-items: center; align-content: center; gap: 4px; padding: 16px 12px; min-height: 104px;
