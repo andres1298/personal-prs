@@ -38,7 +38,7 @@ export async function POST(request) {
       input = JSON.parse(body);
     } catch { return json({ error: 'Movimiento inválido.' }, 400); }
     if (!input || typeof input !== 'object' || Array.isArray(input) ||
-        Object.keys(input).some((key) => !['name', 'measurementType'].includes(key))) {
+        Object.keys(input).some((key) => !['name', 'groupName'].includes(key))) {
       return json({ error: 'Revisa los datos del movimiento.' }, 400);
     }
     return json({ movement: await createMovement(access.user.id, input) }, 201);

@@ -5,7 +5,6 @@ import { getPrisma } from './prisma.js';
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const MAX_CUSTOM_MOVEMENTS = 30;
 export const MOVEMENT_NAME_MAX = 40;
-const CUSTOM_GROUP = 'Custom';
 
 export class MovementInputError extends Error {}
 export class MovementNotFoundError extends Error {}
@@ -62,12 +61,14 @@ export async function createMovement(authUserId, input) {
   const profileId = requireProfileId(authUserId);
   if (!input || typeof input !== 'object') throw new MovementInputError('Movement input is required.');
   const name = validatedName(input.name);
-  if (input.measurementType !== 'WEIGHT' && input.measurementType !== 'TIME') {
-    throw new MovementInputError('Measurement type must be WEIGHT or TIME.');
-  }
-  const measurementType = input.measurementType;
+  if (typeof input.groupName !== 'string') throw new MovementInputError('Group is required.');
   try {
     return await getPrisma().$transaction(async (tx) => {
+      // A movement joins one of the shared groups and takes its category and measurement type.
+      const group = await tx.movement.findFirst({
+        where: { ownerId: null, groupName: input.groupName }, select: { category: true, groupName: true, measurementType: true },
+      });
+      if (!group) throw new MovementInputError('Unknown group.');
       if (await tx.movement.count({ where: { ownerId: profileId } }) >= MAX_CUSTOM_MOVEMENTS) {
         throw new MovementInputError(`At most ${MAX_CUSTOM_MOVEMENTS} custom movements are allowed.`);
       }
@@ -78,8 +79,8 @@ export async function createMovement(authUserId, input) {
       if (duplicate) throw new MovementConflictError('A movement with this name already exists.');
       const movement = await tx.movement.create({
         data: {
-          id: randomUUID(), name, ownerId: profileId, measurementType, groupName: CUSTOM_GROUP,
-          category: measurementType === 'WEIGHT' ? 'LIFT' : 'BENCHMARK',
+          id: randomUUID(), name, ownerId: profileId, groupName: group.groupName,
+          category: group.category, measurementType: group.measurementType,
         },
       });
       return movementDto(movement, profileId);

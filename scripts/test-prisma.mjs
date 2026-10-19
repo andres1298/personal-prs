@@ -91,8 +91,8 @@ try {
   assert.equal((await listRecords(ownerId)).some((record) => record.id === created.id), false);
 
   // Custom movements are private, can be hidden or deleted by their owner, and shared ones cannot be deleted.
-  const custom = await createMovement(ownerId, { name: 'Test Thruster', measurementType: 'WEIGHT' });
-  const theirs = await createMovement(otherId, { name: 'Test Thruster', measurementType: 'WEIGHT' });
+  const custom = await createMovement(ownerId, { name: 'Test Thruster', groupName: 'Squats' });
+  const theirs = await createMovement(otherId, { name: 'Test Thruster', groupName: 'Squats' });
   assert.notEqual(custom.id, theirs.id);
   const customRecord = { movementName: 'Test Thruster', value: '95', performedOn: '2026-03-02', repetitionMax: 5 };
   assert.equal((await createRecord(ownerId, customRecord)).movementId, custom.id);

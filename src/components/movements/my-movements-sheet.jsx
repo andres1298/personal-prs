@@ -55,7 +55,7 @@ export default function MyMovementsSheet({ open, onClose, movements, onNew, onHi
     trailing={<button type="button" className="nav-text strong" onClick={onClose}>Listo</button>}>
     <List header="Creados por ti" footer="Solo tú los ves. Al eliminar uno se borran también sus registros.">
       {own.map((movement) => <Row key={movement.id} title={movement.name}
-        subtitle={movement.measurementType === 'WEIGHT' ? 'Peso · 1RM, 3RM, 5RM' : 'Tiempo'}>
+        subtitle={`${movement.groupName} · ${movement.measurementType === 'WEIGHT' ? 'Peso' : 'Tiempo'}`}>
         <button type="button" className="nav-text danger" aria-label={`Eliminar ${movement.name}`} onClick={() => remove(movement)}>
           Eliminar
         </button>

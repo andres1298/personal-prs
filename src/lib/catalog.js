@@ -39,7 +39,8 @@ export const DEMO_RECORDS = [
   { move: 'Fran', value: 285, date: '2026-08-10' },
 ];
 
-const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--muted', moves: [] } };
+// Movements the catalog does not know (for example old records) have no group to show.
+const UNKNOWN = { tab: null, type: 'weight', group: { name: '', color: '--muted', moves: [] } };
 
 /* ---------- Active catalog ---------- */
 // The catalog depends on the member (own movements, shared ones turned off), but the
@@ -47,7 +48,6 @@ const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--mut
 // once per render with setCatalog; until then the shared base catalog applies.
 // `info` also knows turned-off movements, so their history keeps its unit and group.
 const TABS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks' };
-export const CUSTOM_GROUP = { name: 'Mis movimientos', color: '--indigo' };
 const BASE_GROUPS = new Map(Object.values(BASE_CATALOG).flatMap(({ groups }) => groups.map((group) => [group.name, group])));
 const BASE_ORDER = new Map(Object.values(BASE_CATALOG).flatMap(({ groups }) => groups.flatMap((group) => group.moves)).map((move, index) => [move, index]));
 
@@ -62,21 +62,21 @@ let active = indexCatalog(BASE_CATALOG);
 /**
  * Builds a member's catalog from /api/movements rows
  * ({ name, category, groupName, measurementType, custom, hidden }).
- * Shared movements keep the base order; new ones follow. Hidden ones leave the catalog
- * but stay known to moveInfo. Own movements form one group per tab.
+ * Shared movements keep the base order; new ones follow, and own movements join the shared
+ * group they were assigned to, after the shared ones. Hidden ones leave the catalog but stay
+ * known to moveInfo.
  */
 export function buildCatalog(movements) {
   const full = { Lift: { type: 'weight', groups: [] }, Cardio: { type: 'time', groups: [] }, Benchmarks: { type: 'time', groups: [] } };
   const ordered = [...movements].sort((a, b) =>
     (BASE_ORDER.get(a.name) ?? Infinity) - (BASE_ORDER.get(b.name) ?? Infinity) || a.name.localeCompare(b.name));
-  // Own movements go last so the shared groups keep their place.
+  // Own movements follow the shared ones of their group.
   ordered.sort((a, b) => Number(a.custom) - Number(b.custom));
   for (const movement of ordered) {
     const tab = full[TABS[movement.category]] ?? full.Benchmarks;
-    const label = movement.custom ? CUSTOM_GROUP.name : movement.groupName;
-    let group = tab.groups.find((g) => g.name === label);
+    let group = tab.groups.find((g) => g.name === movement.groupName);
     if (!group) {
-      group = { name: label, color: movement.custom ? CUSTOM_GROUP.color : BASE_GROUPS.get(label)?.color ?? '--muted', moves: [], hidden: new Set() };
+      group = { name: movement.groupName, color: BASE_GROUPS.get(movement.groupName)?.color ?? '--muted', moves: [], hidden: new Set() };
       tab.groups.push(group);
     }
     group.moves.push(movement.name);
@@ -100,7 +100,16 @@ export const getCatalog = () => active.catalog;
 export const CATALOG_TABS = Object.keys(BASE_CATALOG);
 
 export function moveInfo(move) {
-  return active.info.get(move) ?? OTHER;
+  return active.info.get(move) ?? UNKNOWN;
+}
+
+// The shared groups a new movement can join, by tab, in catalog order. Each group's
+// measurement type comes from its tab.
+export function movementGroups(movements) {
+  const shared = buildCatalog(movements.filter((movement) => !movement.custom)).info;
+  const groups = new Map();
+  for (const [, { tab, type, group }] of shared) if (!groups.has(group.name)) groups.set(group.name, { tab, type, name: group.name });
+  return [...groups.values()];
 }
 
 export const weightGroups = () => Object.values(active.catalog).filter((c) => c.type === 'weight').flatMap((c) => c.groups);

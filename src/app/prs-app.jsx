@@ -6,6 +6,7 @@ import { ALL_PLATES } from '../lib/plates';
 import { readStored, useStoredState, useWakeLock, writeStored } from '../components/hooks';
 import useRecords from '../components/use-records';
 import useMovements from '../components/use-movements';
+import { movementGroups as groupsOf } from '../lib/catalog';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
 import SignalLoader from '../components/ui/signal-loader';
@@ -43,6 +44,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   const alert = useAlert();
   const { records, loading: loadingRecords, error: recordsError, reload: reloadRecords, addRecord, addRecords } = useRecords(hasBackend);
   const movements = useMovements(hasBackend);
+  const movementGroups = useMemo(() => groupsOf(movements.movements), [movements.movements]);
   const loading = loadingRecords || movements.loading;
   const error = recordsError || movements.error;
   const reload = () => { reloadRecords(); movements.reload(); };
@@ -177,7 +179,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
       demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
     <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
       onNew={() => setNewMovementOpen(true)} onHide={movements.setHidden} onDelete={deleteMovement} />
-    <NewMovementSheet open={newMovementOpen} onClose={() => setNewMovementOpen(false)} onCreate={movements.createMovement} />
+    <NewMovementSheet open={newMovementOpen} groups={movementGroups} onClose={() => setNewMovementOpen(false)} onCreate={movements.createMovement} />
     <TimerRunSheet />
     <GuidedTour open={tourOpen} steps={tourSteps} onStep={showTourStep} onClose={closeTour} />
   </>;

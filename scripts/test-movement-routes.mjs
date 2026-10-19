@@ -57,7 +57,7 @@ test('anonymous and unapproved sessions never reach persistence', async () => {
   for (const [access, status] of [[{ user: null, authorized: false }, 401], [{ user: { id: ownerId }, authorized: false }, 403]]) {
     const list = await collection(access);
     assert.equal((await list.handlers.GET()).status, status);
-    assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'A', measurementType: 'WEIGHT' }))).status, status);
+    assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'A', groupName: 'Squats' }))).status, status);
     const single = await item(access);
     assert.equal((await single.handlers.PATCH(send('PATCH', '/api/movements/m1', { hidden: true }), params())).status, status);
     assert.equal((await single.handlers.DELETE(send('DELETE', '/api/movements/m1'), params())).status, status);
@@ -70,8 +70,8 @@ test('reads, creation, hiding and deletion use only the verified identity', asyn
   const read = await list.handlers.GET();
   assert.equal(read.status, 200);
   assert.equal(read.headers.get('Cache-Control'), 'private, no-store');
-  assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'Thruster', measurementType: 'WEIGHT' }))).status, 201);
-  assert.deepEqual(list.calls, [['list', ownerId], ['create', ownerId, { name: 'Thruster', measurementType: 'WEIGHT' }]]);
+  assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'Thruster', groupName: 'Squats' }))).status, 201);
+  assert.deepEqual(list.calls, [['list', ownerId], ['create', ownerId, { name: 'Thruster', groupName: 'Squats' }]]);
   const single = await item(allowed);
   assert.equal((await single.handlers.PATCH(send('PATCH', '/api/movements/m1', { hidden: true }), params())).status, 200);
   assert.equal((await single.handlers.DELETE(send('DELETE', '/api/movements/m1'), params())).status, 200);
@@ -81,11 +81,11 @@ test('reads, creation, hiding and deletion use only the verified identity', asyn
 
 test('owner injection, bad payloads and cross-origin requests do not write', async () => {
   const list = await collection(allowed);
-  for (const body of [null, [], { name: 'A', measurementType: 'WEIGHT', ownerId }, { name: 'A', measurementType: 'WEIGHT', id: 'x' }]) {
+  for (const body of [null, [], { name: 'A', groupName: 'Squats', ownerId }, { name: 'A', groupName: 'Squats', id: 'x' }]) {
     assert.equal((await list.handlers.POST(send('POST', '/api/movements', body))).status, 400);
   }
-  assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'x'.repeat(1001), measurementType: 'WEIGHT' }))).status, 400);
-  assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'A', measurementType: 'WEIGHT' }, 'https://other.example.test'))).status, 403);
+  assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'x'.repeat(1001), groupName: 'Squats' }))).status, 400);
+  assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'A', groupName: 'Squats' }, 'https://other.example.test'))).status, 403);
   const single = await item(allowed);
   for (const body of [null, [], {}, { hidden: 'yes' }, { hidden: true, ownerId }]) {
     assert.equal((await single.handlers.PATCH(send('PATCH', '/api/movements/m1', body), params())).status, 400);
@@ -119,7 +119,7 @@ test('errors map to statuses without private diagnostics', async () => {
   }
   for (const [failure, status] of [[new MovementConflictError('Private'), 409], [new MovementInputError('Private'), 400], [new Error('Private'), 503]]) {
     const list = await collection(allowed, failure);
-    const response = await list.handlers.POST(send('POST', '/api/movements', { name: 'A', measurementType: 'WEIGHT' }));
+    const response = await list.handlers.POST(send('POST', '/api/movements', { name: 'A', groupName: 'Squats' }));
     assert.equal(response.status, status);
     assert.doesNotMatch(JSON.stringify(await response.json()), /Private/);
   }

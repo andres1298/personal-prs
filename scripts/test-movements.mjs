@@ -6,8 +6,8 @@ import { SourceTextModule, SyntheticModule } from 'node:vm';
 const source = await readFile(new URL('../src/lib/server/movements.js', import.meta.url), 'utf8');
 const ownerId = '11111111-1111-4111-8111-111111111111';
 const otherId = '22222222-2222-4222-8222-222222222222';
-const shared = (id, name, measurementType = 'WEIGHT') => ({
-  id, name, ownerId: null, measurementType, category: measurementType === 'WEIGHT' ? 'LIFT' : 'BENCHMARK', groupName: 'Squats',
+const shared = (id, name, measurementType = 'WEIGHT', groupName = measurementType === 'WEIGHT' ? 'Squats' : 'Girls') => ({
+  id, name, ownerId: null, measurementType, category: measurementType === 'WEIGHT' ? 'LIFT' : 'BENCHMARK', groupName,
 });
 
 // A small in-memory stand-in for the three tables the service touches.
@@ -20,8 +20,10 @@ function fakeDatabase({ movements = [], records = [], hidden = [] } = {}) {
     findMany: async () => movements.map((movement) => ({
       ...movement, hiddenBy: hidden.filter((item) => item.movementId === movement.id && item.profileId === ownerId),
     })),
-    findFirst: async ({ where }) => movements.find((movement) => movement.name.toLowerCase() === where.name.equals.toLowerCase() &&
-      where.OR.some((owner) => movement.ownerId === owner.ownerId)) ?? null,
+    // Either a duplicate-name lookup (shared plus own) or a lookup of a shared group.
+    findFirst: async ({ where }) => movements.find((movement) => (where.groupName
+      ? movement.ownerId === null && movement.groupName === where.groupName
+      : movement.name.toLowerCase() === where.name.equals.toLowerCase() && where.OR.some((owner) => movement.ownerId === owner.ownerId))) ?? null,
     create: async ({ data }) => { movements.push({ ...data }); return { ...data }; },
     delete: async ({ where }) => { movements.splice(movements.findIndex((movement) => movement.id === where.id), 1); },
   };
@@ -63,30 +65,33 @@ async function service(options) {
 
 const base = () => [shared('back-squat', 'Back Squat'), shared('fran', 'Fran', 'TIME')];
 
-test('creates private movements with a category from the measurement type', async () => {
+test('creates private movements in a shared group, which sets their category and unit', async () => {
   const { api, db } = await service({ movements: base() });
-  const weight = await api.createMovement(ownerId, { name: '  Thruster ', measurementType: 'WEIGHT' });
-  const time = await api.createMovement(ownerId, { name: 'Sled   Push', measurementType: 'TIME' });
-  assert.deepEqual([weight.name, weight.category, weight.custom, weight.hidden], ['Thruster', 'LIFT', true, false]);
-  assert.deepEqual([time.name, time.category], ['Sled Push', 'BENCHMARK']);
-  assert.deepEqual(db.movements.filter((movement) => movement.ownerId === ownerId).map((movement) => movement.groupName), ['Custom', 'Custom']);
+  const weight = await api.createMovement(ownerId, { name: '  Thruster ', groupName: 'Squats' });
+  const time = await api.createMovement(ownerId, { name: 'Sled   Push', groupName: 'Girls' });
+  assert.deepEqual([weight.name, weight.groupName, weight.category, weight.measurementType, weight.custom, weight.hidden],
+    ['Thruster', 'Squats', 'LIFT', 'WEIGHT', true, false]);
+  assert.deepEqual([time.name, time.groupName, time.category, time.measurementType], ['Sled Push', 'Girls', 'BENCHMARK', 'TIME']);
+  assert.deepEqual(db.movements.filter((movement) => movement.ownerId === ownerId).map((movement) => movement.groupName), ['Squats', 'Girls']);
   assert.deepEqual(db.transactions, [{ isolationLevel: 'Serializable' }, { isolationLevel: 'Serializable' }]);
 });
 
-test('rejects invalid, duplicate and excess movements', async () => {
+test('rejects invalid, unknown-group, duplicate and excess movements', async () => {
   const { api, db } = await service({ movements: base() });
   for (const input of [
-    null, { name: '', measurementType: 'WEIGHT' }, { name: 'x'.repeat(41), measurementType: 'WEIGHT' }, { name: 5, measurementType: 'WEIGHT' },
-    { name: 'Bell\u0007', measurementType: 'WEIGHT' }, { name: 'Thruster', measurementType: 'DISTANCE' },
+    null, { name: '', groupName: 'Squats' }, { name: 'x'.repeat(41), groupName: 'Squats' }, { name: 5, groupName: 'Squats' },
+    { name: 'Bell\u0007', groupName: 'Squats' }, { name: 'Thruster' }, { name: 'Thruster', groupName: 5 },
+    // Only the shared groups exist: no "Other", no group made up by the member, no own group.
+    { name: 'Thruster', groupName: 'Otros' }, { name: 'Thruster', groupName: 'Custom' }, { name: 'Thruster', groupName: 'Mis movimientos' },
   ]) await assert.rejects(api.createMovement(ownerId, input), api.MovementInputError);
-  await assert.rejects(api.createMovement(ownerId, { name: 'back squat', measurementType: 'WEIGHT' }), api.MovementConflictError);
-  await api.createMovement(ownerId, { name: 'Thruster', measurementType: 'WEIGHT' });
-  await assert.rejects(api.createMovement(ownerId, { name: 'THRUSTER', measurementType: 'TIME' }), api.MovementConflictError);
+  await assert.rejects(api.createMovement(ownerId, { name: 'back squat', groupName: 'Squats' }), api.MovementConflictError);
+  await api.createMovement(ownerId, { name: 'Thruster', groupName: 'Squats' });
+  await assert.rejects(api.createMovement(ownerId, { name: 'THRUSTER', groupName: 'Girls' }), api.MovementConflictError);
   // Another member may use the same name.
-  await api.createMovement(otherId, { name: 'Thruster', measurementType: 'WEIGHT' });
+  await api.createMovement(otherId, { name: 'Thruster', groupName: 'Squats' });
   for (let index = 1; index < api.MAX_CUSTOM_MOVEMENTS; index += 1) db.movements.push({ ...shared(`m${index}`, `M${index}`), ownerId });
-  await assert.rejects(api.createMovement(ownerId, { name: 'One more', measurementType: 'WEIGHT' }), api.MovementInputError);
-  await assert.rejects(api.createMovement('not-a-uuid', { name: 'Ok', measurementType: 'WEIGHT' }), /verified Auth user ID/);
+  await assert.rejects(api.createMovement(ownerId, { name: 'One more', groupName: 'Squats' }), api.MovementInputError);
+  await assert.rejects(api.createMovement('not-a-uuid', { name: 'Ok', groupName: 'Squats' }), /verified Auth user ID/);
 });
 
 test('lists shared and own movements with the hidden flag, never another member\'s', async () => {

@@ -13,6 +13,8 @@ async function call(url, method, body) {
   return data;
 }
 
+const NONE = [];
+
 /**
  * The member's movement catalog: shared movements, their own, and which shared ones
  * they turned off. Demo sessions keep the static catalog and have no custom movements.
@@ -45,8 +47,8 @@ export default function useMovements(hasBackend) {
   const built = useMemo(() => (hasBackend && movements && !error ? buildCatalog(movements) : null), [hasBackend, movements, error]);
   setCatalog(built);
 
-  const createMovement = useCallback(async (name, measurementType) => {
-    const { movement } = await call('/api/movements', 'POST', { name, measurementType });
+  const createMovement = useCallback(async (name, groupName) => {
+    const { movement } = await call('/api/movements', 'POST', { name, groupName });
     setMovements((list) => [...(list ?? []), movement]);
     return movement;
   }, []);
@@ -63,5 +65,5 @@ export default function useMovements(hasBackend) {
     return result;
   }, []);
 
-  return { movements: movements ?? [], loading, error, reload: () => load(), createMovement, setHidden, removeMovement };
+  return { movements: movements ?? NONE, loading, error, reload: () => load(), createMovement, setHidden, removeMovement };
 }
