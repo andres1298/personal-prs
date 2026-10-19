@@ -7,6 +7,7 @@ import { readStored, useStoredState, useWakeLock, writeStored } from '../compone
 import useRecords from '../components/use-records';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
+import SignalLoader from '../components/ui/signal-loader';
 import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch, tourExercise } from '../components/execute/execute-view';
 import PrsView from '../components/prs/prs-view';
 import MoveDetailSheet from '../components/prs/move-detail-sheet';
@@ -48,6 +49,9 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   const [tourOpen, setTourOpen] = useState(false);
   const tourSnapshot = useRef(null);
   const formCount = useRef(0);
+  // The loader stays up until the first load settles; later reloads use the banner.
+  const [connected, setConnected] = useState(false);
+  useEffect(() => { if (!loading) setConnected(true); }, [loading]);
 
   const setEx = useCallback((patch) => updateEx((current) => ({
     ...(typeof patch === 'function' ? patch(current) : patch), ts: Date.now(),
@@ -127,7 +131,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   }
 
   const banner = <Banner loading={loading} demo={!hasBackend} error={error} onRetry={reload} />;
-  if (!ready) return <div className="app-loading" aria-busy="true" />;
+  if (!ready || !connected) return <SignalLoader />;
 
   return <>
     <TimerPill />

@@ -101,7 +101,6 @@ svg { display: block; flex: none; }
 .muted { color: var(--label3); font-weight: 400; }
 .center { display: flex; justify-content: center; text-align: center; }
 .wrap { max-width: 600px; margin: 0 auto; padding: 0 16px; }
-.app-loading { min-height: 100dvh; }
 /* iOS standalone apps size the initial viewport without the status bar, which lifts fixed bottom bars until
    the page scrolls; reserving that height keeps the tab bar flush with the bottom edge. */
 @media (display-mode: standalone) { html { min-height: calc(100% + var(--safe-top)); } }
@@ -723,7 +722,29 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .tour-next svg { width: 18px; height: 18px; }
 .tour-back:active, .tour-next:active { transform: scale(.94); }
 
+/* ---------- Signal loader ---------- */
+.signal-loader {
+  min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
+  background: var(--bg); color: var(--label2); font-size: 15px;
+}
+.signal-loader svg { width: 88px; height: auto; overflow: visible; }
+.signal-plate { transform-box: fill-box; transform-origin: bottom; opacity: .18; animation: 1.6s var(--ease-out) infinite; }
+.signal-plate rect { fill: var(--pc); }
+.signal-plate .signal-plate-hub { fill: var(--bg); opacity: .35; }
+.signal-plate:nth-child(1) { animation-name: signal-plate-1; }
+.signal-plate:nth-child(2) { animation-name: signal-plate-2; }
+.signal-plate:nth-child(3) { animation-name: signal-plate-3; }
+.signal-plate:nth-child(4) { animation-name: signal-plate-4; }
+.signal-plate:nth-child(5) { animation-name: signal-plate-5; }
+/* Each plate turns on 12% after the previous one; all turn off together. */
+@keyframes signal-plate-1 { 0%, 4% { opacity: .18; transform: scaleY(.92); } 10%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
+@keyframes signal-plate-2 { 0%, 16% { opacity: .18; transform: scaleY(.92); } 22%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
+@keyframes signal-plate-3 { 0%, 28% { opacity: .18; transform: scaleY(.92); } 34%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
+@keyframes signal-plate-4 { 0%, 40% { opacity: .18; transform: scaleY(.92); } 46%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
+@keyframes signal-plate-5 { 0%, 52% { opacity: .18; transform: scaleY(.92); } 58%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
+
 /* ---------- Motion preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
+  .signal-plate { animation: none !important; opacity: 1; }
 }
