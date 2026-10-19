@@ -31,8 +31,6 @@ function recordDto(record) {
     performedOn: record.performedOn.toISOString().slice(0, 10),
     repetitionMax: record.repetitionMax,
     notes: record.notes,
-    videoUrl: record.videoUrl,
-    videoId: record.videoId,
   };
 }
 
@@ -56,10 +54,6 @@ async function validatedRecord(input) {
   if (movement.measurementType === 'WEIGHT' ? ![1, 3, 5].includes(repetitionMax) : repetitionMax !== null) {
     throw new RecordInputError('Weight records require 1, 3 or 5 repetitions; time records have none.');
   }
-  const videoUrl = optionalText(input.videoUrl, 'Video URL');
-  if (videoUrl && new URL(videoUrl).protocol !== 'https:') {
-    throw new RecordInputError('Video URL must use HTTPS.');
-  }
   return {
     movementId: movement.id,
     measurementType: movement.measurementType,
@@ -67,8 +61,6 @@ async function validatedRecord(input) {
     performedOn,
     repetitionMax,
     notes: optionalText(input.notes, 'Notes'),
-    videoUrl,
-    videoId: optionalText(input.videoId, 'Video ID'),
   };
 }
 
@@ -180,7 +172,5 @@ export function toLegacyRecord(record) {
     date: record.performedOn,
     ...(record.repetitionMax === null ? {} : { rm: record.repetitionMax }),
     notes: record.notes ?? '',
-    video: record.videoUrl ?? '',
-    videoId: record.videoId ?? '',
   };
 }

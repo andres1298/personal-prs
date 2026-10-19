@@ -55,7 +55,7 @@ If a network failure happens after Supabase created the account but before the a
 - Acceptance claims the invitation with a conditional update, so concurrent submissions create at most one account. If account creation fails, the claim is released.
 - Tables retain RLS with no policies; Prisma uses server access with explicit owner filters.
 - Settings are device-local, scoped by account UUID, and separate from demo state.
-- Live video upload remains disabled pending private Storage integration.
+- Videos are not supported; legacy database columns are ignored.
 
 ## Verify after setup
 

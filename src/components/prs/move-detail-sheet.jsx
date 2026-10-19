@@ -87,7 +87,7 @@ export default function MoveDetailSheet({ detail: current, records, onClose, onC
         {history.length
           ? history.slice().reverse().map((r, i) => <Row key={`${r.date}-${r.value}-${i}`} title={formatDate(r.date)}
             subtitle={[isWeight && `${toKg(r.value)} kg`, r.notes].filter(Boolean).join(' · ') || undefined}
-            detail={<>{formatValue(r.value, type)}{r.video && <a className="video-link" href={r.video} target="_blank" rel="noreferrer"><Icon name="video" /> Video</a>}</>} />)
+            detail={formatValue(r.value, type)} />)
           : <p className="empty compact">Sin registros</p>}
       </List>
     </>}
