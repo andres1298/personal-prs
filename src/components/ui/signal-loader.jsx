@@ -17,7 +17,7 @@ const bars = SIGNAL_PLATES.reduce((list, plate) => {
 }, []);
 const viewWidth = bars.at(-1).x + bars.at(-1).width;
 
-export default function SignalLoader({ label = 'Conectando…' }) {
+export default function SignalLoader({ label = 'Cargando tus PRs…' }) {
   return <div className="signal-loader" role="status" aria-live="polite">
     <svg viewBox={`0 0 ${viewWidth} ${VIEW_HEIGHT}`} aria-hidden="true" focusable="false">
       {bars.map(({ plate, color, x, width, h }, i) => <g key={plate} className="signal-plate" style={{ '--pc': `var(${color})`, '--i': i }}>
