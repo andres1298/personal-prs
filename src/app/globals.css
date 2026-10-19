@@ -333,17 +333,22 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 
 /* ---------- Execute: picker ---------- */
 .resume-card {
-  width: 100%; display: flex; align-items: center; gap: 12px; padding: 14px 14px 14px 18px; margin-bottom: 18px;
+  width: 100%; display: flex; align-items: center; margin-bottom: 18px;
   border-radius: var(--radius-card); background: var(--tint); color: #fff; animation: view-in .35s var(--ease-out);
-  transition: transform .2s var(--ease-out);
 }
-.resume-card:active { transform: scale(.98); }
+.resume-main {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 14px 4px 14px 18px; text-align: left;
+  color: inherit; transition: transform .2s var(--ease-out);
+}
+.resume-main:active { transform: scale(.98); }
+.resume-dismiss { display: grid; place-items: center; width: 44px; align-self: stretch; color: inherit; opacity: .8; }
+.resume-dismiss svg { width: 16px; height: 16px; }
 .resume-copy { flex: 1; display: grid; gap: 2px; min-width: 0; }
 .resume-copy small { font-size: 13px; opacity: .8; font-weight: 500; text-transform: uppercase; letter-spacing: .3px; }
 .resume-copy b { font-size: 17px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .resume-weight { font-size: 28px; font-weight: 700; }
 .resume-weight small { font-size: 15px; opacity: .8; margin-left: 3px; }
-.resume-card > svg { width: 18px; height: 18px; opacity: .7; }
+.resume-main > svg { width: 18px; height: 18px; opacity: .7; }
 .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
 .category-card {
   --c: var(--gray); display: grid; justify-items: center; align-content: center; gap: 4px; padding: 16px 12px; min-height: 104px;

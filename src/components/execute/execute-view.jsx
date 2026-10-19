@@ -54,14 +54,20 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
     <LargeTitle title="Execute" subtitle="¿Qué vas a levantar?"
       trailing={<button type="button" className="nav-icon" aria-label="Ajustes" data-tour="settings" onClick={onOpenSettings}><Icon name="gear" /></button>} />
     {banner}
-    {canResume && <button type="button" className="resume-card" onClick={() => go({ view: 'run' })}>
-      <span className="resume-copy">
-        <small>Continuar</small>
-        <b>{ex.free ? 'Cálculo libre' : ex.move} · {num(ex.pct)}%</b>
-      </span>
-      <span className="resume-weight num rounded">{resumeTarget}<small>lb</small></span>
-      <Icon name="chevronRight" weight={2.6} />
-    </button>}
+    {canResume && <div className="resume-card">
+      <button type="button" className="resume-main" onClick={() => go({ view: 'run' })}>
+        <span className="resume-copy">
+          <small>Continuar</small>
+          <b>{ex.free ? 'Cálculo libre' : ex.move} · {num(ex.pct)}%</b>
+        </span>
+        <span className="resume-weight num rounded">{resumeTarget}<small>lb</small></span>
+        <Icon name="chevronRight" weight={2.6} />
+      </button>
+      <button type="button" className="resume-dismiss" aria-label="Quitar cálculo anterior"
+        onClick={() => go({ move: null, free: false, base: 0, extra: [], minus: [], done: [] })}>
+        <Icon name="xmark" weight={2.6} />
+      </button>
+    </div>}
     <div className="category-grid" data-tour="categories">
       {CATALOG.Lift.groups.map((group) => {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
