@@ -29,6 +29,7 @@ export default function AuthPanel({ configured, signedIn, authError }) {
         <label className="field"><span>Contraseña</span><input name="password" type="password" autoComplete="current-password" placeholder="Requerida" required /></label>
       </div>
       <button className="filled-button">Entrar</button>
+      <Link className="plain-button wide" href="/forgot-password">¿Olvidaste tu contraseña?</Link>
     </form>
       : <p className="auth-message" role="status">El acceso a tu cuenta todavía no está disponible.</p>}
     {configured && !signedIn && <Link className="plain-button wide" href="/register">Crear cuenta con el código del gimnasio</Link>}

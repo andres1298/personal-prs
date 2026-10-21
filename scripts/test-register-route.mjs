@@ -4,6 +4,8 @@ import { test } from 'node:test';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { hasSameOrigin } from '../src/lib/server/access-policy.js';
 import * as signupProof from '../src/lib/server/signup-proof.js';
+import * as passwordPolicy from '../src/lib/password-policy.js';
+import * as siteOrigin from '../src/lib/server/site-origin.js';
 
 const origin = 'https://app.example.test';
 const gymCode = 'Gym-Code-2026';
@@ -42,6 +44,8 @@ async function register({ signUpError = null, turnstileOk = true, configured = t
       createAuthClient: async () => ({ auth: { signUp: async (payload) => { signUps.push(payload); return { data: {}, error: signUpError }; } } }),
     },
     '../../../lib/server/signup-proof': signupProof,
+    '../../../lib/server/site-origin': siteOrigin,
+    '../../../lib/password-policy': passwordPolicy,
     '../../../lib/server/turnstile': {
       hasTurnstileConfiguration: () => Boolean(process.env.TURNSTILE_SECRET_KEY),
       verifyTurnstile: async (token, ip) => { verifications.push([token, ip]); return turnstileOk; },

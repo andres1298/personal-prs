@@ -2,9 +2,10 @@ import 'server-only';
 import { createHash, randomBytes } from 'node:crypto';
 import { getPrisma } from './prisma.js';
 import { getAuthAdmin } from './supabase-admin.js';
+import { MIN_PASSWORD_LENGTH } from '../password-policy.js';
 
 export const INVITATION_TTL_MS = 7 * 24 * 60 * 60 * 1000;
-export const MIN_PASSWORD_LENGTH = 8;
+export { MIN_PASSWORD_LENGTH };
 
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const publicFields = { id: true, name: true, email: true, expiresAt: true };

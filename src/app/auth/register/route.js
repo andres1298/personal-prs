@@ -1,11 +1,10 @@
 import { NextResponse } from 'next/server';
 import { createAuthClient, hasAuthConfiguration, hasSameOrigin } from '../../../lib/server/auth';
 import { createSignupProof, matchesGymCode, PROOF_METADATA_KEY } from '../../../lib/server/signup-proof';
+import { clientIp, siteOrigin } from '../../../lib/server/site-origin';
 import { hasTurnstileConfiguration, verifyTurnstile } from '../../../lib/server/turnstile';
+import { isValidPasswordLength } from '../../../lib/password-policy';
 
-const MIN_PASSWORD_LENGTH = 8;
-// Supabase hashes passwords with bcrypt, which ignores everything past 72 bytes.
-const MAX_PASSWORD_LENGTH = 72;
 const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 // Identical for a new and an already registered email, so the response never reveals which one it was.
 const CHECK_EMAIL = { ok: true };
@@ -18,26 +17,13 @@ function fail(error, status) {
   return json({ ok: false, error }, status);
 }
 
-// Confirmation links must open the public site, not whichever deployment or alias served the form:
-// Vercel puts preview and deployment URLs behind its own login. Local development has neither variable.
-function siteOrigin(request) {
-  const configured = process.env.SITE_URL?.trim();
-  if (configured) return new URL(configured).origin;
-  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
-  return production ? `https://${production}` : new URL(request.url).origin;
-}
-
-function clientIp(request) {
-  return request.headers.get('x-real-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? null;
-}
-
 function validatedInput(form) {
   const name = String(form.get('name') ?? '').trim();
   const email = String(form.get('email') ?? '').trim().toLowerCase();
   const password = String(form.get('password') ?? '');
   if (!name || name.length > 80) return { error: 'invalid_name' };
   if (email.length > 254 || !emailPattern.test(email)) return { error: 'invalid_email' };
-  if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) return { error: 'invalid_password' };
+  if (!isValidPasswordLength(password)) return { error: 'invalid_password' };
   return { name, email, password };
 }
 
