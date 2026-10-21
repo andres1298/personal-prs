@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
+import Icon from '../../components/ui/icon';
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
@@ -36,7 +37,7 @@ export default function RegisterForm({ siteKey }) {
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [done, setDone] = useState(false);
+  const [sentTo, setSentTo] = useState('');
 
   useEffect(() => {
     if (!siteKey || !widget.current) return undefined;
@@ -60,12 +61,13 @@ export default function RegisterForm({ siteKey }) {
   async function submit(event) {
     event.preventDefault();
     const body = new FormData(event.currentTarget);
+    const email = String(body.get('email') ?? '').trim();
     body.set('cf-turnstile-response', token);
     setBusy(true); setError('');
     try {
       const response = await fetch('/auth/register', { method: 'POST', body });
       const result = await response.json().catch(() => ({}));
-      if (result.ok) setDone(true);
+      if (result.ok) setSentTo(email);
       else setError(messages[result.error] ?? 'No se pudo crear la cuenta. Inténtalo de nuevo.');
     } catch {
       setError('No se pudo crear la cuenta. Revisa tu conexión e inténtalo de nuevo.');
@@ -77,7 +79,12 @@ export default function RegisterForm({ siteKey }) {
     }
   }
 
-  if (done) return <p className="auth-message" role="status">Revisa tu correo: te enviamos un enlace para confirmar tu cuenta. Si ya tenías una cuenta, inicia sesión con tu contraseña.</p>;
+  if (sentTo) return <div className="check-email" role="status">
+    <span className="check-email-icon"><Icon name="mail" size={34} /></span>
+    <h2>Revisa tu correo</h2>
+    <p>Te enviamos un enlace de confirmación a <strong>{sentTo}</strong>. Ábrelo para activar tu cuenta y entrar.</p>
+    <p className="check-email-hint">Si no lo ves en unos minutos, mira en spam. Si ya tenías una cuenta, inicia sesión con tu contraseña.</p>
+  </div>;
 
   return <form className="auth-form" onSubmit={submit}>
     {error && <p className="auth-message error" role="alert">{error}</p>}
