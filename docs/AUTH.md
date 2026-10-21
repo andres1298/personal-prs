@@ -11,6 +11,7 @@ Accounts use Supabase email/password sessions stored in cookies. There are two w
 | `SUPABASE_SECRET_KEY` | Admin client that creates invited accounts | Server secret; never `NEXT_PUBLIC_` |
 | `SUPABASE_ADMIN_USER_IDS` | Comma-separated Auth UUIDs of administrators | Server only; empty means no administrators |
 | `GYM_SIGNUP_CODE` | Shared code (poster/QR) that allows self-service sign-up; empty closes the form. Case-insensitive | Server secret; never `NEXT_PUBLIC_` |
+| `SITE_URL` | Public origin placed in confirmation links. Optional: falls back to Vercel's production domain, then to the request origin | Server only |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key rendered in the sign-up form | Public configuration |
 | `TURNSTILE_SECRET_KEY` | Turnstile secret used to verify the CAPTCHA on the server; empty closes the form | Server secret |
 | `DATABASE_URL` | Prisma runtime connection; falls back to `POSTGRES_PRISMA_URL` | Server secret |
@@ -22,7 +23,7 @@ Vercel's Supabase integration installs the public Supabase variables, `SUPABASE_
 
 1. **Authentication → Sign In / Providers**: keep **Email** enabled, **enable "Allow new users to sign up"** and **"Confirm email"**, and disable any other provider (including Google). Sign-ups must stay on because `/auth/register` calls `auth.signUp()` (see "Gym sign-up" for why this is safe).
 2. **Authentication → URL Configuration**: set **Site URL** to the production domain and add `https://<domain>/auth/callback` (and the preview/local equivalents you use) to **Redirect URLs**.
-3. **Authentication → Emails → Templates → Confirm signup**: change the button link to `{{ .SiteURL }}/auth/callback?token_hash={{ .TokenHash }}&type=signup`. This form works even when the email is opened on another device; the default link needs the same browser that registered.
+3. **Authentication → Emails → Templates → Confirm signup**: change the button link to `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=signup`. `{{ .RedirectTo }}` is the `/auth/callback` URL the server sends (always the public site, see `SITE_URL`), so the link never depends on which deployment served the form; it must be in the Redirect URLs list or Supabase falls back to the Site URL. This form works even when the email is opened on another device; the default link needs the same browser that registered.
 4. **Authentication → Attack Protection**: leave **CAPTCHA protection off**. A Turnstile token can be redeemed once and the server already verifies it; enabling Supabase's check would make one of the two verifications fail.
 5. **Authentication → SMTP**: enable custom SMTP. The built-in sender only mails project team members and has a very low hourly limit, so real members would not receive confirmations. Without a domain of your own, Gmail works: host `smtp.gmail.com`, port `465`, username the full Gmail address, password an [app password](https://myaccount.google.com/apppasswords) (requires 2-step verification), sender the same address. Paste the app password only into Supabase; never into issues, PRs or logs. If confirmation emails land in spam or the group outgrows Gmail's daily limit, buy a domain and move to a provider such as Resend by changing only these fields.
 6. Apply migrations and the movement catalog to the linked database: `npm run db:migrate:deploy` and `npm run db:seed`.
@@ -62,7 +63,7 @@ A disabled account keeps its Auth session but is treated as having no access on 
 
 The publishable key is public, so anyone can call Supabase's `signUp` directly, skipping our code check and CAPTCHA. If "confirmed email" alone created a profile, that would bypass the gym code. Instead the server stores in `user_metadata.gym_signup_proof` an HMAC-SHA256 of the normalized email, keyed by a digest of `GYM_SIGNUP_CODE`. Anyone can write arbitrary metadata, but nobody can forge that value without the code, and it is bound to the user's own email. Disabling sign-ups was rejected because the alternative (`admin.createUser` or `inviteUserByEmail`) bypasses Supabase's sign-up limits and the password flow.
 
-Residual risk: a direct `signUp` still creates an unconfirmed Auth user and sends a confirmation email to that address (bounded by Supabase's per-address and hourly email limits). It grants no access. Unconfirmed users without a profile can be deleted from **Authentication → Users**. Mail scanners that open links before the recipient can consume a one-time link; the person then registers again to get a fresh one.
+Residual risk: a direct `signUp` still creates an unconfirmed Auth user and sends a confirmation email to that address (bounded by Supabase's per-address and hourly email limits). It grants no access. Unconfirmed users without a profile can be deleted from **Authentication → Users**. Vercel puts deployment-specific URLs (previews and `*-<team>.vercel.app` aliases) behind its own login, which is why links must never point there. Mail scanners that open links before the recipient can consume a one-time link; the person then registers again to get a fresh one.
 
 ### Rotate the gym code
 
