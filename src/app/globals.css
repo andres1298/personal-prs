@@ -661,6 +661,8 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .auth-form .filled-button { margin-bottom: 4px; }
 .auth-message { color: var(--label2); font-size: 15px; padding: 12px 16px; border-radius: 16px; background: var(--surface); }
 .auth-message.error { color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
+.reveal-button { flex: none; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--tint); font-size: 15px; }
+.turnstile-box { display: flex; justify-content: center; min-height: 65px; margin-bottom: 14px; }
 .auth-footnote { color: var(--label2); font-size: 13px; }
 
 /* ---------- Guided tour ---------- */

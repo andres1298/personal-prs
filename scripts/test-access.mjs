@@ -3,6 +3,7 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { hasSameOrigin, isAdminUser } from '../src/lib/server/access-policy.js';
+import { createSignupProof } from '../src/lib/server/signup-proof.js';
 
 const ownerId = '11111111-1111-4111-8111-111111111111';
 const otherId = '22222222-2222-4222-8222-222222222222';
@@ -31,7 +32,7 @@ test('mutations reject cross-origin requests and missing origins', () => {
   }
 });
 
-async function accessFor(user, { admins = '', profile = null } = {}) {
+async function accessFor(user, { admins = '', profile = null, gymCode = '' } = {}) {
   const calls = [];
   const source = await readFile(new URL('../src/lib/server/auth.js', import.meta.url), 'utf8');
   const dependencies = {
@@ -39,8 +40,10 @@ async function accessFor(user, { admins = '', profile = null } = {}) {
     'next/headers': { cookies: async () => ({ getAll: () => [], set() {} }) },
     '@supabase/ssr': { createServerClient: () => ({ auth: { getUser: async () => ({ data: { user }, error: null }) } }) },
     './access-policy.js': await import('../src/lib/server/access-policy.js'),
+    './signup-proof.js': await import('../src/lib/server/signup-proof.js'),
     './records.js': {
       findProfile: async (id) => { calls.push(['find', id]); return profile; },
+      ensureMemberProfile: async (memberUser) => { calls.push(['ensureMember', memberUser.id]); profile = { id: memberUser.id, disabledAt: null }; },
       ensureAdminProfile: async (adminUser) => { calls.push(['ensureAdmin', adminUser.id]); },
     },
   };
@@ -53,7 +56,7 @@ async function accessFor(user, { admins = '', profile = null } = {}) {
     });
   });
   await module.evaluate();
-  Object.assign(process.env, { NEXT_PUBLIC_SUPABASE_URL: 'https://project.example.test', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'publishable', SUPABASE_ADMIN_USER_IDS: admins });
+  Object.assign(process.env, { NEXT_PUBLIC_SUPABASE_URL: 'https://project.example.test', NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: 'publishable', SUPABASE_ADMIN_USER_IDS: admins, GYM_SIGNUP_CODE: gymCode });
   return { access: await module.namespace.getAccess(), calls };
 }
 
@@ -79,4 +82,55 @@ test('a disabled profile loses access while keeping its session', async () => {
   assert.deepEqual([disabled.access.authorized, disabled.access.isAdmin], [false, false]);
   const enabled = await accessFor({ id: otherId }, { admins: ownerId, profile: { id: otherId, disabledAt: null } });
   assert.equal(enabled.access.authorized, true);
+});
+
+const gymCode = 'Gym-Code-2026';
+const memberEmail = 'ana@example.test';
+
+function signedUp(overrides = {}) {
+  return {
+    id: otherId,
+    email: memberEmail,
+    email_confirmed_at: '2026-10-20T10:00:00Z',
+    user_metadata: { gym_signup_proof: createSignupProof(memberEmail, gymCode) },
+    ...overrides,
+  };
+}
+
+test('a confirmed gym sign-up gets a profile on first access', async () => {
+  const { access, calls } = await accessFor(signedUp(), { gymCode });
+  assert.deepEqual([access.authorized, access.isAdmin], [true, false]);
+  assert.deepEqual(calls, [['find', otherId], ['ensureMember', otherId], ['find', otherId]]);
+});
+
+test('no profile is created before the email is confirmed', async () => {
+  const { access, calls } = await accessFor(signedUp({ email_confirmed_at: null }), { gymCode });
+  assert.equal(access.authorized, false);
+  assert.deepEqual(calls, [['find', otherId]]);
+});
+
+test('a direct Supabase sign-up without a valid proof never gets access', async () => {
+  const forged = [
+    {},
+    { gym_signup_proof: 'forged' },
+    { gym_signup_proof: createSignupProof('other@example.test', gymCode) },
+    { gym_signup_proof: createSignupProof(memberEmail, 'Another-Code') },
+  ];
+  for (const user_metadata of forged) {
+    const { access, calls } = await accessFor(signedUp({ user_metadata }), { gymCode });
+    assert.equal(access.authorized, false);
+    assert.equal(calls.some(([name]) => name === 'ensureMember'), false);
+  }
+});
+
+test('rotating the code, an unset code and anonymous users close the gym sign-up path', async () => {
+  assert.equal((await accessFor(signedUp(), { gymCode: 'Rotated-Code' })).access.authorized, false);
+  assert.equal((await accessFor(signedUp(), { gymCode: '' })).access.authorized, false);
+  assert.equal((await accessFor(signedUp({ is_anonymous: true }), { gymCode })).access.authorized, false);
+});
+
+test('a disabled member is not re-enabled by the sign-up proof', async () => {
+  const { access, calls } = await accessFor(signedUp(), { gymCode, profile: { id: otherId, disabledAt: new Date() } });
+  assert.equal(access.authorized, false);
+  assert.equal(calls.some(([name]) => name === 'ensureMember'), false);
 });

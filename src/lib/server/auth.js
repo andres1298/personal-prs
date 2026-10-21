@@ -2,7 +2,8 @@ import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { isAdminUser } from './access-policy.js';
-import { ensureAdminProfile, findProfile } from './records.js';
+import { isEligibleForMemberProfile } from './signup-proof.js';
+import { ensureAdminProfile, ensureMemberProfile, findProfile } from './records.js';
 
 export { hasSameOrigin } from './access-policy.js';
 
@@ -41,9 +42,14 @@ export async function getAccess() {
     await ensureAdminProfile(user);
     return { user, authorized: true, isAdmin: true };
   }
-  // Members gain access only through a profile created by accepting an invitation
-  // and lose it as soon as an admin disables that profile.
-  const profile = user && !user.is_anonymous ? await findProfile(user.id) : null;
+  // Members gain access only through a profile and lose it as soon as an admin disables it.
+  // Profiles come from accepting an invitation or, on first access after confirming their email,
+  // from signing up with the gym code (proved by a signature only the server can create).
+  let profile = user && !user.is_anonymous ? await findProfile(user.id) : null;
+  if (!profile && isEligibleForMemberProfile(user, process.env.GYM_SIGNUP_CODE)) {
+    await ensureMemberProfile(user);
+    profile = await findProfile(user.id);
+  }
   const authorized = Boolean(profile && !profile.disabledAt);
   return { user, authorized, isAdmin: false };
 }
