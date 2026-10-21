@@ -71,6 +71,25 @@ test('a valid sign-up calls signUp once with the normalized email, redirect and 
   assert.equal(options.data.gym_signup_proof, signupProof.createSignupProof('ana@example.test', gymCode));
 });
 
+test('the confirmation link targets the public site, not the deployment that served the form', async () => {
+  const saved = [process.env.SITE_URL, process.env.VERCEL_PROJECT_PRODUCTION_URL];
+  try {
+    delete process.env.SITE_URL;
+    process.env.VERCEL_PROJECT_PRODUCTION_URL = 'app.example.test';
+    const viaVercel = await register();
+    await viaVercel.POST(new Request('https://deployment-abc.vercel.app/auth/register', { method: 'POST', headers: { origin: 'https://deployment-abc.vercel.app' }, body: new URLSearchParams({ name: 'Ana', email: 'ana@example.test', password: 'long-password', code: gymCode, 'cf-turnstile-response': 't' }) }));
+    assert.equal(viaVercel.signUps[0].options.emailRedirectTo, 'https://app.example.test/auth/callback');
+    process.env.SITE_URL = 'https://custom.example.test/ignored/path';
+    const explicit = await register();
+    await explicit.POST(form());
+    assert.equal(explicit.signUps[0].options.emailRedirectTo, 'https://custom.example.test/auth/callback');
+  } finally {
+    for (const [name, value] of [['SITE_URL', saved[0]], ['VERCEL_PROJECT_PRODUCTION_URL', saved[1]]]) {
+      if (value === undefined) delete process.env[name]; else process.env[name] = value;
+    }
+  }
+});
+
 test('a wrong or missing gym code never reaches Turnstile or Auth', async () => {
   for (const code of ['wrong', '', gymCode.slice(0, -1)]) {
     const { POST, signUps, verifications } = await register();

@@ -661,6 +661,11 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .auth-form .filled-button { margin-bottom: 4px; }
 .auth-message { color: var(--label2); font-size: 15px; padding: 12px 16px; border-radius: 16px; background: var(--surface); }
 .auth-message.error { color: var(--red); background: color-mix(in srgb, var(--red) 10%, var(--surface)); }
+.check-email { display: grid; justify-items: center; gap: 10px; padding: 24px 20px; border-radius: 20px; background: color-mix(in srgb, var(--green) 14%, var(--surface)); box-shadow: inset 0 0 0 1.5px color-mix(in srgb, var(--green) 55%, transparent); animation: view-in .3s var(--ease-out); }
+.check-email-icon { display: grid; place-items: center; width: 64px; height: 64px; border-radius: 50%; background: var(--green); color: #fff; }
+.check-email h2 { font-size: 24px; line-height: 30px; font-weight: 700; color: var(--label); }
+.check-email p { color: var(--label); font-size: 16px; overflow-wrap: anywhere; }
+.check-email .check-email-hint { color: var(--label2); font-size: 14px; }
 .reveal-button { flex: none; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--tint); font-size: 15px; }
 .turnstile-box { display: flex; justify-content: center; min-height: 65px; margin-bottom: 14px; }
 .auth-footnote { color: var(--label2); font-size: 13px; }

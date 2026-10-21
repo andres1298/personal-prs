@@ -18,6 +18,15 @@ function fail(error, status) {
   return json({ ok: false, error }, status);
 }
 
+// Confirmation links must open the public site, not whichever deployment or alias served the form:
+// Vercel puts preview and deployment URLs behind its own login. Local development has neither variable.
+function siteOrigin(request) {
+  const configured = process.env.SITE_URL?.trim();
+  if (configured) return new URL(configured).origin;
+  const production = process.env.VERCEL_PROJECT_PRODUCTION_URL;
+  return production ? `https://${production}` : new URL(request.url).origin;
+}
+
 function clientIp(request) {
   return request.headers.get('x-real-ip') ?? request.headers.get('x-forwarded-for')?.split(',')[0].trim() ?? null;
 }
@@ -50,7 +59,7 @@ export async function POST(request) {
     email: input.email,
     password: input.password,
     options: {
-      emailRedirectTo: `${new URL(request.url).origin}/auth/callback`,
+      emailRedirectTo: `${siteOrigin(request)}/auth/callback`,
       data: { full_name: input.name, [PROOF_METADATA_KEY]: createSignupProof(input.email, process.env.GYM_SIGNUP_CODE) },
     },
   });
