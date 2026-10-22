@@ -3,10 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { hasSameOrigin } from '../src/lib/server/access-policy.js';
-import * as signupProof from '../src/lib/server/signup-proof.js';
 
 const origin = 'https://app.example.test';
-const gymCode = 'Gym-Code-2026';
 const registerSource = await readFile(new URL('../src/app/auth/register/route.js', import.meta.url), 'utf8');
 const callbackSource = await readFile(new URL('../src/app/auth/callback/route.js', import.meta.url), 'utf8');
 
@@ -31,7 +29,7 @@ const nextServer = {
 };
 
 async function register({ signUpError = null, turnstileOk = true, configured = true } = {}) {
-  Object.assign(process.env, { GYM_SIGNUP_CODE: configured ? gymCode : '', TURNSTILE_SECRET_KEY: 'turnstile-secret' });
+  process.env.TURNSTILE_SECRET_KEY = configured ? 'turnstile-secret' : '';
   const signUps = [];
   const verifications = [];
   const { POST } = await load(registerSource, {
@@ -41,7 +39,6 @@ async function register({ signUpError = null, turnstileOk = true, configured = t
       hasAuthConfiguration: () => true,
       createAuthClient: async () => ({ auth: { signUp: async (payload) => { signUps.push(payload); return { data: {}, error: signUpError }; } } }),
     },
-    '../../../lib/server/signup-proof': signupProof,
     '../../../lib/server/turnstile': {
       hasTurnstileConfiguration: () => Boolean(process.env.TURNSTILE_SECRET_KEY),
       verifyTurnstile: async (token, ip) => { verifications.push([token, ip]); return turnstileOk; },
@@ -51,13 +48,13 @@ async function register({ signUpError = null, turnstileOk = true, configured = t
 }
 
 function form(overrides = {}, requestOrigin = origin) {
-  const fields = { name: ' Ana ', email: ' Ana@Example.TEST ', password: 'long-password', code: gymCode, 'cf-turnstile-response': 'token', ...overrides };
+  const fields = { name: ' Ana ', email: ' Ana@Example.TEST ', password: 'long-password', 'cf-turnstile-response': 'token', ...overrides };
   return new Request(`${origin}/auth/register`, { method: 'POST', headers: { origin: requestOrigin, 'x-real-ip': '203.0.113.7' }, body: new URLSearchParams(fields) });
 }
 
-test('a valid sign-up calls signUp once with the normalized email, redirect and signed proof', async () => {
+test('a valid sign-up calls signUp once with the normalized email and the confirmation redirect', async () => {
   const { POST, signUps, verifications } = await register();
-  const response = await POST(form({ code: ` ${gymCode.toUpperCase()} ` }));
+  const response = await POST(form());
   assert.equal(response.status, 200);
   assert.deepEqual(await response.json(), { ok: true });
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
@@ -68,7 +65,7 @@ test('a valid sign-up calls signUp once with the normalized email, redirect and 
   assert.equal(password, 'long-password');
   assert.equal(options.emailRedirectTo, `${origin}/auth/callback`);
   assert.equal(options.data.full_name, 'Ana');
-  assert.equal(options.data.gym_signup_proof, signupProof.createSignupProof('ana@example.test', gymCode));
+  assert.deepEqual(options.data, { full_name: 'Ana' });
 });
 
 test('the confirmation link targets the public site, not the deployment that served the form', async () => {
@@ -77,7 +74,7 @@ test('the confirmation link targets the public site, not the deployment that ser
     delete process.env.SITE_URL;
     process.env.VERCEL_PROJECT_PRODUCTION_URL = 'app.example.test';
     const viaVercel = await register();
-    await viaVercel.POST(new Request('https://deployment-abc.vercel.app/auth/register', { method: 'POST', headers: { origin: 'https://deployment-abc.vercel.app' }, body: new URLSearchParams({ name: 'Ana', email: 'ana@example.test', password: 'long-password', code: gymCode, 'cf-turnstile-response': 't' }) }));
+    await viaVercel.POST(new Request('https://deployment-abc.vercel.app/auth/register', { method: 'POST', headers: { origin: 'https://deployment-abc.vercel.app' }, body: new URLSearchParams({ name: 'Ana', email: 'ana@example.test', password: 'long-password', 'cf-turnstile-response': 't' }) }));
     assert.equal(viaVercel.signUps[0].options.emailRedirectTo, 'https://app.example.test/auth/callback');
     process.env.SITE_URL = 'https://custom.example.test/ignored/path';
     const explicit = await register();
@@ -87,16 +84,6 @@ test('the confirmation link targets the public site, not the deployment that ser
     for (const [name, value] of [['SITE_URL', saved[0]], ['VERCEL_PROJECT_PRODUCTION_URL', saved[1]]]) {
       if (value === undefined) delete process.env[name]; else process.env[name] = value;
     }
-  }
-});
-
-test('a wrong or missing gym code never reaches Turnstile or Auth', async () => {
-  for (const code of ['wrong', '', gymCode.slice(0, -1)]) {
-    const { POST, signUps, verifications } = await register();
-    const response = await POST(form({ code }));
-    assert.equal(response.status, 403);
-    assert.deepEqual(await response.json(), { ok: false, error: 'wrong_code' });
-    assert.deepEqual([signUps, verifications], [[], []]);
   }
 });
 
@@ -111,7 +98,7 @@ test('a failed Turnstile check never reaches Auth', async () => {
 test('cross-origin and missing-origin requests are rejected before any work', async () => {
   const { POST, signUps, verifications } = await register();
   assert.equal((await POST(form({}, 'https://other.example.test'))).status, 403);
-  const noOrigin = new Request(`${origin}/auth/register`, { method: 'POST', body: new URLSearchParams({ code: gymCode }) });
+  const noOrigin = new Request(`${origin}/auth/register`, { method: 'POST', body: new URLSearchParams({ name: 'Ana' }) });
   assert.equal((await POST(noOrigin)).status, 403);
   assert.deepEqual([signUps, verifications], [[], []]);
 });
@@ -149,9 +136,9 @@ test('Auth rate limits and other failures surface generic errors', async () => {
   assert.deepEqual(await failed.json(), { ok: false, error: 'unknown' });
 });
 
-test('registration stays closed when the gym code is not configured', async () => {
+test('registration stays closed when Turnstile is not configured', async () => {
   const { POST, signUps } = await register({ configured: false });
-  const response = await POST(form({ code: '' }));
+  const response = await POST(form());
   assert.equal(response.status, 503);
   assert.deepEqual(signUps, []);
 });
@@ -200,11 +187,4 @@ test('only confirmation link types can sign someone in', async () => {
     assert.equal((await GET(link(`token_hash=abc&type=${type}`))).headers.get('Location'), `${origin}/?authError=link_invalid`);
   }
   assert.deepEqual(calls, []);
-});
-
-test('the gym code is compared case-insensitively and never when unset', () => {
-  assert.equal(signupProof.matchesGymCode(' GYM-code-2026 ', gymCode), true);
-  assert.equal(signupProof.matchesGymCode('', ''), false);
-  assert.equal(signupProof.matchesGymCode(undefined, gymCode), false);
-  assert.throws(() => signupProof.createSignupProof('a@b.co', ''));
 });

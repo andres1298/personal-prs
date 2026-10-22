@@ -2,7 +2,6 @@ import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { isAdminUser } from './access-policy.js';
-import { isEligibleForMemberProfile } from './signup-proof.js';
 import { ensureAdminProfile, ensureMemberProfile, findProfile } from './records.js';
 
 export { hasSameOrigin } from './access-policy.js';
@@ -43,10 +42,10 @@ export async function getAccess() {
     return { user, authorized: true, isAdmin: true };
   }
   // Members gain access only through a profile and lose it as soon as an admin disables it.
-  // Profiles come from accepting an invitation or, on first access after confirming their email,
-  // from signing up with the gym code (proved by a signature only the server can create).
+  // Profiles come from accepting an invitation or, on first access, from a confirmed email
+  // (self-service sign-up). A disabled member keeps their profile, so it is never recreated.
   let profile = user && !user.is_anonymous ? await findProfile(user.id) : null;
-  if (!profile && isEligibleForMemberProfile(user, process.env.GYM_SIGNUP_CODE)) {
+  if (!profile && user && !user.is_anonymous && user.email_confirmed_at) {
     await ensureMemberProfile(user);
     profile = await findProfile(user.id);
   }
