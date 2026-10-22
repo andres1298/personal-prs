@@ -101,8 +101,8 @@ export async function ensureAdminProfile(user) {
   await getPrisma().profile.upsert({ where: { id }, create: { id, email }, update: {}, select: { id: true } });
 }
 
-// Members who signed up with the gym code get their profile only once the confirmed email and
-// the signed code proof were checked by the caller. Existing profiles (and their disabled state) are never touched.
+// Self-service sign-ups get their profile once the caller has checked the confirmed email.
+// Existing profiles (and their disabled state) are never touched.
 export async function ensureMemberProfile(user) {
   const id = requireProfileId(user?.id);
   const email = typeof user.email === 'string' ? user.email.trim().toLowerCase() : null;

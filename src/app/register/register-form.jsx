@@ -9,7 +9,6 @@ const messages = {
   invalid_name: 'Escribe tu nombre (máximo 80 caracteres).',
   invalid_email: 'Escribe un correo válido.',
   invalid_password: 'La contraseña debe tener entre 8 y 72 caracteres.',
-  wrong_code: 'El código del gimnasio no es correcto.',
   captcha_failed: 'No pudimos verificar que eres una persona. Inténtalo de nuevo.',
   rate_limited: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
   unavailable: 'El registro todavía no está disponible.',
@@ -96,7 +95,6 @@ export default function RegisterForm({ siteKey }) {
         <input name="password" type={showPassword ? 'text' : 'password'} minLength={8} maxLength={72} autoComplete="new-password" placeholder="Mínimo 8 caracteres" required />
         <button type="button" className="reveal-button" aria-pressed={showPassword} onClick={() => setShowPassword((shown) => !shown)}>{showPassword ? 'Ocultar' : 'Mostrar'}</button>
       </label>
-      <label className="field"><span>Código</span><input name="code" autoComplete="off" autoCapitalize="none" spellCheck={false} placeholder="Código del gimnasio" required /></label>
     </div>
     <div ref={widget} className="turnstile-box" />
     <button className="filled-button" disabled={busy || !token}>{busy ? 'Creando…' : 'Crear cuenta'}</button>
