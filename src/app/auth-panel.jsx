@@ -32,7 +32,7 @@ export default function AuthPanel({ configured, signedIn, authError }) {
       <Link className="plain-button wide" href="/forgot-password">¿Olvidaste tu contraseña?</Link>
     </form>
       : <p className="auth-message" role="status">El acceso a tu cuenta todavía no está disponible.</p>}
-    {configured && !signedIn && <Link className="plain-button wide" href="/register">Crear cuenta con el código del gimnasio</Link>}
+    {configured && !signedIn && <Link className="plain-button wide" href="/register">Crear cuenta</Link>}
     <Link className="plain-button wide" href="/?demo=1">Explorar con datos de ejemplo</Link>
     <p className="auth-footnote">El modo de ejemplo no guarda registros en tu cuenta.</p>
   </AuthShell>;
