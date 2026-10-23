@@ -28,13 +28,28 @@ test('configurations are completed with defaults, rounded to seconds and clamped
   assert.throws(() => normalizeConfig({ type: 'unknown' }));
 });
 
-test('cues mark preparation ticks, start, half, segment changes, final ticks and end once', () => {
+test('cues count down 3-2-1 before the start, every segment change and the end, each once', () => {
   const plan = buildPlan({ type: 'emom', interval: s(60), rounds: 4 });
   assert.deepEqual(cueList(plan, 0, plan.total), [
-    '7:tick', '8:tick', '9:tick', '10:start', '70:round', '130:half', '190:round', '247:tick', '248:tick', '249:tick', '250:end',
+    '7:tick', '8:tick', '9:tick', '10:start',
+    '67:tick', '68:tick', '69:tick', '70:round',
+    '127:tick', '128:tick', '129:tick', '130:half',
+    '187:tick', '188:tick', '189:tick', '190:round',
+    '247:tick', '248:tick', '249:tick', '250:end',
   ]);
   // Ranges are half-open so consecutive ticks never repeat a cue.
-  assert.deepEqual([...cueList(plan, 0, s(10)), ...cueList(plan, s(10), s(70))], ['7:tick', '8:tick', '9:tick', '10:start', '70:round']);
+  assert.deepEqual([...cueList(plan, 0, s(10)), ...cueList(plan, s(10), s(70))],
+    ['7:tick', '8:tick', '9:tick', '10:start', '67:tick', '68:tick', '69:tick', '70:round']);
+});
+
+test('tabata counts down before every work and rest segment', () => {
+  const plan = buildPlan({ type: 'tabata', work: s(20), rest: s(10), rounds: 2 });
+  assert.deepEqual(cueList(plan, 0, plan.total), [
+    '7:tick', '8:tick', '9:tick', '10:start',
+    '27:tick', '28:tick', '29:tick', '30:round', '35:half',
+    '37:tick', '38:tick', '39:tick', '40:round',
+    '57:tick', '58:tick', '59:tick', '60:end',
+  ]);
 });
 
 test('short workouts keep the highest priority cue when cues share an instant', () => {

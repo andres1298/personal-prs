@@ -597,21 +597,57 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .stepper button { width: 44px; height: 32px; border-radius: 8px; font-size: 22px; font-weight: 400; text-align: center; color: var(--label); transition: background-color .15s; }
 .stepper button:active { background: var(--fill); }
 
-.timer-sheet .sheet-body { display: flex; flex-direction: column; }
-.timer-sheet .sheet-body > div { flex: 1; display: flex; flex-direction: column; }
-.timer-stage { display: grid; justify-items: center; text-align: center; padding: 8px 0 22px; }
-.ring { position: relative; width: min(82vw, 300px); aspect-ratio: 1; }
-.ring svg { width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring circle { fill: none; stroke-width: 10; }
+.timer-sheet .sheet-body { display: flex; flex-direction: column; overflow: hidden; }
+.timer-body { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+/* The ring takes all the space the controls leave free, in either orientation. */
+.timer-stage {
+  --reserve: 0px; flex: 1; min-height: 0; container-type: size; display: grid; place-items: center; align-content: center;
+  gap: 12px; text-align: center; padding: 4px 0 18px;
+}
+.timer-stage:has(.timer-meta) { --reserve: 46px; }
+.ring { position: relative; width: min(100cqw, calc(100cqh - var(--reserve)), 460px); aspect-ratio: 1; container-type: inline-size; }
+.ring svg { position: relative; z-index: 1; width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 20; }
 .ring-track { stroke: var(--fill3); }
 .ring-value { stroke: var(--c); stroke-linecap: round; transition: stroke-dashoffset .25s linear, stroke .3s; }
 .timer-stage[data-kind="rest"] .ring-value, .timer-stage[data-kind="paused"] .ring-value { stroke: var(--label3); }
-.ring-content { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 2px; }
+.ring-content { position: absolute; z-index: 1; inset: 0; display: grid; place-content: center; justify-items: center; gap: 1cqw; }
 .timer-phase { font-size: 15px; font-weight: 700; letter-spacing: 1.2px; text-transform: uppercase; color: var(--c); }
+.ring .timer-phase { font-size: clamp(13px, 5cqw, 20px); }
 .timer-stage[data-kind="rest"] .timer-phase, .timer-stage[data-kind="paused"] .timer-phase { color: var(--label2); }
 .timer-clock { font-size: min(19vw, 76px); font-weight: 600; letter-spacing: -1px; line-height: 1.1; }
+.ring .timer-clock { font-size: 23cqw; letter-spacing: -.02em; line-height: 1; }
 .timer-stage[data-kind="paused"] .timer-clock { opacity: .5; animation: pulse 1.6s ease-in-out infinite; }
 .timer-sub { color: var(--label2); font-size: 15px; max-width: 200px; }
+.ring .timer-sub { font-size: clamp(14px, 5.4cqw, 22px); font-weight: 500; max-width: 64cqw; }
+.timer-meta {
+  position: relative; z-index: 1; padding: 6px 14px; border-radius: 999px; background: var(--fill3);
+  color: var(--label2); font-size: 15px; font-weight: 500;
+}
+
+/* Waves ripple from the ring every second: soft by default, stronger on the
+   3-2-1 countdown and segment changes, doubled at half time. */
+.ring-waves { position: absolute; inset: 0; pointer-events: none; }
+.wave {
+  --wave: var(--c); --from: .28; --to: 1.3; position: absolute; inset: 2%; border-radius: 50%; opacity: 0;
+  border: 1.5px solid var(--wave); animation: wave 2.6s cubic-bezier(.22, .61, .36, 1) both;
+}
+.timer-stage[data-kind="rest"] .wave[data-beat="soft"], .timer-stage[data-kind="prep"] .wave[data-beat="soft"] { --wave: var(--label3); }
+.wave[data-beat="tick"] {
+  --from: .6; --to: 1.5; border-width: 3px;
+  background: radial-gradient(closest-side, transparent 72%, color-mix(in srgb, var(--wave) 22%, transparent));
+}
+.wave[data-beat="mark"] {
+  --from: .75; --to: 1.7; border-width: 4px; animation-duration: 3s;
+  background: radial-gradient(closest-side, transparent 60%, color-mix(in srgb, var(--wave) 30%, transparent));
+}
+.wave[data-beat="half"] {
+  --from: .7; --to: 1.6; border-width: 2px; animation-duration: 3s;
+  box-shadow: 0 0 0 10px color-mix(in srgb, var(--wave) 14%, transparent), 0 0 0 22px color-mix(in srgb, var(--wave) 7%, transparent);
+}
+@keyframes wave { 0% { opacity: var(--from); transform: scale(.97); } 100% { opacity: 0; transform: scale(var(--to)); } }
+
+.timer-panel { position: relative; z-index: 1; flex: none; display: grid; gap: 14px; }
 .summary { padding-top: 40px; gap: 6px; animation: view-in .4s var(--ease-out); }
 .summary .timer-clock { font-size: min(26vw, 104px); font-weight: 700; }
 .summary-badge {
@@ -625,9 +661,10 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 }
 .big-action svg { width: 24px; height: 24px; }
 .big-action:active { transform: scale(.97); filter: brightness(.9); }
-.round-count { display: flex; justify-content: space-between; align-items: center; padding: 6px 4px 0; color: var(--label2); }
+.round-counter { display: grid; gap: 8px; }
+.round-count { display: flex; justify-content: space-between; align-items: center; padding: 0 4px; color: var(--label2); }
 .round-count b { display: inline-block; color: var(--label); font-size: 24px; animation: pop .35s var(--bounce); }
-.timer-controls { display: flex; justify-content: space-between; margin-top: auto; padding: 28px 8px 0; }
+.timer-controls { display: flex; justify-content: space-between; padding: 4px 8px 0; }
 .circle-button {
   --ring: var(--fill); width: 84px; height: 84px; border-radius: 50%; display: grid; place-items: center; padding: 3px;
   background: var(--ring); color: var(--label); font-size: 15px; font-weight: 500; transition: transform .15s var(--ease-out);
@@ -638,6 +675,20 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .circle-button:active { transform: scale(.94); }
 .timer-footer { margin-top: auto; padding-top: 24px; }
 .timer-footer .filled-button { margin-bottom: 4px; --tint: var(--c); }
+
+/* Landscape phones: ring on the left, controls on the right. */
+@media (orientation: landscape) and (max-height: 600px) {
+  .timer-sheet .sheet { max-width: none; top: 8px; }
+  .timer-sheet .sheet-body {
+    padding: 4px max(20px, env(safe-area-inset-right)) calc(var(--safe-bottom) + 12px) max(20px, env(safe-area-inset-left));
+  }
+  .timer-body { display: grid; grid-template-columns: minmax(0, 1fr) minmax(260px, 360px); align-items: center; gap: 28px; }
+  .timer-stage { align-self: stretch; padding: 0; }
+  .timer-panel .big-action { height: 64px; }
+  .timer-body[data-done="true"] { grid-template-columns: 1fr 1fr; }
+  .timer-body[data-done="true"] .summary { padding-top: 0; }
+  .timer-body[data-done="true"] .timer-footer { margin-top: 0; padding-top: 0; }
+}
 
 /* Dynamic Island–style indicator */
 .timer-pill {
@@ -757,4 +808,5 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .signal-plate { animation: none !important; opacity: 1; }
+  .ring-waves { display: none; }
 }
