@@ -59,12 +59,15 @@ export function buildPlan(config) {
 
 function planCues({ segments, workStart, total, workTotal }) {
   const events = [];
-  for (const offset of [3000, 2000, 1000]) events.push({ at: workStart - offset, cue: 'tick' });
   events.push({ at: workStart, cue: 'start' });
   events.push({ at: workStart + Math.round(workTotal / 2000) * 1000, cue: 'half' });
   for (const segment of segments) if (segment.start > workStart) events.push({ at: segment.start, cue: 'round' });
-  for (const offset of [3000, 2000, 1000]) if (total - offset > workStart) events.push({ at: total - offset, cue: 'tick' });
   events.push({ at: total, cue: 'end' });
+  // 3-2-1 before the workout starts, before every segment change and before the end.
+  const boundaries = [...segments.filter((segment) => segment.start > 0).map((segment) => segment.start), total];
+  for (const boundary of boundaries) {
+    for (const offset of [3000, 2000, 1000]) events.push({ at: boundary - offset, cue: 'tick' });
+  }
   const byInstant = new Map();
   for (const event of events) {
     const current = byInstant.get(event.at);
