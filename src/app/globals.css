@@ -607,7 +607,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .timer-stage:has(.timer-meta) { --reserve: 46px; }
 .ring { position: relative; width: min(100cqw, calc(100cqh - var(--reserve)), 460px); aspect-ratio: 1; container-type: inline-size; }
 .ring svg { position: relative; z-index: 1; width: 100%; height: 100%; transform: rotate(-90deg); }
-.ring circle { fill: none; stroke-width: 9; }
+.ring circle { fill: none; stroke-width: 20; }
 .ring-track { stroke: var(--fill3); }
 .ring-value { stroke: var(--c); stroke-linecap: round; transition: stroke-dashoffset .25s linear, stroke .3s; }
 .timer-stage[data-kind="rest"] .ring-value, .timer-stage[data-kind="paused"] .ring-value { stroke: var(--label3); }
@@ -616,7 +616,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .ring .timer-phase { font-size: clamp(13px, 5cqw, 20px); }
 .timer-stage[data-kind="rest"] .timer-phase, .timer-stage[data-kind="paused"] .timer-phase { color: var(--label2); }
 .timer-clock { font-size: min(19vw, 76px); font-weight: 600; letter-spacing: -1px; line-height: 1.1; }
-.ring .timer-clock { font-size: 25cqw; letter-spacing: -.02em; line-height: 1; }
+.ring .timer-clock { font-size: 23cqw; letter-spacing: -.02em; line-height: 1; }
 .timer-stage[data-kind="paused"] .timer-clock { opacity: .5; animation: pulse 1.6s ease-in-out infinite; }
 .timer-sub { color: var(--label2); font-size: 15px; max-width: 200px; }
 .ring .timer-sub { font-size: clamp(14px, 5.4cqw, 22px); font-weight: 500; max-width: 64cqw; }

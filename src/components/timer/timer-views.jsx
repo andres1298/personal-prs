@@ -139,7 +139,7 @@ function Waves({ view }) {
 }
 
 function ProgressRing({ value, waves, children }) {
-  const radius = 130;
+  const radius = 128;
   const length = 2 * Math.PI * radius;
   return <div className="ring">
     {waves}
