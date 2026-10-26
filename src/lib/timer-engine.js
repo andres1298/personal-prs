@@ -14,6 +14,20 @@ const DEFAULTS = {
 };
 export const TIMER_TYPES = Object.keys(DEFAULTS);
 
+// Recommended configurations offered as one-tap shortcuts per template.
+export const PRESETS = {
+  amrap: [{ duration: 300_000 }, { duration: 600_000 }, { duration: 720_000 }, { duration: 900_000 }, { duration: 1_200_000 }],
+  emom: [
+    { interval: 60_000, rounds: 10 }, { interval: 60_000, rounds: 20 },
+    { interval: 90_000, rounds: 10 }, { interval: 120_000, rounds: 8 },
+  ],
+  tabata: [
+    { work: 20_000, rest: 10_000, rounds: 8 }, { work: 30_000, rest: 15_000, rounds: 8 },
+    { work: 40_000, rest: 20_000, rounds: 8 }, { work: 45_000, rest: 15_000, rounds: 6 },
+  ],
+  fortime: [{ cap: 600_000 }, { cap: 900_000 }, { cap: 1_200_000 }, { cap: 1_800_000 }],
+};
+
 // Higher wins when several cues share an instant.
 const CUE_PRIORITY = { end: 5, tick: 4, half: 3, start: 2, round: 1 };
 
@@ -149,6 +163,26 @@ export function restoreRun(value) {
   } catch {
     return null;
   }
+}
+
+// Typed durations read like a microwave keypad: the last two digits are seconds
+// and the rest are minutes, so "130" is 1:30 and "2000" is 20:00.
+export function parseDigits(text) {
+  const digits = String(text ?? '').replace(/\D/g, '');
+  if (!digits) return null;
+  const seconds = Number(digits.slice(-2));
+  const minutes = Number(digits.slice(0, -2) || 0);
+  return (minutes * 60 + seconds) * 1000;
+}
+
+export function toDigits(ms) {
+  const seconds = Math.max(0, Math.round(ms / 1000));
+  const minutes = Math.floor(seconds / 60);
+  return minutes ? `${minutes}${String(seconds % 60).padStart(2, '0')}` : `${seconds}`;
+}
+
+export function matchesPreset(config, preset) {
+  return Object.entries(preset).every(([key, value]) => config[key] === value);
 }
 
 export function formatClock(ms, { ceil = false } = {}) {

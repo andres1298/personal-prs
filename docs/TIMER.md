@@ -9,6 +9,19 @@ The **Timer** tab runs AMRAP, EMOM, TABATA and FOR TIME workouts. Each template 
 | TABATA | Work, rest, rounds | Work and rest per round, without a final rest |
 | FOR TIME | Time cap (required) | One work segment that counts up; **Terminé** records the time |
 
+## Configuration
+
+- Each value has − and + buttons: 5 s steps under a minute, 15 s under ten minutes, then a minute.
+- Tapping a value opens the numeric keyboard for large changes. Times are typed like a microwave: the last two digits are seconds and the rest minutes (`45` is 0:45, `130` is 1:30, `2000` is 20:00). The value applies on blur or Enter and is clamped to 5 s – 60 min (1 – 50 rounds); Escape or an empty field keep the previous value.
+- Recommended presets appear as chips above the settings and apply with one tap; the chip matching the current configuration is highlighted. They are defined in `PRESETS` in `src/lib/timer-engine.js`.
+
+| Template | Presets |
+| --- | --- |
+| AMRAP | 5, 10, 12, 15 and 20 min |
+| EMOM | 10 × 1:00, 20 × 1:00, 10 × 1:30, 8 × 2:00 |
+| TABATA | 20/10 × 8, 30/15 × 8, 40/20 × 8, 45/15 × 6 |
+| FOR TIME | Cap 10, 15, 20 and 30 min |
+
 ## Cues
 
 Sound effects are synthesized with Web Audio; there are no voices or audio files.
