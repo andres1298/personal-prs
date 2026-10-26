@@ -36,7 +36,7 @@ const presetLabel = (type, p) => ({
   amrap: () => minutes(p.duration),
   emom: () => `${p.rounds} × ${span(p.interval)}`,
   tabata: () => `${p.work / 1000}/${p.rest / 1000} × ${p.rounds}`,
-  fortime: () => `Límite ${minutes(p.cap)}`,
+  fortime: () => minutes(p.cap),
 })[type]();
 
 // Finer steps for short segments: 5 s under a minute, 15 s under ten, then a minute.
