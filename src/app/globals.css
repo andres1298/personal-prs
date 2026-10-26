@@ -593,7 +593,13 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .template-head { display: grid; justify-items: center; gap: 14px; margin: 8px 0 24px; text-align: center; color: var(--label2); font-size: 15px; }
 .template-head .tile { box-shadow: 0 10px 30px color-mix(in srgb, var(--c) 40%, transparent); }
 .stepper { display: flex; align-items: center; gap: 4px; background: var(--fill3); border-radius: 10px; padding: 2px; }
-.stepper b { min-width: 64px; text-align: center; font-size: 17px; font-weight: 600; }
+.preset-chips { scroll-padding-inline: 16px; }
+.stepper input {
+  width: 72px; padding: 0; border: 0; border-radius: 8px; background: transparent; color: var(--label); text-align: center;
+  font: inherit; font-size: 17px; font-weight: 600; caret-color: var(--c, var(--blue));
+}
+.stepper input::placeholder { color: var(--label3); }
+.stepper input:focus { outline: none; background: var(--surface); }
 .stepper button { width: 44px; height: 32px; border-radius: 8px; font-size: 22px; font-weight: 400; text-align: center; color: var(--label); transition: background-color .15s; }
 .stepper button:active { background: var(--fill); }
 

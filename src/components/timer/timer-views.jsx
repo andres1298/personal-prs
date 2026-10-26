@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { TIMER_TYPES, formatClock, normalizeConfig } from '../../lib/timer-engine';
+import { PRESETS, TIMER_TYPES, formatClock, matchesPreset, normalizeConfig, parseDigits } from '../../lib/timer-engine';
 import Icon from '../ui/icon';
 import Sheet from '../ui/sheet';
 import { useAlert } from '../ui/alert';
@@ -30,6 +30,14 @@ const describe = (c) => ({
   tabata: () => `${span(c.work)} de trabajo y ${span(c.rest)} de descanso por ${c.rounds} rondas`,
   fortime: () => `Lo más rápido posible · límite ${formatClock(c.cap)}`,
 })[c.type]();
+
+const minutes = (ms) => (ms % 60_000 ? formatClock(ms) : `${ms / 60_000} min`);
+const presetLabel = (type, p) => ({
+  amrap: () => minutes(p.duration),
+  emom: () => `${p.rounds} × ${span(p.interval)}`,
+  tabata: () => `${p.work / 1000}/${p.rest / 1000} × ${p.rounds}`,
+  fortime: () => `Límite ${minutes(p.cap)}`,
+})[type]();
 
 // Finer steps for short segments: 5 s under a minute, 15 s under ten, then a minute.
 function stepValue(key, value, direction) {
@@ -82,7 +90,8 @@ function TimerConfigSheet({ editing, setEditing }) {
   const [shown, setShown] = useState(editing);
   useEffect(() => { if (editing) setShown(editing); }, [editing]);
   const close = () => setEditing(null);
-  const config = shown && normalizeConfig(shown);
+  // Shown keeps the last configuration while the sheet slides away.
+  const config = (editing || shown) && normalizeConfig(editing || shown);
   const workTotal = config && {
     amrap: config.duration, fortime: config.cap, emom: config.interval * config.rounds,
     tabata: config.work * config.rounds + config.rest * (config.rounds - 1),
@@ -95,12 +104,18 @@ function TimerConfigSheet({ editing, setEditing }) {
         <TemplateTile type={config.type} size="xl" />
         <p>{describe(config)}</p>
       </div>
+      <div className="chips preset-chips" role="group" aria-label="Presets recomendados">
+        {PRESETS[config.type].map((preset) => <button key={presetLabel(config.type, preset)} type="button" className="chip"
+          style={{ '--c': `var(${TEMPLATES[config.type].color})` }} aria-pressed={matchesPreset(config, preset)}
+          onClick={() => setEditing({ ...config, ...preset })}>{presetLabel(config.type, preset)}</button>)}
+      </div>
       <List footer={`Duración total ${formatClock(workTotal)} · empieza con 10 s para prepararte${timer.active ? '. Reemplaza el timer en curso.' : '.'}`}>
         {FIELDS[config.type].map(([key, label]) => <Row key={key} title={label}>
           <span className="stepper">
             <button type="button" aria-label={`Menos ${label.toLowerCase()}`}
               onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], -1) }))}>−</button>
-            <b className="num">{key === 'rounds' ? config[key] : span(config[key])}</b>
+            <ValueInput field={key} label={label} value={config[key]}
+              onCommit={(value) => setEditing(normalizeConfig({ ...config, [key]: value }))} />
             <button type="button" aria-label={`Más ${label.toLowerCase()}`}
               onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], 1) }))}>+</button>
           </span>
@@ -110,6 +125,37 @@ function TimerConfigSheet({ editing, setEditing }) {
         onClick={() => { setEditing(null); timer.saveConfig(config); }}><Icon name="play" fill /> Iniciar</button>
     </>}
   </Sheet>;
+}
+
+// Typed digits shown as a clock while editing: "130" reads 1:30.
+const digitClock = (digits) => (digits ? `${digits.slice(0, -2) || '0'}:${digits.slice(-2).padStart(2, '0')}` : '');
+
+// Tapping the value opens the numeric keyboard; the typed value replaces the
+// current one on blur or Enter, and Escape or an empty field keep it.
+function ValueInput({ field, label, value, onCommit }) {
+  const rounds = field === 'rounds';
+  const [draft, setDraft] = useState(null);
+  const cancelled = useRef(false);
+  const display = rounds ? `${value}` : span(value);
+
+  function commit() {
+    const digits = draft;
+    setDraft(null);
+    if (cancelled.current || !digits) { cancelled.current = false; return; }
+    onCommit(rounds ? Number(digits) : parseDigits(digits));
+  }
+
+  return <input className="num" type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="done" autoComplete="off"
+    aria-label={rounds ? label : `${label}, minutos y segundos`}
+    placeholder={display} value={draft === null ? display : rounds ? draft : digitClock(draft)}
+    onFocus={() => { cancelled.current = false; setDraft(''); }}
+    onChange={(e) => setDraft(e.target.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, rounds ? 2 : 4))}
+    onBlur={commit}
+    onKeyDown={(e) => {
+      // Escape cancels the edit without closing the sheet.
+      if (e.key === 'Escape') { cancelled.current = true; e.stopPropagation(); }
+      if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur();
+    }} />;
 }
 
 /* ---------- Running and summary ---------- */

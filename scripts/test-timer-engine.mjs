@@ -1,7 +1,8 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  PREP_MS, addRound, buildPlan, cuesBetween, finish, formatClock, normalizeConfig, pause, restoreRun, resume, snapshot, start, undoRound,
+  PREP_MS, PRESETS, TIMER_TYPES, addRound, buildPlan, cuesBetween, finish, formatClock, matchesPreset, normalizeConfig, parseDigits, pause,
+  restoreRun, resume, snapshot, start, toDigits, undoRound,
 } from '../src/lib/timer-engine.js';
 
 const s = (seconds) => seconds * 1000;
@@ -116,4 +117,33 @@ test('clock formatting supports countdown ceiling and long durations', () => {
   assert.equal(formatClock(59_999), '0:59');
   assert.equal(formatClock(s(754)), '12:34');
   assert.equal(formatClock(s(3600)), '60:00');
+});
+
+test('typed digits read the last two as seconds and the rest as minutes', () => {
+  assert.equal(parseDigits('45'), s(45));
+  assert.equal(parseDigits('130'), s(90));
+  assert.equal(parseDigits('2000'), s(1200));
+  assert.equal(parseDigits('90'), s(90));
+  assert.equal(parseDigits('1:30'), s(90));
+  assert.equal(parseDigits(''), null);
+  assert.equal(parseDigits('abc'), null);
+  assert.equal(toDigits(s(45)), '45');
+  assert.equal(toDigits(s(90)), '130');
+  assert.equal(toDigits(s(1200)), '2000');
+  for (const ms of [s(5), s(59), s(60), s(605), s(3600)]) assert.equal(parseDigits(toDigits(ms)), ms);
+  // Values outside the limits are clamped by normalization.
+  assert.deepEqual(normalizeConfig({ type: 'amrap', duration: parseDigits('9999') }), { type: 'amrap', duration: s(3600) });
+});
+
+test('presets are valid, distinct configurations and match only themselves', () => {
+  for (const type of TIMER_TYPES) {
+    const presets = PRESETS[type];
+    assert.ok(presets.length > 0);
+    for (const preset of presets) {
+      const config = { type, ...preset };
+      assert.deepEqual(normalizeConfig(config), config);
+      assert.equal(presets.filter((other) => matchesPreset(config, other)).length, 1);
+    }
+  }
+  assert.ok(matchesPreset(normalizeConfig({ type: 'tabata' }), PRESETS.tabata[0]));
 });
