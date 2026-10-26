@@ -16,7 +16,7 @@ export const TIMER_TYPES = Object.keys(DEFAULTS);
 
 // Recommended configurations offered as one-tap shortcuts per template.
 export const PRESETS = {
-  amrap: [{ duration: 300_000 }, { duration: 600_000 }, { duration: 720_000 }, { duration: 900_000 }, { duration: 1_200_000 }],
+  amrap: [{ duration: 600_000 }, { duration: 720_000 }, { duration: 900_000 }, { duration: 1_200_000 }],
   emom: [
     { interval: 60_000, rounds: 10 }, { interval: 60_000, rounds: 20 },
     { interval: 90_000, rounds: 10 }, { interval: 120_000, rounds: 8 },
