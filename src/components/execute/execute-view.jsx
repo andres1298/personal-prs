@@ -52,7 +52,7 @@ export default function ExecuteView({ ex, setEx, settings, records, banner, onOp
 /* ---------- Picker ---------- */
 function Picker({ ex, go, settings, records, banner, onOpenSettings, onNewMovement }) {
   const canResume = ex.base > 0 && (ex.move || ex.free);
-  const resumeTarget = canResume ? computeLoad(ex, settings, settings.simple).target : 0;
+  const resume = canResume ? computeLoad(ex, settings, settings.simple) : null;
   return <>
     <LargeTitle title="Execute" subtitle="¿Qué vas a levantar?"
       trailing={<button type="button" className="nav-icon" aria-label="Ajustes" data-tour="settings" onClick={onOpenSettings}><Icon name="gear" /></button>} />
@@ -63,7 +63,10 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings, onNewMoveme
           <small>Continuar</small>
           <b>{ex.free ? 'Cálculo libre' : ex.move} · {num(ex.pct)}%</b>
         </span>
-        <span className="resume-weight num rounded">{resumeTarget}<small>lb</small></span>
+        <span className="resume-load">
+          <span className="resume-weight num rounded">{resume.target}<small>lb</small></span>
+          {resume.plates?.length > 0 && <MiniPlates plates={resume.plates} />}
+        </span>
       </button>
       <button type="button" className="resume-dismiss" aria-label="Quitar cálculo anterior"
         onClick={() => go({ move: null, free: false, base: 0, extra: [], minus: [], done: [] })}>
@@ -75,8 +78,12 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings, onNewMoveme
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={{ '--c': `var(${group.color})` }}
           onClick={() => go({ cat: group.name, view: 'moves' })}>
+          <span className="category-glyph" aria-hidden="true" />
           <b>{group.name}</b>
           <small>{count ? `${count} con PR` : 'Sin PRs'}</small>
+          <span className="category-dots" aria-hidden="true">
+            {group.moves.slice(0, 10).map((move) => <i key={move} data-on={!!firstRm(records, move)} />)}
+          </span>
         </button>;
       })}
       {onNewMovement && <button type="button" className="category-card add" onClick={() => onNewMovement({ tab: 'Lift' })}>
@@ -154,7 +161,7 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
       </>}
     />
 
-    <div className="workbench">
+    <div className="workbench" style={{ '--c': `var(${ex.free ? '--tint' : moveInfo(ex.move).group.color})` }}>
       <section className="card weight-card" data-tour="weight">
         <div className="card-head">
           <span><Icon name="number" weight={2.4} /> Peso total</span>

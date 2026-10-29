@@ -36,6 +36,9 @@
   --muted: var(--label2);
   /* Plates of 10, 5 and 2.5 */
   --p10: #aeaeb2; --p5: #64d2ff; --p25s: #ff6482;
+  /* Brushed steel for the bar and the collar */
+  --steel-hi: #f4f4f7; --steel-mid: #c7c7cc; --steel-lo: #8e8e93; --steel-ink: #1c1c1e;
+  --card-shadow: 0 1px 2px rgba(0, 0, 0, .04), 0 10px 28px -16px rgba(0, 0, 0, .18);
 
   --font: -apple-system, BlinkMacSystemFont, "SF Pro Text", system-ui, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
   --font-rounded: ui-rounded, "SF Pro Rounded", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
@@ -76,6 +79,8 @@
     --teal: #40c8e0; --cyan: #64d2ff; --blue: #0a84ff; --indigo: #5e5ce6; --purple: #bf5af2;
     --pink: #ff375f; --gray: #8e8e93;
     --p10: #d1d1d6; --p5: #64d2ff; --p25s: #ff6482;
+    --steel-hi: #aeaeb2; --steel-mid: #7c7c80; --steel-lo: #48484a; --steel-ink: #ffffff;
+    --card-shadow: none;
   }
 }
 
@@ -222,7 +227,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .badge { font-size: 11px; font-weight: 600; text-transform: uppercase; color: var(--label2); background: var(--fill3); padding: 2px 6px; border-radius: 6px; }
 .template-row { min-height: 76px; }
 .dot { display: inline-block; flex: none; width: 9px; height: 9px; border-radius: 50%; background: var(--c, var(--label3)); margin-right: 8px; }
-.row-leading .dot { margin: 0; }
+.row-leading .dot { margin: 0; box-shadow: 0 0 0 4px color-mix(in srgb, var(--c, var(--label3)) 18%, transparent); }
 
 /* Symbol tiles (Settings-style rounded squares) */
 .tile {
@@ -339,8 +344,12 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 
 /* ---------- Execute: picker ---------- */
 .resume-card {
-  width: 100%; display: flex; align-items: center; margin-bottom: 18px;
-  border-radius: var(--radius-card); background: var(--tint); color: #fff; animation: view-in .35s var(--ease-out);
+  width: 100%; display: flex; align-items: center; margin-bottom: 18px; border-radius: var(--radius-card); color: #fff;
+  background:
+    radial-gradient(120% 120% at 0% 0%, rgba(255, 255, 255, .22), transparent 55%),
+    linear-gradient(160deg, color-mix(in oklab, var(--tint) 92%, white), color-mix(in oklab, var(--tint) 72%, black));
+  box-shadow: 0 12px 26px -14px color-mix(in srgb, var(--tint) 80%, transparent), inset 0 0 0 .5px rgba(255, 255, 255, .2);
+  animation: view-in .35s var(--ease-out);
 }
 .resume-main {
   flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 14px 4px 14px 18px; text-align: left;
@@ -352,24 +361,49 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .resume-copy { flex: 1; display: grid; gap: 2px; min-width: 0; }
 .resume-copy small { font-size: 13px; opacity: .8; font-weight: 500; text-transform: uppercase; letter-spacing: .3px; }
 .resume-copy b { font-size: 17px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.resume-weight { font-size: 28px; font-weight: 700; }
+.resume-load { display: grid; justify-items: end; gap: 2px; }
+.resume-weight { font-size: 28px; font-weight: 700; line-height: 1.1; }
+.resume-load .mini-plates { height: 26px; margin: 0; }
+.resume-load .mini-plates i { width: 6px; box-shadow: 0 0 0 1px rgba(255, 255, 255, .75); }
 .resume-weight small { font-size: 15px; opacity: .8; margin-left: 3px; }
 .category-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 22px; }
+/* Category tiles: a deep gradient of the group color, light at the top-left, with a bumper plate peeking from the
+   corner. The text sits low, where the gradient is darkest. One dot per movement: filled when it has a PR. */
 .category-card {
-  --c: var(--gray); display: grid; justify-items: center; align-content: center; gap: 4px; padding: 16px 12px; min-height: 104px;
-  border-radius: var(--radius-card); text-align: center;
-  background: color-mix(in srgb, var(--c) 12%, var(--surface)); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 24%, transparent);
-  transition: transform .2s var(--ease-out), background-color .2s;
+  --c: var(--gray); position: relative; isolation: isolate; overflow: hidden;
+  display: grid; justify-items: start; align-content: end; gap: 1px; padding: 14px 14px 12px; min-height: 116px;
+  border-radius: var(--radius-card); text-align: left; color: #fff;
+  background:
+    radial-gradient(120% 90% at 0% 0%, rgba(255, 255, 255, .24), transparent 60%),
+    linear-gradient(165deg, color-mix(in oklab, var(--c) 94%, white), color-mix(in oklab, var(--c) 62%, black));
+  box-shadow: 0 12px 24px -14px color-mix(in srgb, var(--c) 85%, transparent), inset 0 0 0 .5px rgba(255, 255, 255, .2);
+  transition: transform .25s var(--ease-out), filter .2s;
 }
-.category-card b { font-size: 18px; font-weight: 600; color: var(--c); }
-.category-card small { color: var(--label2); font-size: 15px; letter-spacing: -.24px; }
-.category-card:active { transform: scale(.96); background: color-mix(in srgb, var(--c) 18%, var(--surface)); }
-.category-card.add { --c: var(--tint); background: transparent; box-shadow: none; border: 1.5px dashed color-mix(in srgb, var(--c) 45%, transparent); }
+.category-card b { font-size: 19px; font-weight: 700; letter-spacing: -.3px; color: #fff; }
+.category-card small { color: rgba(255, 255, 255, .88); font-size: 14px; font-weight: 500; letter-spacing: -.15px; }
+.category-card:active { transform: scale(.96); filter: brightness(.94); }
+.category-glyph {
+  position: absolute; z-index: -1; top: -30px; right: -30px; width: 104px; height: 104px; border-radius: 50%;
+  border: 12px solid rgba(255, 255, 255, .16); transition: transform .5s var(--spring);
+}
+.category-glyph::after { content: ''; position: absolute; inset: 22px; border-radius: 50%; border: 2px solid rgba(255, 255, 255, .16); }
+.category-card:active .category-glyph { transform: rotate(-25deg) scale(1.05); }
+.category-dots { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 7px; }
+.category-dots i { width: 7px; height: 7px; border-radius: 50%; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .7); }
+.category-dots i[data-on="true"] { background: #fff; box-shadow: none; }
+.category-card.add {
+  --c: var(--tint); justify-items: center; align-content: center; gap: 4px; text-align: center; color: var(--c);
+  background: transparent; box-shadow: none; border: 1.5px dashed color-mix(in srgb, var(--c) 45%, transparent);
+}
 .category-card.add svg { width: 22px; height: 22px; color: var(--c); }
-.category-card.add b { font-size: 16px; }
+.category-card.add b { font-size: 16px; color: var(--c); }
+.category-card.add small { color: var(--label2); }
 
 /* ---------- Execute: workbench ---------- */
-.card { background: var(--surface); border-radius: var(--radius-card); padding: 14px 16px 16px; margin-bottom: 16px; }
+.card { background: var(--surface); border-radius: var(--radius-card); padding: 14px 16px 16px; margin-bottom: 16px; box-shadow: var(--card-shadow); }
+.workbench .weight-card {
+  background: radial-gradient(130% 75% at 50% 0%, color-mix(in srgb, var(--c) 16%, transparent), transparent 70%), var(--surface);
+}
 .card-head {
   display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 22px;
   color: var(--label2); font-size: 13px; font-weight: 600; text-transform: uppercase; letter-spacing: -.08px;
@@ -442,29 +476,44 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 /* The barbell is a size container. Plates and collar share one unit (1% of its height, capped), so width, height,
    corners and labels scale together and every plate keeps its shape on short or tall screens. */
 .barbell { position: relative; display: flex; align-items: center; gap: 3px; height: 128px; margin-top: 10px; container-type: size; }
-.barbell::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 12px; margin-top: -6px; background: var(--fill); border-radius: 6px; }
+.barbell::before {
+  content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 12px; margin-top: -6px; border-radius: 6px;
+  background: linear-gradient(180deg, var(--steel-hi), var(--steel-mid) 45%, var(--steel-lo) 60%, var(--steel-mid));
+  box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .12);
+}
 /* Simple mode has no controls under the barbell: a fixed, larger bar instead of stretching the card. */
 .workbench .simple .load-card { flex: none; }
 .workbench .simple .barbell { flex: none; height: clamp(140px, 26dvh, 220px); }
 .collar, .plate { --u: min(1cqh, 1.5px); }
 .collar {
   position: relative; z-index: 1; flex: none; width: calc(20 * var(--u)); height: calc(44 * var(--u)); margin-right: 4px;
-  border-radius: calc(5 * var(--u)); background: var(--surface3); color: var(--label); font-size: max(10px, calc(9.5 * var(--u))); font-weight: 700;
+  border-radius: calc(5 * var(--u)); color: var(--steel-ink); font-size: max(10px, calc(9.5 * var(--u))); font-weight: 700;
+  background: linear-gradient(90deg, var(--steel-lo), var(--steel-hi) 45%, var(--steel-mid));
+  box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .18), 2px 0 4px -2px rgba(0, 0, 0, .35);
   display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg);
 }
+/* A plate seen edge-on: darker rims and a highlight down the middle give it volume; the number reads upright. */
 .plate {
   position: relative; z-index: 1; flex: none; width: calc(26.5 * var(--u)); height: calc(var(--h) * var(--u));
-  border-radius: calc(5.5 * var(--u)); background: var(--pc); color: #111; font-size: max(10px, calc(11.5 * var(--u))); font-weight: 700; display: flex; align-items: center; justify-content: center;
-  writing-mode: vertical-rl; transform: rotate(180deg); text-align: center;
-  box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .15); animation: plate-in .4s var(--bounce); transition: filter .15s;
+  border-radius: calc(6 * var(--u)); color: #111; font-family: var(--font-rounded); font-size: max(10px, calc(11.5 * var(--u))); font-weight: 800;
+  display: flex; align-items: center; justify-content: center; text-align: center; letter-spacing: -.3px;
+  background:
+    linear-gradient(90deg, rgba(0, 0, 0, .24), transparent 24%, rgba(255, 255, 255, .3) 50%, transparent 74%, rgba(0, 0, 0, .2)),
+    var(--pc);
+  box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .2), inset 0 1.5px 0 rgba(255, 255, 255, .4),
+    0 6px 12px -6px color-mix(in srgb, var(--pc) 80%, transparent);
+  animation: plate-in .45s var(--bounce) backwards; transition: filter .15s, transform .2s var(--ease-out);
 }
-.plate:active:not(:disabled) { filter: brightness(.85); }
+.plate:active:not(:disabled) { filter: brightness(.85); transform: scaleY(.96); }
+.plate:nth-of-type(2) { animation-delay: 30ms; } .plate:nth-of-type(3) { animation-delay: 60ms; } .plate:nth-of-type(4) { animation-delay: 90ms; }
+.plate:nth-of-type(5) { animation-delay: 120ms; } .plate:nth-of-type(n+6) { animation-delay: 150ms; }
 .plate.extra {
-  background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .4) 0 3px, transparent 3px 8px);
+  background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .4) 0 3px, transparent 3px 8px),
+    linear-gradient(90deg, rgba(0, 0, 0, .24), transparent 24%, rgba(255, 255, 255, .3) 50%, transparent 74%, rgba(0, 0, 0, .2));
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .6);
 }
 .barbell.small .plate { width: calc(19 * var(--u)); font-size: max(9px, calc(9.5 * var(--u))); }
-@keyframes plate-in { from { transform: rotate(180deg) scaleY(.4); opacity: 0; } }
+@keyframes plate-in { from { transform: scaleY(.4); opacity: 0; } }
 .barbell-empty { position: relative; z-index: 1; margin-left: 8px; padding: 0 8px; background: var(--surface); color: var(--label2); font-size: 15px; }
 .option-nav {
   display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; margin-top: 14px; padding-top: 10px;
@@ -516,36 +565,46 @@ html.has-timer .workbench { --wb-top: calc(var(--safe-top) + 90px); }
 }
 
 /* Plate discs: outlined rim and lip, sized by weight */
-.plate-disc { position: relative; display: grid; place-items: center; width: var(--size); height: var(--size); }
+.plate-disc {
+  position: relative; display: grid; place-items: center; width: var(--size); height: var(--size); border-radius: 50%;
+  background: radial-gradient(circle, var(--surface) 0 36%, color-mix(in srgb, var(--pc) 18%, var(--surface)) 37%);
+  box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--pc) 75%, transparent); transition: background .25s, box-shadow .25s;
+}
 .plate-disc svg { position: absolute; inset: 0; width: 100%; height: 100%; }
 .plate-disc circle { fill: none; stroke: var(--pc); transition: stroke .25s, opacity .25s; }
-.plate-disc-rim { stroke-width: 3; }
+.plate-disc-rim { stroke-width: 4; }
 .plate-disc-lip { stroke-width: 1.2; opacity: .55; }
 .plate-disc-label { position: relative; font-size: 13px; font-weight: 700; color: var(--label); letter-spacing: -.2px; }
+.plate-disc[data-active="false"] { background: none; box-shadow: none; }
 .plate-disc[data-active="false"] circle { stroke: var(--label3); }
 .plate-disc[data-active="false"] .plate-disc-rim { stroke-dasharray: 3 4; }
 .plate-disc[data-active="false"] .plate-disc-label { color: var(--label3); }
 
 .steps { margin-bottom: 12px; }
 .step {
-  width: 100%; display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 14px; padding: 12px 16px;
+  position: relative; width: 100%; display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 14px; padding: 12px 16px;
   box-shadow: inset 0 -.5px 0 var(--separator); transition: background-color .25s, opacity .25s;
 }
 .step:last-child { box-shadow: none; }
+.step::before { content: ''; position: absolute; left: 30px; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: var(--fill); }
+.step:first-child::before { top: 50%; }
+.step:last-child::before { bottom: 50%; }
+.step.done::before { background: color-mix(in srgb, var(--green) 60%, transparent); }
 .check-circle {
-  width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--label3); display: grid; place-items: center; color: transparent;
-  transition: background-color .25s, border-color .25s, transform .35s var(--bounce);
+  position: relative; z-index: 1; width: 28px; height: 28px; border-radius: 50%; border: 2px solid var(--label3); display: grid; place-items: center;
+  color: transparent; background: var(--surface);
+  transition: background-color .25s, border-color .25s, box-shadow .25s, transform .35s var(--bounce);
 }
 .check-circle svg { width: 15px; height: 15px; }
 .step-weight b { font-size: 26px; font-weight: 700; }
 .step-weight small { display: block; color: var(--label2); font-size: 13px; margin-top: 1px; }
 .step-note { text-align: right; font-size: 15px; color: var(--label2); }
 .mini-plates { display: flex; gap: 2px; justify-content: flex-end; align-items: center; height: 26px; margin-bottom: 4px; }
-.mini-plates i { width: 9px; border-radius: 2px; background: var(--pc); }
+.mini-plates i { width: 9px; border-radius: 2px; background: linear-gradient(90deg, rgba(0, 0, 0, .18), transparent 40%, rgba(255, 255, 255, .3) 55%, transparent), var(--pc); }
 .step.done { opacity: .45; }
 .step.done .check-circle { background: var(--green); border-color: var(--green); color: #fff; transform: scale(1.05); }
 .step.next { background: color-mix(in srgb, var(--tint) 10%, var(--surface)); }
-.step.next .check-circle { border-color: var(--tint); }
+.step.next .check-circle { border-color: var(--tint); box-shadow: 0 0 0 5px color-mix(in srgb, var(--tint) 20%, transparent); }
 .step.next .step-note { color: var(--label); font-weight: 600; }
 .step.goal b { color: var(--green); }
 
