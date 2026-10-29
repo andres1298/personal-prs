@@ -1,0 +1,4413 @@
+[
+ {
+  "id": "01-picker",
+  "label": "Inicio sin cálculo previo",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 14,
+  "facil": 8,
+  "media": 3,
+  "dificil": 3,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "¿Qué vas a levantar?",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff3b30",
+    "bg": "#ffe7e6",
+    "ratio": 3.02,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8184",
+    "bg": "#ffe7e6",
+    "ratio": 3.23,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#e0efff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "4 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#7e848e",
+    "bg": "#e0efff",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Presses",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff9500",
+    "bg": "#fff2e0",
+    "ratio": 2,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8582",
+    "bg": "#fff2e0",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Jerks",
+    "size": 18,
+    "weight": 600,
+    "fg": "#34c759",
+    "bg": "#e7f8eb",
+    "ratio": 2.01,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#808786",
+    "bg": "#e7f8eb",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#af52de",
+    "bg": "#f5eafb",
+    "ratio": 3.56,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#86828d",
+    "bg": "#f5eafb",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlifts",
+    "size": 18,
+    "weight": 600,
+    "fg": "#30b0c7",
+    "bg": "#e6f6f8",
+    "ratio": 2.31,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868c",
+    "bg": "#e6f6f8",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Mancuernas",
+    "size": 18,
+    "weight": 600,
+    "fg": "#32ade6",
+    "bg": "#e6f5fc",
+    "ratio": 2.28,
+    "required": 4.5
+   },
+   {
+    "text": "1 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868d",
+    "bg": "#e6f5fc",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Nuevo movimiento",
+    "size": 16,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "O una categoría",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Cualquier peso y porcentaje",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 23
+ },
+ {
+  "id": "02-picker-resume",
+  "label": "Inicio con «Continuar» (Deadlift 80 %)",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 16,
+  "facil": 9,
+  "media": 3,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "¿Qué vas a levantar?",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Continuar",
+    "size": 13,
+    "weight": 500,
+    "fg": "#cce4ff",
+    "bg": "#007aff",
+    "ratio": 3.09,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlift",
+    "size": 17,
+    "weight": 600,
+    "fg": "#ffffff",
+    "bg": "#007aff",
+    "ratio": 4.02,
+    "required": 4.5
+   },
+   {
+    "text": "lb",
+    "size": 15,
+    "weight": 700,
+    "fg": "#cce4ff",
+    "bg": "#007aff",
+    "ratio": 3.09,
+    "required": 4.5
+   },
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff3b30",
+    "bg": "#ffe7e6",
+    "ratio": 3.02,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8184",
+    "bg": "#ffe7e6",
+    "ratio": 3.23,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#e0efff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "4 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#7e848e",
+    "bg": "#e0efff",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Presses",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff9500",
+    "bg": "#fff2e0",
+    "ratio": 2,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8582",
+    "bg": "#fff2e0",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Jerks",
+    "size": 18,
+    "weight": 600,
+    "fg": "#34c759",
+    "bg": "#e7f8eb",
+    "ratio": 2.01,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#808786",
+    "bg": "#e7f8eb",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#af52de",
+    "bg": "#f5eafb",
+    "ratio": 3.56,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#86828d",
+    "bg": "#f5eafb",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlifts",
+    "size": 18,
+    "weight": 600,
+    "fg": "#30b0c7",
+    "bg": "#e6f6f8",
+    "ratio": 2.31,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868c",
+    "bg": "#e6f6f8",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Mancuernas",
+    "size": 18,
+    "weight": 600,
+    "fg": "#32ade6",
+    "bg": "#e6f5fc",
+    "ratio": 2.28,
+    "required": 4.5
+   },
+   {
+    "text": "1 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868d",
+    "bg": "#e6f5fc",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Nuevo movimiento",
+    "size": 16,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "O una categoría",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Cualquier peso y porcentaje",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 27
+ },
+ {
+  "id": "03-moves-squats",
+  "label": "Lista de movimientos de Squats",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 11,
+  "facil": 5,
+  "media": 3,
+  "dificil": 3,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "Execute",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "260",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "215",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "115",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 12,
+    "weight": 600,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Sin PR registrado",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "En Squats",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 0,
+  "texts": 18
+ },
+ {
+  "id": "04-run-just-selected",
+  "label": "Recién elegido Back Squat (70 %, editor abierto)",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 30,
+  "facil": 12,
+  "media": 6,
+  "dificil": 12,
+  "small": [
+   "1RM 79×30",
+   "3RM 79×30",
+   "5RM 79×30",
+   "Listo 34×34",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 55 22×84",
+   "Quitar disco de 10 22×54",
+   "Quitar disco de 2.5 22×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "−10",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "−5",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "%",
+    "size": 17,
+    "weight": 700,
+    "fg": "#ffffff",
+    "bg": "#ffffff",
+    "ratio": 1,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 18,
+  "texts": 36
+ },
+ {
+  "id": "05-run-75",
+  "label": "Back Squat al 75 % (editor cerrado)",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 22,
+  "facil": 12,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 36×135",
+   "Quitar disco de 25 36×113",
+   "Quitar disco de 5 36×65"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 32
+ },
+ {
+  "id": "06-run-warmup",
+  "label": "Escalera de calentamiento",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 17,
+  "facil": 10,
+  "media": 3,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "17",
+    "size": 13,
+    "weight": 400,
+    "fg": "#80858e",
+    "bg": "#e6f2ff",
+    "ratio": 3.27,
+    "required": 4.5
+   },
+   {
+    "text": "29",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Pon 15",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "40",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Agrega 15",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "52",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Quita 15 + 15 · pon 45",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "60",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Agrega 10",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "71",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Quita 10 · pon 25",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "195",
+    "size": 26,
+    "weight": 700,
+    "fg": "#34c759",
+    "bg": "#ffffff",
+    "ratio": 2.22,
+    "required": 3
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 6,
+  "texts": 35
+ },
+ {
+  "id": "07-run-adjusted",
+  "label": "Carga ajustada a mano (+2,5 por lado)",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 24,
+  "facil": 14,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Volver al 75% 76×36",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 23×88",
+   "Quitar disco de 25 23×74",
+   "Quitar disco de 5 23×42",
+   "Quitar disco de 2.5 23×33"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "76,9",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "2,5 lb por lado · meta 195 lb",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a7f83",
+    "bg": "#ffe4e2",
+    "ratio": 3.2,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 15,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#ffffff",
+    "ratio": 4.02,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 35
+ },
+ {
+  "id": "08-run-3rm-only",
+  "label": "Movimiento sin 1RM (Push Jerk, 3RM)",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 28,
+  "facil": 10,
+  "media": 6,
+  "dificil": 12,
+  "small": [
+   "3RM 79×30",
+   "Listo 34×34",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 35 22×77"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Jerks",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "−10",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "−5",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "%",
+    "size": 17,
+    "weight": 700,
+    "fg": "#ffffff",
+    "bg": "#ffffff",
+    "ratio": 1,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 34
+ },
+ {
+  "id": "09-free-empty",
+  "label": "Cálculo libre vacío",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 14,
+  "facil": 3,
+  "media": 1,
+  "dificil": 10,
+  "small": [
+   "Peso base en libras 120×40"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Execute",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Limpiar",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "lb",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "−10",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "−5",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "%",
+    "size": 17,
+    "weight": 700,
+    "fg": "#ffffff",
+    "bg": "#ffffff",
+    "ratio": 1,
+    "required": 4.5
+   },
+   {
+    "text": "Escribe un peso y el porcentaje para emp",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 5,
+  "texts": 14
+ },
+ {
+  "id": "10-free-185-80",
+  "label": "Cálculo libre 185 lb al 80 %",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 22,
+  "facil": 12,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 137×32",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 36×135",
+   "Quitar disco de 5 36×65",
+   "Quitar disco de 2.5 36×51"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Execute",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Limpiar",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "80",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "80",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 32
+ },
+ {
+  "id": "11-run-bar35",
+  "label": "Barra de 35 lb, Back Squat 75 %",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 21,
+  "facil": 11,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 36×135",
+   "Quitar disco de 35 36×124"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 10,
+  "texts": 31
+ },
+ {
+  "id": "12-run-unbuildable",
+  "label": "Peso que no se arma (solo discos de 45)",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 10,
+  "facil": 3,
+  "media": 3,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "No se puede armar",
+    "size": 17,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 17
+ },
+ {
+  "id": "13-run-simple",
+  "label": "Modo simple",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 7,
+  "facil": 2,
+  "media": 1,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 18
+ },
+ {
+  "id": "14-settings",
+  "label": "Ajustes (barra y discos)",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 16,
+  "facil": 4,
+  "media": 6,
+  "dificil": 6,
+  "small": [
+   "Listo 38×44",
+   "45 lb 107×30",
+   "35 lb 107×30",
+   "15 lb 107×30",
+   "Modo simple 51×31",
+   "Pantalla siempre encendida 51×31"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Listo",
+    "size": 17,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Discos que tienes",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Las combinaciones y la escalera de calen",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "App",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Solo ejercicio, peso, % y la barra final",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Mientras estás en un levantamiento",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Repasa el flujo básico paso a paso",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Movimientos",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Crea los tuyos o desactiva los del catál",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   }
+  ],
+  "centered": 4,
+  "texts": 26
+ },
+ {
+  "id": "01-picker",
+  "label": "Inicio sin cálculo previo",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 14,
+  "facil": 8,
+  "media": 3,
+  "dificil": 3,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff453a",
+    "bg": "#372121",
+    "ratio": 4.39,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#0a84ff",
+    "bg": "#1a2839",
+    "ratio": 4.08,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#bf5af2",
+    "bg": "#302337",
+    "ratio": 4.18,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 23
+ },
+ {
+  "id": "02-picker-resume",
+  "label": "Inicio con «Continuar» (Deadlift 80 %)",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 16,
+  "facil": 9,
+  "media": 3,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "Continuar",
+    "size": 13,
+    "weight": 500,
+    "fg": "#cee6ff",
+    "bg": "#0a84ff",
+    "ratio": 2.85,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlift",
+    "size": 17,
+    "weight": 600,
+    "fg": "#ffffff",
+    "bg": "#0a84ff",
+    "ratio": 3.65,
+    "required": 4.5
+   },
+   {
+    "text": "lb",
+    "size": 15,
+    "weight": 700,
+    "fg": "#cee6ff",
+    "bg": "#0a84ff",
+    "ratio": 2.85,
+    "required": 4.5
+   },
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff453a",
+    "bg": "#372121",
+    "ratio": 4.39,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#0a84ff",
+    "bg": "#1a2839",
+    "ratio": 4.08,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#bf5af2",
+    "bg": "#302337",
+    "ratio": 4.18,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 27
+ },
+ {
+  "id": "03-moves-squats",
+  "label": "Lista de movimientos de Squats",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 11,
+  "facil": 5,
+  "media": 3,
+  "dificil": 3,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "5",
+    "size": 12,
+    "weight": 600,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 0,
+  "texts": 18
+ },
+ {
+  "id": "04-run-just-selected",
+  "label": "Recién elegido Back Squat (70 %, editor abierto)",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 30,
+  "facil": 12,
+  "media": 6,
+  "dificil": 12,
+  "small": [
+   "1RM 79×30",
+   "3RM 79×30",
+   "5RM 79×30",
+   "Listo 34×34",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 55 22×84",
+   "Quitar disco de 10 22×54",
+   "Quitar disco de 2.5 22×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 18,
+  "texts": 36
+ },
+ {
+  "id": "05-run-75",
+  "label": "Back Squat al 75 % (editor cerrado)",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 22,
+  "facil": 12,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 36×135",
+   "Quitar disco de 25 36×113",
+   "Quitar disco de 5 36×65"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 32
+ },
+ {
+  "id": "06-run-warmup",
+  "label": "Escalera de calentamiento",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 17,
+  "facil": 10,
+  "media": 3,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 6,
+  "texts": 35
+ },
+ {
+  "id": "07-run-adjusted",
+  "label": "Carga ajustada a mano (+2,5 por lado)",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 24,
+  "facil": 14,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Volver al 75% 76×36",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 23×88",
+   "Quitar disco de 25 23×74",
+   "Quitar disco de 5 23×42",
+   "Quitar disco de 2.5 23×33"
+  ],
+  "contrast_fail": [],
+  "centered": 11,
+  "texts": 35
+ },
+ {
+  "id": "08-run-3rm-only",
+  "label": "Movimiento sin 1RM (Push Jerk, 3RM)",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 28,
+  "facil": 10,
+  "media": 6,
+  "dificil": 12,
+  "small": [
+   "3RM 79×30",
+   "Listo 34×34",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 35 22×77"
+  ],
+  "contrast_fail": [
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 34
+ },
+ {
+  "id": "09-free-empty",
+  "label": "Cálculo libre vacío",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 14,
+  "facil": 3,
+  "media": 1,
+  "dificil": 10,
+  "small": [
+   "Peso base en libras 120×40"
+  ],
+  "contrast_fail": [],
+  "centered": 5,
+  "texts": 14
+ },
+ {
+  "id": "10-free-185-80",
+  "label": "Cálculo libre 185 lb al 80 %",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 22,
+  "facil": 12,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 137×32",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 36×135",
+   "Quitar disco de 5 36×65",
+   "Quitar disco de 2.5 36×51"
+  ],
+  "contrast_fail": [
+   {
+    "text": "80",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 32
+ },
+ {
+  "id": "11-run-bar35",
+  "label": "Barra de 35 lb, Back Squat 75 %",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 21,
+  "facil": 11,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30",
+   "Quitar disco de 45 36×135",
+   "Quitar disco de 35 36×124"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 10,
+  "texts": 31
+ },
+ {
+  "id": "12-run-unbuildable",
+  "label": "Peso que no se arma (solo discos de 45)",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 10,
+  "facil": 3,
+  "media": 3,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 177×30",
+   "Calentamiento 177×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 17
+ },
+ {
+  "id": "13-run-simple",
+  "label": "Modo simple",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 7,
+  "facil": 2,
+  "media": 1,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 18
+ },
+ {
+  "id": "14-settings",
+  "label": "Ajustes (barra y discos)",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 16,
+  "facil": 4,
+  "media": 6,
+  "dificil": 6,
+  "small": [
+   "Listo 38×44",
+   "45 lb 107×30",
+   "35 lb 107×30",
+   "15 lb 107×30",
+   "Modo simple 51×31",
+   "Pantalla siempre encendida 51×31"
+  ],
+  "contrast_fail": [],
+  "centered": 4,
+  "texts": 26
+ },
+ {
+  "id": "01-picker",
+  "label": "Inicio sin cálculo previo",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 14,
+  "facil": 7,
+  "media": 3,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "¿Qué vas a levantar?",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff3b30",
+    "bg": "#ffe7e6",
+    "ratio": 3.02,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8184",
+    "bg": "#ffe7e6",
+    "ratio": 3.23,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#e0efff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "4 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#7e848e",
+    "bg": "#e0efff",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Presses",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff9500",
+    "bg": "#fff2e0",
+    "ratio": 2,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8582",
+    "bg": "#fff2e0",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Jerks",
+    "size": 18,
+    "weight": 600,
+    "fg": "#34c759",
+    "bg": "#e7f8eb",
+    "ratio": 2.01,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#808786",
+    "bg": "#e7f8eb",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#af52de",
+    "bg": "#f5eafb",
+    "ratio": 3.56,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#86828d",
+    "bg": "#f5eafb",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlifts",
+    "size": 18,
+    "weight": 600,
+    "fg": "#30b0c7",
+    "bg": "#e6f6f8",
+    "ratio": 2.31,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868c",
+    "bg": "#e6f6f8",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Mancuernas",
+    "size": 18,
+    "weight": 600,
+    "fg": "#32ade6",
+    "bg": "#e6f5fc",
+    "ratio": 2.28,
+    "required": 4.5
+   },
+   {
+    "text": "1 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868d",
+    "bg": "#e6f5fc",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Nuevo movimiento",
+    "size": 16,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "O una categoría",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Cualquier peso y porcentaje",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 23
+ },
+ {
+  "id": "02-picker-resume",
+  "label": "Inicio con «Continuar» (Deadlift 80 %)",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 16,
+  "facil": 9,
+  "media": 3,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "¿Qué vas a levantar?",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Continuar",
+    "size": 13,
+    "weight": 500,
+    "fg": "#cce4ff",
+    "bg": "#007aff",
+    "ratio": 3.09,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlift",
+    "size": 17,
+    "weight": 600,
+    "fg": "#ffffff",
+    "bg": "#007aff",
+    "ratio": 4.02,
+    "required": 4.5
+   },
+   {
+    "text": "lb",
+    "size": 15,
+    "weight": 700,
+    "fg": "#cce4ff",
+    "bg": "#007aff",
+    "ratio": 3.09,
+    "required": 4.5
+   },
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff3b30",
+    "bg": "#ffe7e6",
+    "ratio": 3.02,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8184",
+    "bg": "#ffe7e6",
+    "ratio": 3.23,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#e0efff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "4 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#7e848e",
+    "bg": "#e0efff",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Presses",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff9500",
+    "bg": "#fff2e0",
+    "ratio": 2,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8582",
+    "bg": "#fff2e0",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Jerks",
+    "size": 18,
+    "weight": 600,
+    "fg": "#34c759",
+    "bg": "#e7f8eb",
+    "ratio": 2.01,
+    "required": 4.5
+   },
+   {
+    "text": "3 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#808786",
+    "bg": "#e7f8eb",
+    "ratio": 3.31,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#af52de",
+    "bg": "#f5eafb",
+    "ratio": 3.56,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#86828d",
+    "bg": "#f5eafb",
+    "ratio": 3.24,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlifts",
+    "size": 18,
+    "weight": 600,
+    "fg": "#30b0c7",
+    "bg": "#e6f6f8",
+    "ratio": 2.31,
+    "required": 4.5
+   },
+   {
+    "text": "2 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868c",
+    "bg": "#e6f6f8",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Mancuernas",
+    "size": 18,
+    "weight": 600,
+    "fg": "#32ade6",
+    "bg": "#e6f5fc",
+    "ratio": 2.28,
+    "required": 4.5
+   },
+   {
+    "text": "1 con PR",
+    "size": 15,
+    "weight": 400,
+    "fg": "#80868d",
+    "bg": "#e6f5fc",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Nuevo movimiento",
+    "size": 16,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "O una categoría",
+    "size": 15,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Cualquier peso y porcentaje",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 27
+ },
+ {
+  "id": "03-moves-squats",
+  "label": "Lista de movimientos de Squats",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 11,
+  "facil": 5,
+  "media": 2,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "Execute",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "260",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "215",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "115",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 12,
+    "weight": 600,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Sin PR registrado",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "En Squats",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 0,
+  "texts": 18
+ },
+ {
+  "id": "04-run-just-selected",
+  "label": "Recién elegido Back Squat (70 %, editor abierto)",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 29,
+  "facil": 13,
+  "media": 4,
+  "dificil": 12,
+  "small": [
+   "1RM 79×30",
+   "3RM 79×30",
+   "5RM 79×30",
+   "Listo 34×34",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 55 22×84",
+   "Quitar disco de 10 22×54",
+   "Quitar disco de 2.5 22×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "−10",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "−5",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "%",
+    "size": 17,
+    "weight": 700,
+    "fg": "#ffffff",
+    "bg": "#ffffff",
+    "ratio": 1,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 18,
+  "texts": 35
+ },
+ {
+  "id": "05-run-75",
+  "label": "Back Squat al 75 % (editor cerrado)",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 21,
+  "facil": 11,
+  "media": 5,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 40×150",
+   "Quitar disco de 25 40×126",
+   "Quitar disco de 5 40×72"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 31
+ },
+ {
+  "id": "06-run-warmup",
+  "label": "Escalera de calentamiento",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 17,
+  "facil": 9,
+  "media": 3,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "17",
+    "size": 13,
+    "weight": 400,
+    "fg": "#80858e",
+    "bg": "#e6f2ff",
+    "ratio": 3.27,
+    "required": 4.5
+   },
+   {
+    "text": "29",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Pon 15",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "40",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Agrega 15",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "52",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Quita 15 + 15 · pon 45",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "60",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Agrega 10",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "71",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Quita 10 · pon 25",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "195",
+    "size": 26,
+    "weight": 700,
+    "fg": "#34c759",
+    "bg": "#ffffff",
+    "ratio": 2.22,
+    "required": 3
+   },
+   {
+    "text": "Agrega 5",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 6,
+  "texts": 36
+ },
+ {
+  "id": "07-run-adjusted",
+  "label": "Carga ajustada a mano (+2,5 por lado)",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 23,
+  "facil": 13,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Volver al 75% 76×36",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 27×100",
+   "Quitar disco de 25 27×84",
+   "Quitar disco de 5 27×48",
+   "Quitar disco de 2.5 27×38"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "76,9",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "2,5 lb por lado · meta 195 lb",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a7f83",
+    "bg": "#ffe4e2",
+    "ratio": 3.2,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 15,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#ffffff",
+    "ratio": 4.02,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 34
+ },
+ {
+  "id": "08-run-3rm-only",
+  "label": "Movimiento sin 1RM (Push Jerk, 3RM)",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 27,
+  "facil": 11,
+  "media": 4,
+  "dificil": 12,
+  "small": [
+   "3RM 79×30",
+   "Listo 34×34",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 35 22×77"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Jerks",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "−10",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "−5",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "%",
+    "size": 17,
+    "weight": 700,
+    "fg": "#ffffff",
+    "bg": "#ffffff",
+    "ratio": 1,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 33
+ },
+ {
+  "id": "09-free-empty",
+  "label": "Cálculo libre vacío",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 14,
+  "facil": 3,
+  "media": 1,
+  "dificil": 10,
+  "small": [
+   "Peso base en libras 120×40"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Execute",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Limpiar",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "lb",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "−10",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "−5",
+    "size": 17,
+    "weight": 600,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "%",
+    "size": 17,
+    "weight": 700,
+    "fg": "#ffffff",
+    "bg": "#ffffff",
+    "ratio": 1,
+    "required": 4.5
+   },
+   {
+    "text": "Escribe un peso y el porcentaje para emp",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 5,
+  "texts": 14
+ },
+ {
+  "id": "10-free-185-80",
+  "label": "Cálculo libre 185 lb al 80 %",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 21,
+  "facil": 11,
+  "media": 5,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 137×32",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 40×150",
+   "Quitar disco de 5 40×72",
+   "Quitar disco de 2.5 40×57"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Execute",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Limpiar",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "80",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "80",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 31
+ },
+ {
+  "id": "11-run-bar35",
+  "label": "Barra de 35 lb, Back Squat 75 %",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 20,
+  "facil": 10,
+  "media": 5,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 40×150",
+   "Quitar disco de 35 40×138"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Toca un disco para agregarlo · tócalo en",
+    "size": 13,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 10,
+  "texts": 30
+ },
+ {
+  "id": "12-run-unbuildable",
+  "label": "Peso que no se arma (solo discos de 45)",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 10,
+  "facil": 3,
+  "media": 2,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "No se puede armar",
+    "size": 17,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Execute",
+    "size": 10,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#fcfcfd",
+    "ratio": 3.93,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 17
+ },
+ {
+  "id": "13-run-simple",
+  "label": "Modo simple",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 7,
+  "facil": 2,
+  "media": 1,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 17,
+    "weight": 400,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Peso total",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "1",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "·",
+    "size": 15,
+    "weight": 400,
+    "fg": "#838388",
+    "bg": "#efeff0",
+    "ratio": 3.25,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 17,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#c5c5c7",
+    "bg": "#ffffff",
+    "ratio": 1.73,
+    "required": 4.5
+   },
+   {
+    "text": "Por lado ·",
+    "size": 13,
+    "weight": 600,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 15,
+    "weight": 500,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 18
+ },
+ {
+  "id": "14-settings",
+  "label": "Ajustes (barra y discos)",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 16,
+  "facil": 4,
+  "media": 5,
+  "dificil": 7,
+  "small": [
+   "Listo 38×44",
+   "45 lb 97×30",
+   "35 lb 97×30",
+   "15 lb 97×30",
+   "Modo simple 51×31",
+   "Pantalla siempre encendida 51×31"
+  ],
+  "contrast_fail": [
+   {
+    "text": "Listo",
+    "size": 17,
+    "weight": 600,
+    "fg": "#007aff",
+    "bg": "#f2f2f7",
+    "ratio": 3.6,
+    "required": 4.5
+   },
+   {
+    "text": "Barra",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Discos que tienes",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Las combinaciones y la escalera de calen",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "App",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Solo ejercicio, peso, % y la barra final",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Mientras estás en un levantamiento",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Repasa el flujo básico paso a paso",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   },
+   {
+    "text": "Movimientos",
+    "size": 13,
+    "weight": 400,
+    "fg": "#85858b",
+    "bg": "#f2f2f7",
+    "ratio": 3.3,
+    "required": 4.5
+   },
+   {
+    "text": "Crea los tuyos o desactiva los del catál",
+    "size": 15,
+    "weight": 400,
+    "fg": "#8a8a8e",
+    "bg": "#ffffff",
+    "ratio": 3.44,
+    "required": 4.5
+   }
+  ],
+  "centered": 4,
+  "texts": 26
+ },
+ {
+  "id": "01-picker",
+  "label": "Inicio sin cálculo previo",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 14,
+  "facil": 7,
+  "media": 3,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff453a",
+    "bg": "#372121",
+    "ratio": 4.39,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#0a84ff",
+    "bg": "#1a2839",
+    "ratio": 4.08,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#bf5af2",
+    "bg": "#302337",
+    "ratio": 4.18,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 23
+ },
+ {
+  "id": "02-picker-resume",
+  "label": "Inicio con «Continuar» (Deadlift 80 %)",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 16,
+  "facil": 9,
+  "media": 3,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "Continuar",
+    "size": 13,
+    "weight": 500,
+    "fg": "#cee6ff",
+    "bg": "#0a84ff",
+    "ratio": 2.85,
+    "required": 4.5
+   },
+   {
+    "text": "Deadlift",
+    "size": 17,
+    "weight": 600,
+    "fg": "#ffffff",
+    "bg": "#0a84ff",
+    "ratio": 3.65,
+    "required": 4.5
+   },
+   {
+    "text": "lb",
+    "size": 15,
+    "weight": 700,
+    "fg": "#cee6ff",
+    "bg": "#0a84ff",
+    "ratio": 2.85,
+    "required": 4.5
+   },
+   {
+    "text": "Squats",
+    "size": 18,
+    "weight": 600,
+    "fg": "#ff453a",
+    "bg": "#372121",
+    "ratio": 4.39,
+    "required": 4.5
+   },
+   {
+    "text": "Cleans",
+    "size": 18,
+    "weight": 600,
+    "fg": "#0a84ff",
+    "bg": "#1a2839",
+    "ratio": 4.08,
+    "required": 4.5
+   },
+   {
+    "text": "Snatches",
+    "size": 18,
+    "weight": 600,
+    "fg": "#bf5af2",
+    "bg": "#302337",
+    "ratio": 4.18,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 27
+ },
+ {
+  "id": "03-moves-squats",
+  "label": "Lista de movimientos de Squats",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 11,
+  "facil": 5,
+  "media": 2,
+  "dificil": 4,
+  "small": [],
+  "contrast_fail": [
+   {
+    "text": "5",
+    "size": 12,
+    "weight": 600,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 0,
+  "texts": 18
+ },
+ {
+  "id": "04-run-just-selected",
+  "label": "Recién elegido Back Squat (70 %, editor abierto)",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 29,
+  "facil": 13,
+  "media": 4,
+  "dificil": 12,
+  "small": [
+   "1RM 79×30",
+   "3RM 79×30",
+   "5RM 79×30",
+   "Listo 34×34",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 55 22×84",
+   "Quitar disco de 10 22×54",
+   "Quitar disco de 2.5 22×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 18,
+  "texts": 35
+ },
+ {
+  "id": "05-run-75",
+  "label": "Back Squat al 75 % (editor cerrado)",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 21,
+  "facil": 11,
+  "media": 5,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 40×150",
+   "Quitar disco de 25 40×126",
+   "Quitar disco de 5 40×72"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 31
+ },
+ {
+  "id": "06-run-warmup",
+  "label": "Escalera de calentamiento",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 17,
+  "facil": 9,
+  "media": 3,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 6,
+  "texts": 36
+ },
+ {
+  "id": "07-run-adjusted",
+  "label": "Carga ajustada a mano (+2,5 por lado)",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 23,
+  "facil": 13,
+  "media": 6,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Volver al 75% 76×36",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 27×100",
+   "Quitar disco de 25 27×84",
+   "Quitar disco de 5 27×48",
+   "Quitar disco de 2.5 27×38"
+  ],
+  "contrast_fail": [],
+  "centered": 11,
+  "texts": 34
+ },
+ {
+  "id": "08-run-3rm-only",
+  "label": "Movimiento sin 1RM (Push Jerk, 3RM)",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 27,
+  "facil": 11,
+  "media": 4,
+  "dificil": 12,
+  "small": [
+   "3RM 79×30",
+   "Listo 34×34",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 35 22×77"
+  ],
+  "contrast_fail": [
+   {
+    "text": "70",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 16,
+  "texts": 33
+ },
+ {
+  "id": "09-free-empty",
+  "label": "Cálculo libre vacío",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 14,
+  "facil": 3,
+  "media": 1,
+  "dificil": 10,
+  "small": [
+   "Peso base en libras 120×40"
+  ],
+  "contrast_fail": [],
+  "centered": 5,
+  "texts": 14
+ },
+ {
+  "id": "10-free-185-80",
+  "label": "Cálculo libre 185 lb al 80 %",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 21,
+  "facil": 11,
+  "media": 5,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 137×32",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 40×150",
+   "Quitar disco de 5 40×72",
+   "Quitar disco de 2.5 40×57"
+  ],
+  "contrast_fail": [
+   {
+    "text": "80",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 11,
+  "texts": 31
+ },
+ {
+  "id": "11-run-bar35",
+  "label": "Barra de 35 lb, Back Squat 75 %",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 20,
+  "facil": 10,
+  "media": 5,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30",
+   "Quitar disco de 45 40×150",
+   "Quitar disco de 35 40×138"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 10,
+  "texts": 30
+ },
+ {
+  "id": "12-run-unbuildable",
+  "label": "Peso que no se arma (solo discos de 45)",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 10,
+  "facil": 3,
+  "media": 2,
+  "dificil": 5,
+  "small": [
+   "Editar RM y porcentaje 179×32",
+   "Barra 162×30",
+   "Calentamiento 162×30"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 17
+ },
+ {
+  "id": "13-run-simple",
+  "label": "Modo simple",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 7,
+  "facil": 2,
+  "media": 1,
+  "dificil": 4,
+  "small": [
+   "Editar RM y porcentaje 179×32"
+  ],
+  "contrast_fail": [
+   {
+    "text": "75",
+    "size": 13,
+    "weight": 400,
+    "fg": "#5a5a5f",
+    "bg": "#1c1c1e",
+    "ratio": 2.48,
+    "required": 4.5
+   }
+  ],
+  "centered": 7,
+  "texts": 18
+ },
+ {
+  "id": "14-settings",
+  "label": "Ajustes (barra y discos)",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 16,
+  "facil": 4,
+  "media": 5,
+  "dificil": 7,
+  "small": [
+   "Listo 38×44",
+   "45 lb 97×30",
+   "35 lb 97×30",
+   "15 lb 97×30",
+   "Modo simple 51×31",
+   "Pantalla siempre encendida 51×31"
+  ],
+  "contrast_fail": [],
+  "centered": 4,
+  "texts": 26
+ }
+]
