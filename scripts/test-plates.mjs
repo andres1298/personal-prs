@@ -17,11 +17,28 @@ test('plate options recommend the fewest plates and prefer 45s on a tie', () => 
   assert.deepEqual(plateOptions(50, { bar: 45, plates: [45] }), []);
 });
 
-test('the warm-up ladder climbs from the bar to the final load', () => {
+test('the warm-up ladder climbs from the bar to the final load by percentages', () => {
   const ladder = buildLadder([45, 25], gym);
-  assert.deepEqual(ladder.map((step) => step.total), [45, 95, 115, 135, 185]);
-  assert.deepEqual(ladder.map((step) => step.note), ['Barra sola', 'Pon 25s', 'Cambia 25 → 35', 'Cambia 35 → 45', 'Agrega 25s']);
+  assert.deepEqual(ladder.map((step) => step.total), [45, 75, 105, 125, 145, 165, 185]);
+  assert.deepEqual(ladder.map((step) => step.reps), [10, 5, 5, 3, 2, 1, null]);
+  assert.deepEqual(ladder.map((step) => step.note).slice(0, 3), ['Barra sola', 'Pon 15', 'Agrega 15']);
+  assert.deepEqual(ladder.at(-1).plates, [45, 25]);
   assert.equal(buildLadder([], gym).length, 1);
+});
+
+test('warm-up sets use clean loads and even jumps, even with 55s', () => {
+  for (const final of [[55, 55, 5], [45, 45, 45, 45], [55, 55, 55, 35, 2.5], [25, 5, 2.5]]) {
+    const ladder = buildLadder(final, gym);
+    const goal = ladder.at(-1).total;
+    const totals = ladder.map((step) => step.total);
+    totals.slice(1).forEach((total, i) => assert.ok(total > totals[i], `${totals} increases`));
+    for (const step of ladder.slice(1, -1)) {
+      assert.ok(!step.plates.includes(2.5), `${step.total} avoids 2.5s`);
+      assert.equal(((step.total - gym.bar) / 2) % 5, 0, `${step.total} is clean`);
+    }
+    // After the first loaded set, no jump is larger than 20% of the goal (the old ladder jumped +110 lb).
+    totals.slice(2).forEach((total, i) => assert.ok(total - totals[i + 1] <= Math.max(20, goal * 0.2), `${totals} has even jumps`));
+  }
 });
 
 test('the load rounds to 5 lb, applies extra and removed plates and keeps options stable', () => {
