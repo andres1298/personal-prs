@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { TIMER_TYPES, formatClock, normalizeConfig } from '../../lib/timer-engine';
+import { PRESETS, TIMER_TYPES, formatClock, matchesPreset, normalizeConfig, parseDigits } from '../../lib/timer-engine';
 import Icon from '../ui/icon';
 import Sheet from '../ui/sheet';
 import { useAlert } from '../ui/alert';
@@ -30,6 +30,14 @@ const describe = (c) => ({
   tabata: () => `${span(c.work)} de trabajo y ${span(c.rest)} de descanso por ${c.rounds} rondas`,
   fortime: () => `Lo más rápido posible · límite ${formatClock(c.cap)}`,
 })[c.type]();
+
+const minutes = (ms) => (ms % 60_000 ? formatClock(ms) : `${ms / 60_000} min`);
+const presetLabel = (type, p) => ({
+  amrap: () => minutes(p.duration),
+  emom: () => `${p.rounds} × ${span(p.interval)}`,
+  tabata: () => `${p.work / 1000}/${p.rest / 1000} × ${p.rounds}`,
+  fortime: () => minutes(p.cap),
+})[type]();
 
 // Finer steps for short segments: 5 s under a minute, 15 s under ten, then a minute.
 function stepValue(key, value, direction) {
@@ -82,7 +90,8 @@ function TimerConfigSheet({ editing, setEditing }) {
   const [shown, setShown] = useState(editing);
   useEffect(() => { if (editing) setShown(editing); }, [editing]);
   const close = () => setEditing(null);
-  const config = shown && normalizeConfig(shown);
+  // Shown keeps the last configuration while the sheet slides away.
+  const config = (editing || shown) && normalizeConfig(editing || shown);
   const workTotal = config && {
     amrap: config.duration, fortime: config.cap, emom: config.interval * config.rounds,
     tabata: config.work * config.rounds + config.rest * (config.rounds - 1),
@@ -95,12 +104,18 @@ function TimerConfigSheet({ editing, setEditing }) {
         <TemplateTile type={config.type} size="xl" />
         <p>{describe(config)}</p>
       </div>
+      <div className="chips preset-chips" role="group" aria-label="Presets recomendados">
+        {PRESETS[config.type].map((preset) => <button key={presetLabel(config.type, preset)} type="button" className="chip"
+          style={{ '--c': `var(${TEMPLATES[config.type].color})` }} aria-pressed={matchesPreset(config, preset)}
+          onClick={() => setEditing({ ...config, ...preset })}>{presetLabel(config.type, preset)}</button>)}
+      </div>
       <List footer={`Duración total ${formatClock(workTotal)} · empieza con 10 s para prepararte${timer.active ? '. Reemplaza el timer en curso.' : '.'}`}>
         {FIELDS[config.type].map(([key, label]) => <Row key={key} title={label}>
           <span className="stepper">
             <button type="button" aria-label={`Menos ${label.toLowerCase()}`}
               onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], -1) }))}>−</button>
-            <b className="num">{key === 'rounds' ? config[key] : span(config[key])}</b>
+            <ValueInput field={key} label={label} value={config[key]}
+              onCommit={(value) => setEditing(normalizeConfig({ ...config, [key]: value }))} />
             <button type="button" aria-label={`Más ${label.toLowerCase()}`}
               onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], 1) }))}>+</button>
           </span>
@@ -112,11 +127,68 @@ function TimerConfigSheet({ editing, setEditing }) {
   </Sheet>;
 }
 
+// Typed digits shown as a clock while editing: "130" reads 1:30.
+const digitClock = (digits) => (digits ? `${digits.slice(0, -2) || '0'}:${digits.slice(-2).padStart(2, '0')}` : '');
+
+// Tapping the value opens the numeric keyboard; the typed value replaces the
+// current one on blur or Enter, and Escape or an empty field keep it.
+function ValueInput({ field, label, value, onCommit }) {
+  const rounds = field === 'rounds';
+  const [draft, setDraft] = useState(null);
+  const cancelled = useRef(false);
+  const display = rounds ? `${value}` : span(value);
+
+  function commit() {
+    const digits = draft;
+    setDraft(null);
+    if (cancelled.current || !digits) { cancelled.current = false; return; }
+    onCommit(rounds ? Number(digits) : parseDigits(digits));
+  }
+
+  return <input className="num" type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="done" autoComplete="off"
+    aria-label={rounds ? label : `${label}, minutos y segundos`}
+    placeholder={display} value={draft === null ? display : rounds ? draft : digitClock(draft)}
+    onFocus={() => { cancelled.current = false; setDraft(''); }}
+    onChange={(e) => setDraft(e.target.value.replace(/\D/g, '').replace(/^0+/, '').slice(0, rounds ? 2 : 4))}
+    onBlur={commit}
+    onKeyDown={(e) => {
+      // Escape cancels the edit without closing the sheet.
+      if (e.key === 'Escape') { cancelled.current = true; e.stopPropagation(); }
+      if (e.key === 'Enter' || e.key === 'Escape') e.currentTarget.blur();
+    }} />;
+}
+
 /* ---------- Running and summary ---------- */
-function ProgressRing({ value, children }) {
-  const radius = 130;
+// Pulse style of the wave emitted at an elapsed instant: stronger on the 3-2-1
+// ticks and segment changes, distinct at half time, soft on every other second.
+function beatAt(plan, at) {
+  const cue = plan.cues.find((event) => event.at === at)?.cue;
+  if (!cue) return 'soft';
+  return cue === 'tick' || cue === 'half' ? cue : 'mark';
+}
+
+function Wave({ at, elapsed, beat }) {
+  // Fixed at mount so the wave keeps its phase while the clock re-renders.
+  const [delay] = useState(() => Math.min(0, at - elapsed));
+  return <i className="wave" data-beat={beat} style={{ animationDelay: `${delay}ms` }} />;
+}
+
+// Waves ripple out from the ring once per second; each lives a few seconds.
+function Waves({ view }) {
+  if (view.paused) return null;
+  const second = Math.floor(view.elapsed / 1000);
+  const beats = [];
+  for (let s = Math.max(0, second - 2); s <= second; s++) beats.push(s * 1000);
+  return <div className="ring-waves" aria-hidden="true">
+    {beats.map((at) => <Wave key={at} at={at} elapsed={view.elapsed} beat={beatAt(view.plan, at)} />)}
+  </div>;
+}
+
+function ProgressRing({ value, waves, children }) {
+  const radius = 128;
   const length = 2 * Math.PI * radius;
   return <div className="ring">
+    {waves}
     <svg viewBox="0 0 280 280" aria-hidden="true">
       <circle className="ring-track" cx="140" cy="140" r={radius} />
       <circle className="ring-value" cx="140" cy="140" r={radius} strokeDasharray={length} strokeDashoffset={length * (1 - value)} />
@@ -165,10 +237,12 @@ export function TimerRunSheet() {
   if (run && view) {
     const { type } = run.config;
     const remaining = formatClock(view.workRemaining, { ceil: true });
+    const rounds = type === 'emom' || type === 'tabata';
     let sub = `Quedan ${remaining}`;
     if (view.segment.kind === 'prep') sub = `Empieza ${t.name}`;
-    else if (type === 'emom' || type === 'tabata') sub = `Ronda ${view.segment.round} de ${view.plan.totalRounds} · quedan ${remaining}`;
+    else if (rounds) sub = `Ronda ${view.segment.round} de ${view.plan.totalRounds}`;
     else if (type === 'fortime') sub = `Límite ${formatClock(run.config.cap)}`;
+    const meta = rounds && view.segment.kind !== 'prep' ? `Quedan ${remaining} en total` : null;
     const kind = view.paused ? 'paused' : view.segment.kind;
 
     body = view.done ? <>
@@ -179,32 +253,35 @@ export function TimerRunSheet() {
       </div>
     </> : <>
       <div className="timer-stage" data-kind={kind}>
-        <ProgressRing value={Math.min(1, view.segmentElapsed / view.segment.duration)}>
+        <ProgressRing value={Math.min(1, view.segmentElapsed / view.segment.duration)} waves={<Waves view={view} />}>
           <p className="timer-phase">{phaseOf(view)}</p>
           <div className="timer-clock num rounded">{clockOf(run, view)}</div>
           <p className="timer-sub">{sub}</p>
         </ProgressRing>
+        {meta && <p className="timer-meta num">{meta}</p>}
       </div>
-      {type === 'amrap' && <div className="round-counter">
-        <button type="button" className="big-action" onClick={timer.addRound}>+1 ronda</button>
-        <div className="round-count">
-          <span><b className="num rounded" key={run.rounds}>{run.rounds}</b> {run.rounds === 1 ? 'ronda' : 'rondas'}</span>
-          <button type="button" className="plain-button" onClick={timer.undoRound} disabled={!run.rounds}><Icon name="undo" /> Deshacer</button>
+      <div className="timer-panel">
+        {type === 'amrap' && <div className="round-counter">
+          <div className="round-count">
+            <span><b className="num rounded" key={run.rounds}>{run.rounds}</b> {run.rounds === 1 ? 'ronda' : 'rondas'}</span>
+            <button type="button" className="plain-button" onClick={timer.undoRound} disabled={!run.rounds}><Icon name="undo" /> Deshacer</button>
+          </div>
+          <button type="button" className="big-action" onClick={timer.addRound}>+1 ronda</button>
+        </div>}
+        {type === 'fortime' && <button type="button" className="big-action" onClick={timer.finishNow}><Icon name="flag" /> Terminé</button>}
+        <div className="timer-controls">
+          <button type="button" className="circle-button" onClick={confirmEnd}><span>Terminar</span></button>
+          <button type="button" className={`circle-button ${view.paused ? 'go' : 'hold'}`} onClick={timer.togglePause}>
+            <span>{view.paused ? 'Reanudar' : 'Pausa'}</span>
+          </button>
         </div>
-      </div>}
-      {type === 'fortime' && <button type="button" className="big-action" onClick={timer.finishNow}><Icon name="flag" /> Terminé</button>}
-      <div className="timer-controls">
-        <button type="button" className="circle-button" onClick={confirmEnd}><span>Terminar</span></button>
-        <button type="button" className={`circle-button ${view.paused ? 'go' : 'hold'}`} onClick={timer.togglePause}>
-          <span>{view.paused ? 'Reanudar' : 'Pausa'}</span>
-        </button>
       </div>
     </>;
   }
 
   return <Sheet open={open} onClose={timer.minimize} title={t?.name} className="timer-sheet" layer={3}
     leading={<button type="button" className="nav-icon" aria-label="Minimizar" onClick={timer.minimize}><Icon name="chevronDown" weight={2.6} /></button>}>
-    <div style={{ '--c': t ? `var(${t.color})` : undefined }}>{body}</div>
+    <div className="timer-body" data-done={!!view?.done} style={{ '--c': t ? `var(${t.color})` : undefined }}>{body}</div>
   </Sheet>;
 }
 

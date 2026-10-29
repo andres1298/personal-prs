@@ -1,5 +1,6 @@
 // Synthesized cue effects (no voice, no audio files). iOS only allows audio
-// after a user gesture, so unlock() must run inside a tap handler.
+// after a user gesture, so unlock() must run inside a tap handler. Web Audio
+// follows the iOS silent switch so cues mix with music from other apps.
 
 // [frequency Hz, offset s, duration s]
 const SOUNDS = {
@@ -17,8 +18,8 @@ export function createSoundPlayer() {
     const AudioContextClass = window.AudioContext || window.webkitAudioContext;
     if (!AudioContextClass) return;
     try {
-      context ??= new AudioContextClass();
-      if (context.state === 'suspended') context.resume();
+      if (!context || context.state === 'closed') context = new AudioContextClass();
+      wake().catch(() => {});
       // A silent buffer started from the gesture fully unlocks output on iOS.
       const source = context.createBufferSource();
       source.buffer = context.createBuffer(1, 1, 22050);
@@ -29,10 +30,21 @@ export function createSoundPlayer() {
     }
   }
 
+  // iOS reports 'interrupted' (not only 'suspended') after calls, Siri or other audio.
+  function wake() {
+    if (context.state === 'running') return Promise.resolve();
+    return Promise.resolve(context.resume());
+  }
+
   function play(cue) {
     const tones = SOUNDS[cue];
-    if (!tones || !context) return;
-    if (context.state === 'suspended') context.resume();
+    if (!tones || !context || context.state === 'closed') return;
+    // Schedule once the clock runs again; a stalled currentTime would place tones in the past.
+    wake().then(() => schedule(tones), () => {});
+  }
+
+  function schedule(tones) {
+    if (!context || context.state !== 'running') return;
     const now = context.currentTime + 0.01;
     for (const [frequency, offset, duration] of tones) {
       const oscillator = context.createOscillator();
