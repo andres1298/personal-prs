@@ -168,10 +168,13 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
           ? <div className="hero" data-status={status} data-editing={editing}>
             <div className="hero-weight num rounded" key={load.target}>{load.target}<span>lb</span></div>
             <div className="hero-sub num">{num(adjusted ? load.target / ex.base * 100 : ex.pct)}% de {num(ex.base)} lb · {toKg(load.target)} kg</div>
-            {!adjusted && <div className="hero-exact num">{num(ex.pct)}% exacto = {num2(load.raw)} lb · {load.target} lb es el {num2(load.target / ex.base * 100)}%</div>}
+            <div className="hero-foot">
+              {adjusted
+                ? <TargetStatus status={status} load={load} pct={ex.pct} onReset={() => setEx(resetAdj)} />
+                : <div className="hero-exact num">{num(ex.pct)}% exacto = {num2(load.raw)} lb · {load.target} lb es el {num2(load.target / ex.base * 100)}%</div>}
+            </div>
           </div>
           : <p className="empty compact">{ex.free ? 'Escribe un peso y el porcentaje para empezar' : 'Sin PR para este RM'}</p>}
-        {ex.base > 0 && adjusted && <TargetStatus status={status} load={load} pct={ex.pct} onReset={() => setEx(resetAdj)} />}
       </section>
 
       {ex.base > 0 && <div className={`workbench-panel${simple ? ' simple' : ''}`} data-tour="exec-panel">
@@ -186,20 +189,21 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
 }
 
 // Where the adjusted load stands against the percentage target: short of it, over it or on it.
+// One line in the same slot as the exact-percentage line, so the card keeps its height.
 const TARGET_STATUS = {
-  under: { icon: 'arrowDown', title: (lb) => `Faltan ${lb} lb`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
-  over: { icon: 'arrowUp', title: (lb) => `${lb} lb arriba`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
-  exact: { icon: 'check', title: () => 'En el objetivo', detail: (_, goal, pct) => `Meta ${goal} lb · ${pct}%` },
+  under: { icon: 'arrowDown', title: (lb) => `Faltan ${lb} lb`, detail: (side, goal) => `${side} por lado · meta ${goal}` },
+  over: { icon: 'arrowUp', title: (lb) => `${lb} lb arriba`, detail: (side, goal) => `${side} por lado · meta ${goal}` },
+  exact: { icon: 'check', title: () => 'En el objetivo', detail: (_, goal) => `meta ${goal} lb` },
 };
 
 function TargetStatus({ status, load, pct, onReset }) {
   const copy = TARGET_STATUS[status];
   const diff = Math.abs(load.target - load.start);
   return <div className="target-status" data-status={status} role="status">
-    <span className="target-icon"><Icon name={copy.icon} weight={2.8} /></span>
-    <span className="target-copy">
-      <b className="num">{copy.title(num(diff))}</b>
-      <small className="num">{copy.detail(num(diff / 2), load.start, num(pct))}</small>
+    <span className="target-copy num">
+      <Icon name={copy.icon} weight={3} />
+      <b>{copy.title(num(diff))}</b>
+      <span>· {copy.detail(num(diff / 2), load.start)}</span>
     </span>
     <button type="button" className="target-reset num" onClick={onReset} aria-label={`Volver al ${num(pct)}%`}>
       <Icon name="undo" weight={2.4} />{num(pct)}%
