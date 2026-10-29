@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback } from 'react';
 import { DEMO_RECORDS } from '../lib/catalog';
+import { cacheKey, useCachedList } from './hooks';
 
 async function send(url, body) {
   const response = await fetch(url, body
@@ -24,42 +25,28 @@ const liveApi = {
   addRecords: async (records) => (await send('/api/records/bulk', { records })).records,
 };
 
-export default function useRecords(hasBackend) {
+/** Live records open from the copy kept on the device for `scope` and refresh in the background. */
+export default function useRecords(hasBackend, scope) {
   const api = hasBackend ? liveApi : demoApi;
-  const [records, setRecords] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-
-  const load = useCallback(async (isCurrent = () => true) => {
-    setLoading(true); setError('');
-    try {
-      const loaded = await api.getRecords();
-      if (isCurrent()) setRecords(loaded);
-    } catch (err) {
-      if (!isCurrent()) return;
-      setRecords([]);
-      setError(err.message === 'Failed to fetch' ? 'No se pudieron cargar tus registros. Comprueba tu conexión.' : err.message);
-    }
-    if (isCurrent()) setLoading(false);
-  }, [api]);
-
-  useEffect(() => {
-    let current = true;
-    load(() => current);
-    return () => { current = false; };
-  }, [load]);
+  const list = useCachedList(api.getRecords, hasBackend ? cacheKey('records', scope) : null, {
+    failMessage: 'No se pudieron cargar tus registros. Comprueba tu conexión.',
+  });
+  const { update } = list;
 
   const addRecord = useCallback(async (record) => {
     const saved = await api.addRecord(record);
-    setRecords((list) => [...list, saved]);
+    update((current) => [...(current ?? []), saved]);
     return saved;
-  }, [api]);
+  }, [api, update]);
 
-  const addRecords = useCallback(async (list) => {
-    const saved = await api.addRecords(list);
-    setRecords((current) => [...current, ...saved]);
+  const addRecords = useCallback(async (records) => {
+    const saved = await api.addRecords(records);
+    update((current) => [...(current ?? []), ...saved]);
     return saved;
-  }, [api]);
+  }, [api, update]);
 
-  return { records, loading, error, reload: () => load(), addRecord, addRecords };
+  return {
+    records: list.items ?? [], loading: list.loading, error: list.error, stale: list.stale, synced: list.synced,
+    reload: list.reload, addRecord, addRecords,
+  };
 }
