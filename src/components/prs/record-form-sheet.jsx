@@ -1,6 +1,6 @@
 'use client';
 
-import { useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { RMS, getCatalog, moveInfo, parseValue, today } from '../../lib/catalog';
 import { useAlert } from '../ui/alert';
 import Sheet from '../ui/sheet';
@@ -16,7 +16,11 @@ function RecordForm({ initial, demo, onSave, onNewMovement, formId, onSavingChan
   const [date, setDate] = useState(today());
   const [notes, setNotes] = useState('');
   const [invalid, setInvalid] = useState(false);
-  const { type } = moveInfo(move);
+  const { type, tab } = moveInfo(move);
+  // A movement created from this form is selected as soon as it exists.
+  useEffect(() => {
+    if (initial.created) { setMove(initial.created); setInvalid(false); }
+  }, [initial.created]);
 
   async function submit(event) {
     event.preventDefault();
@@ -44,7 +48,7 @@ function RecordForm({ initial, demo, onSave, onNewMovement, formId, onSavingChan
             </optgroup>))}
         </select>
       </label>
-      {!demo && <button type="button" className="row row-button tint-row" onClick={onNewMovement}>Nuevo movimiento</button>}
+      {!demo && <button type="button" className="row row-button tint-row" onClick={() => onNewMovement({ tab })}>Nuevo movimiento</button>}
       <label className="field">
         <span>{type === 'time' ? 'Tiempo' : 'Peso'}</span>
         <input required inputMode={type === 'time' ? 'numeric' : 'decimal'} placeholder={type === 'time' ? 'mm:ss' : 'lb'}

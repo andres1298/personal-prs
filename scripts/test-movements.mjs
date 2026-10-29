@@ -20,8 +20,9 @@ function fakeDatabase({ movements = [], records = [], hidden = [] } = {}) {
     findMany: async () => movements.map((movement) => ({
       ...movement, hiddenBy: hidden.filter((item) => item.movementId === movement.id && item.profileId === ownerId),
     })),
-    findFirst: async ({ where }) => movements.find((movement) => movement.name.toLowerCase() === where.name.equals.toLowerCase() &&
-      where.OR.some((owner) => movement.ownerId === owner.ownerId)) ?? null,
+    findFirst: async ({ where }) => movements.find((movement) => where.OR.some((owner) => movement.ownerId === owner.ownerId) &&
+      (where.name ? movement.name.toLowerCase() === where.name.equals.toLowerCase()
+        : movement.category === where.category && movement.groupName.toLowerCase() === where.groupName.equals.toLowerCase())) ?? null,
     create: async ({ data }) => { movements.push({ ...data }); return { ...data }; },
     delete: async ({ where }) => { movements.splice(movements.findIndex((movement) => movement.id === where.id), 1); },
   };
@@ -71,6 +72,28 @@ test('creates private movements with a category from the measurement type', asyn
   assert.deepEqual([time.name, time.category], ['Sled Push', 'BENCHMARK']);
   assert.deepEqual(db.movements.filter((movement) => movement.ownerId === ownerId).map((movement) => movement.groupName), ['Custom', 'Custom']);
   assert.deepEqual(db.transactions, [{ isolationLevel: 'Serializable' }, { isolationLevel: 'Serializable' }]);
+});
+
+test('creates movements in a chosen section and group, reusing the spelling of an existing group', async () => {
+  const { api, db } = await service({ movements: base() });
+  const run = await api.createMovement(ownerId, { name: 'Sprint', category: 'CARDIO', groupName: '  Sprints ' });
+  assert.deepEqual([run.category, run.measurementType, run.groupName], ['CARDIO', 'TIME', 'Sprints']);
+  // An existing group in the same section keeps its spelling, shared or own.
+  assert.equal((await api.createMovement(ownerId, { name: 'Box Squat', category: 'LIFT', groupName: 'squats' })).groupName, 'Squats');
+  assert.equal((await api.createMovement(ownerId, { name: 'Hill Sprint', category: 'CARDIO', groupName: 'SPRINTS' })).groupName, 'Sprints');
+  // The same name in another section is a different group.
+  assert.equal((await api.createMovement(ownerId, { name: 'Tabata', category: 'BENCHMARK', groupName: 'sprints' })).groupName, 'sprints');
+  // Without a group, own movements share the default one; a matching measurement type is accepted.
+  assert.equal((await api.createMovement(ownerId, { name: 'Row Sprint', category: 'CARDIO', measurementType: 'TIME' })).groupName, 'Custom');
+  // Another member's group never decides the spelling.
+  db.movements.push({ ...shared('theirs', 'Their Move'), ownerId: otherId, groupName: 'Gymnastics' });
+  assert.equal((await api.createMovement(ownerId, { name: 'Ring Dip', category: 'LIFT', groupName: 'GYMNASTICS' })).groupName, 'GYMNASTICS');
+  for (const input of [
+    { name: 'Bad', category: 'YOGA' }, { name: 'Bad', category: 'LIFT', measurementType: 'TIME' },
+    { name: 'Bad', category: 'CARDIO', measurementType: 'WEIGHT' }, { name: 'Bad', category: 'LIFT', groupName: '' },
+    { name: 'Bad', category: 'LIFT', groupName: 'x'.repeat(api.GROUP_NAME_MAX + 1) }, { name: 'Bad', category: 'LIFT', groupName: 7 },
+    { name: 'Bad', category: 'LIFT', groupName: 'Bell\u0007' },
+  ]) await assert.rejects(api.createMovement(ownerId, input), api.MovementInputError);
 });
 
 test('rejects invalid, duplicate and excess movements', async () => {

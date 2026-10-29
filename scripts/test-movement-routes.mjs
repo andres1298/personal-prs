@@ -72,6 +72,10 @@ test('reads, creation, hiding and deletion use only the verified identity', asyn
   assert.equal(read.headers.get('Cache-Control'), 'private, no-store');
   assert.equal((await list.handlers.POST(send('POST', '/api/movements', { name: 'Thruster', measurementType: 'WEIGHT' }))).status, 201);
   assert.deepEqual(list.calls, [['list', ownerId], ['create', ownerId, { name: 'Thruster', measurementType: 'WEIGHT' }]]);
+  // Section and category are forwarded for the service to validate.
+  const input = { name: 'Muscle Up', category: 'BENCHMARK', groupName: 'Gimnasia' };
+  assert.equal((await list.handlers.POST(send('POST', '/api/movements', input))).status, 201);
+  assert.deepEqual(list.calls.at(-1), ['create', ownerId, input]);
   const single = await item(allowed);
   assert.equal((await single.handlers.PATCH(send('PATCH', '/api/movements/m1', { hidden: true }), params())).status, 200);
   assert.equal((await single.handlers.DELETE(send('DELETE', '/api/movements/m1'), params())).status, 200);
