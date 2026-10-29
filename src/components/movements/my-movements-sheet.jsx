@@ -1,6 +1,7 @@
 'use client';
 
 import { useMemo } from 'react';
+import { CUSTOM_GROUP } from '../../lib/catalog';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
 import Sheet from '../ui/sheet';
@@ -8,6 +9,8 @@ import { List, Row } from '../ui/list';
 import { Switch, SymbolTile } from '../ui/controls';
 
 const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
+const SECTIONS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks' };
+const ownGroup = (movement) => (movement.groupName === 'Custom' ? CUSTOM_GROUP.name : movement.groupName);
 
 export default function MyMovementsSheet({ open, onClose, movements, onNew, onHide, onDelete }) {
   const alert = useAlert();
@@ -55,12 +58,13 @@ export default function MyMovementsSheet({ open, onClose, movements, onNew, onHi
     trailing={<button type="button" className="nav-text strong" onClick={onClose}>Listo</button>}>
     <List header="Creados por ti" footer="Solo tú los ves. Al eliminar uno se borran también sus registros.">
       {own.map((movement) => <Row key={movement.id} title={movement.name}
-        subtitle={movement.measurementType === 'WEIGHT' ? 'Peso · 1RM, 3RM, 5RM' : 'Tiempo'}>
+        subtitle={`${SECTIONS[movement.category] ?? 'Benchmarks'} · ${ownGroup(movement)} · ${movement.measurementType === 'WEIGHT' ? 'Peso' : 'Tiempo'}`}>
         <button type="button" className="nav-text danger" aria-label={`Eliminar ${movement.name}`} onClick={() => remove(movement)}>
           Eliminar
         </button>
       </Row>)}
-      <Row leading={<SymbolTile color="--indigo"><Icon name="plus" /></SymbolTile>} title="Nuevo movimiento" chevron onClick={onNew} />
+      <Row leading={<SymbolTile color="--indigo"><Icon name="plus" /></SymbolTile>} title="Nuevo movimiento"
+        subtitle="En una categoría existente o una nueva" chevron onClick={onNew} />
     </List>
     {shared.map((group) => <List key={group.name} header={group.name}
       footer={group === shared[shared.length - 1] ? 'Si desactivas un movimiento deja de aparecer, pero conservas su historial. Se muestra de nuevo al activarlo.' : undefined}>

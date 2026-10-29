@@ -94,6 +94,12 @@ try {
   const custom = await createMovement(ownerId, { name: 'Test Thruster', measurementType: 'WEIGHT' });
   const theirs = await createMovement(otherId, { name: 'Test Thruster', measurementType: 'WEIGHT' });
   assert.notEqual(custom.id, theirs.id);
+  // A chosen section and group are stored; an existing group keeps its spelling.
+  const grouped = await createMovement(ownerId, { name: 'Test Box Squat', category: 'LIFT', groupName: 'squats' });
+  const sprint = await createMovement(ownerId, { name: 'Test Sprint', category: 'CARDIO', groupName: 'Test Sprints' });
+  assert.deepEqual([grouped.category, grouped.groupName, sprint.measurementType, sprint.groupName], ['LIFT', 'Squats', 'TIME', 'Test Sprints']);
+  await deleteMovement(ownerId, grouped.id);
+  await deleteMovement(ownerId, sprint.id);
   const customRecord = { movementName: 'Test Thruster', value: '95', performedOn: '2026-03-02', repetitionMax: 5 };
   assert.equal((await createRecord(ownerId, customRecord)).movementId, custom.id);
   assert.equal((await createRecord(otherId, customRecord)).movementId, theirs.id);
