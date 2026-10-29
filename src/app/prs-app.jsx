@@ -32,19 +32,23 @@ export default function App(props) {
   </AlertProvider>;
 }
 
-function Banner({ loading, demo, error, onRetry }) {
+function Banner({ loading, demo, error, stale, onRetry }) {
   if (loading) return <div className="banner" role="status"><span className="spinner" aria-hidden="true" />Cargando tus PRs…</div>;
   if (demo) return <div className="banner warn"><span>Datos de ejemplo · cambios solo en esta sesión</span><Link href="/">Iniciar sesión</Link></div>;
   if (error) return <div className="banner warn" role="alert"><span>{error}</span><button type="button" onClick={onRetry}>Reintentar</button></div>;
+  if (stale) return <div className="banner warn" aria-live="polite"><span>{stale}</span><button type="button" onClick={onRetry}>Actualizar</button></div>;
   return null;
 }
 
 function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, scope }) {
   const alert = useAlert();
-  const { records, loading: loadingRecords, error: recordsError, reload: reloadRecords, addRecord, addRecords } = useRecords(hasBackend);
-  const movements = useMovements(hasBackend);
+  const {
+    records, loading: loadingRecords, error: recordsError, stale: recordsStale, synced, reload: reloadRecords, addRecord, addRecords,
+  } = useRecords(hasBackend, scope);
+  const movements = useMovements(hasBackend, scope);
   const loading = loadingRecords || movements.loading;
   const error = recordsError || movements.error;
+  const stale = recordsStale || movements.stale;
   const reload = () => { reloadRecords(); movements.reload(); };
   const [settings, updateSettings, ready] = useStoredState(`prs_settings_${scope}`, SETTINGS_DEFAULTS);
   const [ex, updateEx] = useStoredState(`prs_exec_${scope}`, EXERCISE_DEFAULTS, restoreExercise);
@@ -80,17 +84,18 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   }, [ready, tourReady, autoTour]);
 
   // Offer the quick upload once to accounts that have no records yet, after the tour.
+  // The device copy can be out of date, so it waits for the server's answer.
   const tourPending = !tourReady || autoTour || tourOpen;
   useEffect(() => {
     const key = `prs_quick_prompt_${scope}`;
-    if (tourPending || !hasBackend || loading || error || records.length || readStored(key, {}).seen) return;
+    if (tourPending || !hasBackend || !synced || error || records.length || readStored(key, {}).seen) return;
     writeStored(key, { seen: true });
     alert({
       title: '¿Quieres hacer un cargado rápido de tus pesos?',
       message: 'Escribe tus PRs de una vez y empieza a calcular tus cargas.',
       actions: [{ label: 'Ahora no', role: 'cancel' }, { label: 'Empezar', value: true }],
     }).then((start) => start && setQuickOpen(true));
-  }, [tourPending, hasBackend, loading, error, records.length, scope, alert]);
+  }, [tourPending, hasBackend, synced, error, records.length, scope, alert]);
 
   // Simple mode has no warm-up ladder, so its step is left out.
   const tourSteps = useMemo(() => TOUR_STEPS.filter((step) => !(settings.simple && step.advanced)), [settings.simple]);
@@ -155,7 +160,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     setQuickOpen(false);
   }
 
-  const banner = <Banner loading={loading} demo={!hasBackend} error={error} onRetry={reload} />;
+  const banner = <Banner loading={loading} demo={!hasBackend} error={error} stale={stale} onRetry={reload} />;
   if (!ready || !connected) return <SignalLoader />;
 
   return <>

@@ -1,7 +1,8 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useMemo } from 'react';
 import { buildCatalog, setCatalog } from '../lib/catalog';
+import { cacheKey, useCachedList } from './hooks';
 
 async function call(url, method, body) {
   const response = await fetch(url, {
@@ -13,34 +14,19 @@ async function call(url, method, body) {
   return data;
 }
 
+const fetchMovements = async () => (await call('/api/movements', 'GET')).movements;
+
 /**
  * The member's movement catalog: shared movements, their own, and which shared ones
  * they turned off. Demo sessions keep the static catalog and have no custom movements.
- * The catalog is applied during render so every view below reads the same one.
+ * The catalog is applied during render so every view below reads the same one. Live
+ * sessions open from the copy kept on the device for `scope` and refresh in the background.
  */
-export default function useMovements(hasBackend) {
-  const [movements, setMovements] = useState(null);
-  const [loading, setLoading] = useState(hasBackend);
-  const [error, setError] = useState('');
-
-  const load = useCallback(async (isCurrent = () => true) => {
-    if (!hasBackend) return;
-    setLoading(true); setError('');
-    try {
-      const loaded = (await call('/api/movements', 'GET')).movements;
-      if (isCurrent()) setMovements(loaded);
-    } catch (err) {
-      if (!isCurrent()) return;
-      setError(err.message === 'Failed to fetch' ? 'No se pudieron cargar tus movimientos. Comprueba tu conexión.' : err.message);
-    }
-    if (isCurrent()) setLoading(false);
-  }, [hasBackend]);
-
-  useEffect(() => {
-    let current = true;
-    load(() => current);
-    return () => { current = false; };
-  }, [load]);
+export default function useMovements(hasBackend, scope) {
+  const list = useCachedList(fetchMovements, hasBackend ? cacheKey('movements', scope) : null, {
+    enabled: hasBackend, failMessage: 'No se pudieron cargar tus movimientos. Comprueba tu conexión.',
+  });
+  const { items: movements, error, update } = list;
 
   const built = useMemo(() => (hasBackend && movements && !error ? buildCatalog(movements) : null), [hasBackend, movements, error]);
   setCatalog(built);
@@ -48,21 +34,24 @@ export default function useMovements(hasBackend) {
   // input: { name, category, groupName? }; without groupName it goes to "Mis movimientos".
   const createMovement = useCallback(async (input) => {
     const { movement } = await call('/api/movements', 'POST', input);
-    setMovements((list) => [...(list ?? []), movement]);
+    update((current) => [...(current ?? []), movement]);
     return movement;
-  }, []);
+  }, [update]);
 
   const setHidden = useCallback(async (id, hidden) => {
     await call(`/api/movements/${encodeURIComponent(id)}`, 'PATCH', { hidden });
-    setMovements((list) => list.map((movement) => (movement.id === id ? { ...movement, hidden } : movement)));
-  }, []);
+    update((current) => current.map((movement) => (movement.id === id ? { ...movement, hidden } : movement)));
+  }, [update]);
 
   // A movement with records rejects with err.recordCount until `confirmed` is true.
   const removeMovement = useCallback(async (id, confirmed = false) => {
     const result = await call(`/api/movements/${encodeURIComponent(id)}${confirmed ? '?confirm=true' : ''}`, 'DELETE');
-    setMovements((list) => list.filter((movement) => movement.id !== id));
+    update((current) => current.filter((movement) => movement.id !== id));
     return result;
-  }, []);
+  }, [update]);
 
-  return { movements: movements ?? [], loading, error, reload: () => load(), createMovement, setHidden, removeMovement };
+  return {
+    movements: movements ?? [], loading: list.loading, error, stale: list.stale, reload: list.reload,
+    createMovement, setHidden, removeMovement,
+  };
 }

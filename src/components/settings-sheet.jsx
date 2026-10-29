@@ -8,6 +8,7 @@ import Sheet from './ui/sheet';
 import { List, Row } from './ui/list';
 import { SegmentedControl, Switch, SymbolTile } from './ui/controls';
 import AdminPanel from '../app/admin-panel';
+import { clearCaches } from './hooks';
 
 export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin, onTour, onMyMovements }) {
   const togglePlate = (plate) => updateSettings((s) => ({
@@ -49,7 +50,7 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
         subtitle={demo ? 'Datos de ejemplo · cambios solo en esta sesión' : 'Conectado a tu cuenta'} />
       {demo
         ? <Link className="row row-button tint-row" href="/">Iniciar sesión</Link>
-        : <form action="/auth/logout" method="post"><button className="row row-button danger-row">Cerrar sesión</button></form>}
+        : <form action="/auth/logout" method="post" onSubmit={clearCaches}><button className="row row-button danger-row">Cerrar sesión</button></form>}
     </List>
     {isAdmin && <AdminPanel />}
   </Sheet>;
