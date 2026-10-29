@@ -5,9 +5,9 @@ import { CATALOG_TABS, bestRecord, firstRm, formatValue, getCatalog } from '../.
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
 import { LargeTitle } from '../ui/nav-bar';
-import { SegmentedControl } from '../ui/controls';
+import { SegmentedControl, SymbolTile } from '../ui/controls';
 
-export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
+export default function PrsView({ records, banner, busy, onQuick, onOpen, onNewMovement }) {
   const [tab, setTab] = useState('Lift');
   const [group, setGroup] = useState(null);
   const { type, groups } = getCatalog()[tab];
@@ -42,5 +42,9 @@ export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
       {g.moves.map((move) => <Row key={move} title={move} chevron onClick={() => onOpen(move)}
         detail={label(move) || <span className="muted">—</span>} />)}
     </List>)}
+    {onNewMovement && <List footer="Crea tus propios ejercicios y organízalos en tus propias categorías.">
+      <Row leading={<SymbolTile color="--indigo"><Icon name="plus" /></SymbolTile>} title="Nuevo movimiento"
+        subtitle={`En ${group ?? tab}`} chevron onClick={() => onNewMovement({ tab, group })} />
+    </List>}
   </>;
 }

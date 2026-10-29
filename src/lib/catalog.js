@@ -47,7 +47,18 @@ const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--mut
 // once per render with setCatalog; until then the shared base catalog applies.
 // `info` also knows turned-off movements, so their history keeps its unit and group.
 const TABS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks' };
+export const TAB_CATEGORIES = Object.fromEntries(Object.entries(TABS).map(([category, tab]) => [tab, category]));
 export const CUSTOM_GROUP = { name: 'Mis movimientos', color: '--indigo' };
+// Own movements created before categories existed are stored under this group.
+const LEGACY_CUSTOM_GROUP = 'Custom';
+const CUSTOM_COLORS = ['--teal', '--pink', '--green', '--amber', '--blue', '--purple', '--mint', '--cyan'];
+
+// A member's own group keeps the same color wherever it shows and whatever groups are added later.
+function customColor(name) {
+  let hash = 0;
+  for (const char of name.toLowerCase()) hash = (hash * 31 + char.codePointAt(0)) | 0;
+  return CUSTOM_COLORS[Math.abs(hash) % CUSTOM_COLORS.length];
+}
 const BASE_GROUPS = new Map(Object.values(BASE_CATALOG).flatMap(({ groups }) => groups.map((group) => [group.name, group])));
 const BASE_ORDER = new Map(Object.values(BASE_CATALOG).flatMap(({ groups }) => groups.flatMap((group) => group.moves)).map((move, index) => [move, index]));
 
@@ -63,7 +74,8 @@ let active = indexCatalog(BASE_CATALOG);
  * Builds a member's catalog from /api/movements rows
  * ({ name, category, groupName, measurementType, custom, hidden }).
  * Shared movements keep the base order; new ones follow. Hidden ones leave the catalog
- * but stay known to moveInfo. Own movements form one group per tab.
+ * but stay known to moveInfo. Own movements join the group they were created in, which
+ * may be a shared group or one of the member's own; older ones share "Mis movimientos".
  */
 export function buildCatalog(movements) {
   const full = { Lift: { type: 'weight', groups: [] }, Cardio: { type: 'time', groups: [] }, Benchmarks: { type: 'time', groups: [] } };
@@ -73,10 +85,12 @@ export function buildCatalog(movements) {
   ordered.sort((a, b) => Number(a.custom) - Number(b.custom));
   for (const movement of ordered) {
     const tab = full[TABS[movement.category]] ?? full.Benchmarks;
-    const label = movement.custom ? CUSTOM_GROUP.name : movement.groupName;
+    const label = movement.custom && movement.groupName === LEGACY_CUSTOM_GROUP ? CUSTOM_GROUP.name : movement.groupName;
     let group = tab.groups.find((g) => g.name === label);
     if (!group) {
-      group = { name: label, color: movement.custom ? CUSTOM_GROUP.color : BASE_GROUPS.get(label)?.color ?? '--muted', moves: [], hidden: new Set() };
+      const color = label === CUSTOM_GROUP.name ? CUSTOM_GROUP.color
+        : BASE_GROUPS.get(label)?.color ?? (movement.custom ? customColor(label) : '--muted');
+      group = { name: label, color, moves: [], hidden: new Set() };
       tab.groups.push(group);
     }
     group.moves.push(movement.name);

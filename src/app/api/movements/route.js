@@ -38,13 +38,13 @@ export async function POST(request) {
       input = JSON.parse(body);
     } catch { return json({ error: 'Movimiento inválido.' }, 400); }
     if (!input || typeof input !== 'object' || Array.isArray(input) ||
-        Object.keys(input).some((key) => !['name', 'measurementType'].includes(key))) {
+        Object.keys(input).some((key) => !['name', 'measurementType', 'category', 'groupName'].includes(key))) {
       return json({ error: 'Revisa los datos del movimiento.' }, 400);
     }
     return json({ movement: await createMovement(access.user.id, input) }, 201);
   } catch (error) {
     if (error instanceof MovementConflictError) return json({ error: 'Ya existe un movimiento con ese nombre.' }, 409);
-    if (error instanceof MovementInputError) return json({ error: 'Revisa el nombre, el tipo y el límite de movimientos propios.' }, 400);
+    if (error instanceof MovementInputError) return json({ error: 'Revisa el nombre, la sección, la categoría y el límite de movimientos propios.' }, 400);
     return json({ error: 'No se pudo crear el movimiento. Inténtalo de nuevo.' }, 503);
   }
 }

@@ -45,8 +45,9 @@ export default function useMovements(hasBackend) {
   const built = useMemo(() => (hasBackend && movements && !error ? buildCatalog(movements) : null), [hasBackend, movements, error]);
   setCatalog(built);
 
-  const createMovement = useCallback(async (name, measurementType) => {
-    const { movement } = await call('/api/movements', 'POST', { name, measurementType });
+  // input: { name, category, groupName? }; without groupName it goes to "Mis movimientos".
+  const createMovement = useCallback(async (input) => {
+    const { movement } = await call('/api/movements', 'POST', input);
     setMovements((list) => [...(list ?? []), movement]);
     return movement;
   }, []);

@@ -5,7 +5,9 @@ import { getPrisma } from './prisma.js';
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const MAX_CUSTOM_MOVEMENTS = 30;
 export const MOVEMENT_NAME_MAX = 40;
+export const GROUP_NAME_MAX = 24;
 const CUSTOM_GROUP = 'Custom';
+const CATEGORY_TYPES = { LIFT: 'WEIGHT', CARDIO: 'TIME', BENCHMARK: 'TIME' };
 
 export class MovementInputError extends Error {}
 export class MovementNotFoundError extends Error {}
@@ -37,14 +39,31 @@ function movementDto(movement, profileId) {
   };
 }
 
-function validatedName(value) {
+function validatedName(value, max = MOVEMENT_NAME_MAX) {
   if (typeof value !== 'string') throw new MovementInputError('Name must be text.');
   const name = value.replace(/\s+/g, ' ').trim();
   // eslint-disable-next-line no-control-regex
-  if (!name || name.length > MOVEMENT_NAME_MAX || /[\u0000-\u001f\u007f]/.test(name)) {
-    throw new MovementInputError(`Name must have 1 to ${MOVEMENT_NAME_MAX} printable characters.`);
+  if (!name || name.length > max || /[\u0000-\u001f\u007f]/.test(name)) {
+    throw new MovementInputError(`Name must have 1 to ${max} printable characters.`);
   }
   return name;
+}
+
+// The category decides the measurement type. Older clients send only the measurement type,
+// which keeps its previous category: weight is a lift and time a benchmark.
+function validatedKind(input) {
+  const { category, measurementType } = input;
+  if (category === undefined) {
+    if (measurementType !== 'WEIGHT' && measurementType !== 'TIME') {
+      throw new MovementInputError('Measurement type must be WEIGHT or TIME.');
+    }
+    return { category: measurementType === 'WEIGHT' ? 'LIFT' : 'BENCHMARK', measurementType };
+  }
+  if (!Object.hasOwn(CATEGORY_TYPES, category)) throw new MovementInputError('Category must be LIFT, CARDIO or BENCHMARK.');
+  if (measurementType !== undefined && measurementType !== CATEGORY_TYPES[category]) {
+    throw new MovementInputError('The measurement type does not match the category.');
+  }
+  return { category, measurementType: CATEGORY_TYPES[category] };
 }
 
 // Shared movements plus the member's own, each flagged with the member's hidden state.
@@ -62,10 +81,8 @@ export async function createMovement(authUserId, input) {
   const profileId = requireProfileId(authUserId);
   if (!input || typeof input !== 'object') throw new MovementInputError('Movement input is required.');
   const name = validatedName(input.name);
-  if (input.measurementType !== 'WEIGHT' && input.measurementType !== 'TIME') {
-    throw new MovementInputError('Measurement type must be WEIGHT or TIME.');
-  }
-  const measurementType = input.measurementType;
+  const { category, measurementType } = validatedKind(input);
+  const requestedGroup = input.groupName === undefined ? null : validatedName(input.groupName, GROUP_NAME_MAX);
   try {
     return await getPrisma().$transaction(async (tx) => {
       if (await tx.movement.count({ where: { ownerId: profileId } }) >= MAX_CUSTOM_MOVEMENTS) {
@@ -76,10 +93,15 @@ export async function createMovement(authUserId, input) {
         select: { id: true },
       });
       if (duplicate) throw new MovementConflictError('A movement with this name already exists.');
+      // A group that already exists in the category keeps its spelling, so "squats" joins "Squats".
+      const existingGroup = requestedGroup && await tx.movement.findFirst({
+        where: { category, groupName: { equals: requestedGroup, mode: 'insensitive' }, OR: [{ ownerId: null }, { ownerId: profileId }] },
+        select: { groupName: true },
+      });
       const movement = await tx.movement.create({
         data: {
-          id: randomUUID(), name, ownerId: profileId, measurementType, groupName: CUSTOM_GROUP,
-          category: measurementType === 'WEIGHT' ? 'LIFT' : 'BENCHMARK',
+          id: randomUUID(), name, ownerId: profileId, measurementType, category,
+          groupName: existingGroup?.groupName ?? requestedGroup ?? CUSTOM_GROUP,
         },
       });
       return movementDto(movement, profileId);

@@ -83,18 +83,27 @@ test('a member catalog adds own movements, hides turned-off ones and keeps their
     row('Back Squat', 'LIFT', 'Squats', 'WEIGHT'),
     row('Thruster', 'LIFT', 'Custom', 'WEIGHT', { custom: true }),
     row('Grace', 'BENCHMARK', 'Girls', 'TIME'),
+    row('Box Squat', 'LIFT', 'Squats', 'WEIGHT', { custom: true }),
+    row('Ring Dip', 'LIFT', 'Gimnasia', 'WEIGHT', { custom: true }),
+    row('Muscle Up', 'LIFT', 'Gimnasia', 'WEIGHT', { custom: true }),
+    row('Sprint', 'CARDIO', 'Mis movimientos', 'TIME', { custom: true }),
   ];
   try {
     setCatalog(buildCatalog(rows));
     const catalog = getCatalog();
-    // Shared movements keep the base order and own ones form a last group.
+    // Shared movements keep the base order; own ones join their group, older ones share "Mis movimientos".
     assert.deepEqual(catalog.Lift.groups.map((group) => [group.name, group.moves]), [
-      ['Squats', ['Back Squat', 'Front Squat']], ['Mis movimientos', ['Thruster']],
+      ['Squats', ['Back Squat', 'Front Squat', 'Box Squat']], ['Gimnasia', ['Muscle Up', 'Ring Dip']], ['Mis movimientos', ['Thruster']],
     ]);
+    assert.deepEqual(catalog.Cardio.groups.map((group) => [group.name, group.moves]), [['Mis movimientos', ['Sprint']]]);
+    const colors = Object.fromEntries(catalog.Lift.groups.map((group) => [group.name, group.color]));
+    assert.equal(colors['Mis movimientos'], '--indigo');
+    assert.match(colors.Gimnasia, /^--[a-z]+$/);
+    assert.notEqual(colors.Gimnasia, '--muted');
     assert.deepEqual(catalog.Benchmarks.groups.map((group) => [group.name, group.moves]), [
       ['Girls', ['Grace']], ['Mis movimientos', ['Sled Push']],
     ]);
-    assert.deepEqual(weightGroups().flatMap((group) => group.moves), ['Back Squat', 'Front Squat', 'Thruster']);
+    assert.deepEqual(weightGroups().flatMap((group) => group.moves), ['Back Squat', 'Front Squat', 'Box Squat', 'Muscle Up', 'Ring Dip', 'Thruster']);
     assert.equal(moveInfo('Thruster').type, 'weight');
     assert.equal(moveInfo('Sled Push').type, 'time');
     // A turned-off movement leaves the lists but its records keep their unit.
