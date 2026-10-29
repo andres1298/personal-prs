@@ -1,6 +1,6 @@
 # Supabase Auth and invitation-only access
 
-Accounts use Supabase email/password sessions stored in cookies. There are two ways in: accepting a single-use invitation issued by an administrator, or signing up on `/register` and confirming their email. Both end in a profile row, and access is always "enabled profile". Prisma accesses Postgres only on the server.
+Accounts use Supabase email/password sessions stored in cookies. Members who forget their password can reset it by email (see "Password recovery"). There are two ways in: accepting a single-use invitation issued by an administrator, or signing up on `/register` and confirming their email. Both end in a profile row, and access is always "enabled profile". Prisma accesses Postgres only on the server.
 
 ## Environment configuration
 
@@ -21,11 +21,85 @@ Vercel's Supabase integration installs the public Supabase variables, `SUPABASE_
 ## Configure Supabase
 
 1. **Authentication → Sign In / Providers**: keep **Email** enabled, **enable "Allow new users to sign up"** and **"Confirm email"**, and disable any other provider (including Google). Sign-ups must stay on because `/auth/register` calls `auth.signUp()` (see "What protects an open sign-up").
-2. **Authentication → URL Configuration**: set **Site URL** to the production domain and add `https://<domain>/auth/callback` (and the preview/local equivalents you use) to **Redirect URLs**.
-3. **Authentication → Emails → Templates → Confirm signup**: change the button link to `{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=signup`. `{{ .RedirectTo }}` is the `/auth/callback` URL the server sends (always the public site, see `SITE_URL`), so the link never depends on which deployment served the form; it must be in the Redirect URLs list or Supabase falls back to the Site URL. This form works even when the email is opened on another device; the default link needs the same browser that registered.
+2. **Authentication → URL Configuration**: set **Site URL** to the production domain and add `https://<domain>/auth/callback` and `https://<domain>/reset-password` (and the preview/local equivalents you use) to **Redirect URLs**.
+3. **Authentication → Emails → Templates**: paste the **Confirm signup** and **Reset password** templates from "Email templates". The email texts live only in the Supabase dashboard, not in this repository, so keep that section in sync when you edit them there.
 4. **Authentication → Attack Protection**: leave **CAPTCHA protection off**. A Turnstile token can be redeemed once and the server already verifies it; enabling Supabase's check would make one of the two verifications fail.
-5. **Authentication → SMTP**: enable custom SMTP. The built-in sender only mails project team members and has a very low hourly limit, so real members would not receive confirmations. Without a domain of your own, Gmail works: host `smtp.gmail.com`, port `465`, username the full Gmail address, password an [app password](https://myaccount.google.com/apppasswords) (requires 2-step verification), sender the same address. Paste the app password only into Supabase; never into issues, PRs or logs. If confirmation emails land in spam or the group outgrows Gmail's daily limit, buy a domain and move to a provider such as Resend by changing only these fields.
+5. **Authentication → Emails → SMTP Settings**: enable custom SMTP with Gmail, following "Gmail SMTP". The built-in sender only mails project team members and has a very low hourly limit, so real members would not receive confirmations or recovery links.
 6. Apply migrations and the movement catalog to the linked database: `npm run db:migrate:deploy` and `npm run db:seed`.
+
+## Gmail SMTP
+
+Supabase sends every Auth email (sign-up confirmation, password recovery) through a Gmail account. There is no domain or other provider.
+
+**Use a Gmail account dedicated to the app** (for example a new `mispr…@gmail.com`), never a personal one. An app password grants full SMTP access to the account, bypasses 2-step verification, and is stored in Supabase: anyone who obtains it can send mail as that account. A dedicated account limits the damage to the app's mailbox, keeps the sending quota for the app only, and lets you revoke or rotate without touching personal mail.
+
+1. Create the dedicated Gmail account and sign in to it.
+2. Open **Google Account → Security → 2-Step Verification** and turn it on (app passwords do not exist without it). Store the recovery codes somewhere safe.
+3. Open **Google Account → Security → App passwords** (or `https://myaccount.google.com/apppasswords`), name it `Supabase`, and create it. Google shows a 16-character password once. Do not save it in a file, chat, issue, PR or log.
+4. In Supabase open **Authentication → Emails → SMTP Settings** and enable **Custom SMTP**:
+   - **Sender email**: the dedicated Gmail address (Gmail rewrites any other From address to this one).
+   - **Sender name**: `Mis PRs`.
+   - **Host**: `smtp.gmail.com`. **Port**: `465` (SSL). `587` (STARTTLS) also works if 465 is blocked.
+   - **Username**: the full Gmail address.
+   - **Password**: paste the app password directly from Google's dialog, then save. Supabase does not show it again.
+   - **Minimum interval between emails**: keep the default (60 s per user).
+5. Open **Authentication → Rate Limits** and set **Rate limit for sending emails** to `30` per hour. That covers about 20 members confirming or recovering at once and keeps a sustained burst well under Gmail's daily limit.
+6. Open **Authentication → Sign In / Providers → Email** and keep **Email OTP Expiration** at `3600` seconds; the recovery screen tells members the link lasts 1 hour.
+7. Send yourself a recovery email from `/forgot-password` and check that it arrives, from `Mis PRs`, outside spam.
+
+Rotate the app password if it may have leaked or someone who had it leaves: create a new one, paste it in Supabase, then revoke the old one in **App passwords**. Changing the Google account password revokes every app password, so update Supabase right after.
+
+### Known limits
+
+| Limit | Value | Effect |
+| --- | --- | --- |
+| Gmail daily sending | About 500 recipients per rolling 24 h for a free account | Further sends fail until the window rolls over |
+| Supabase email rate | Configured above (30/h) | Further Auth emails fail with a rate-limit error |
+| Supabase per-user interval | 60 s | A second request for the same address within a minute is ignored |
+| App recovery limit | 3 requests per email and 10 per IP per hour | The form shows "Demasiadas solicitudes" |
+| Recovery link | Single use, 1 hour | Expired or used links show a message with a button to ask for a new one |
+
+### If Gmail blocks sending
+
+Symptoms: members report no email, and **Logs → Auth** in Supabase shows SMTP errors.
+
+1. **Credentials rejected** (the log mentions authentication or "Username and Password not accepted"): the app password was revoked, often by a Google password change. Create a new one and paste it in Supabase.
+2. **Daily limit exceeded**: Gmail stops sending for up to 24 h. Wait; meanwhile, admins can bring people in with invitation links, which need no email.
+3. **Account locked or "suspicious activity"**: sign in to the dedicated account in a browser, review **Security → Recent security activity**, confirm it was you, and wait for Google to lift the restriction.
+4. **Emails land in spam**: ask members to mark the message as "No es spam" and add the sender to contacts; keep the templates short, without images or shortened links.
+5. If blocks repeat or the group grows beyond what Gmail allows, buy a domain and move to a transactional provider (for example Resend) by changing only the SMTP fields.
+
+## Email templates
+
+Paste these in **Authentication → Emails → Templates**. They are short, plain and name the app in the subject, which keeps them recognizable and less likely to be filtered. Both links use `{{ .TokenHash }}` so they work on any device, and `{{ .RedirectTo }}`, the public URL sent by the server (it must be in **Redirect URLs**, or Supabase falls back to the Site URL).
+
+**Confirm signup** — subject: `Confirma tu cuenta de Mis PRs`
+
+```html
+<h2>Confirma tu cuenta</h2>
+<p>Hola, usa este enlace para activar tu cuenta de Mis PRs:</p>
+<p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=signup">Confirmar mi correo</a></p>
+<p>Si no creaste una cuenta, ignora este correo.</p>
+```
+
+**Reset password** — subject: `Restablece tu contraseña de Mis PRs`
+
+```html
+<h2>Restablece tu contraseña</h2>
+<p>Recibimos una solicitud para cambiar la contraseña de tu cuenta de Mis PRs.</p>
+<p><a href="{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=recovery">Crear una contraseña nueva</a></p>
+<p>El enlace caduca en 1 hora y solo funciona una vez. Si no lo pediste, ignora este correo; tu contraseña no cambia.</p>
+```
+
+## Password recovery
+
+1. The sign-in screen links **¿Olvidaste tu contraseña?** to `/forgot-password`, which asks for the email.
+2. `POST /auth/forgot-password` checks the origin, validates the email, records the attempt in the rate limiter (3 per email and 10 per IP per hour) and calls `resetPasswordForEmail` with `redirectTo` set to the public `/reset-password` (see `SITE_URL`). The answer is identical whether or not the account exists; Supabase errors are only logged, without the email. If the limiter cannot reach the database, the request is refused rather than sent unlimited.
+3. The email link opens `/reset-password?token_hash=…&type=recovery`, which asks for the new password twice, with the same length policy as sign-up (`MIN_PASSWORD_LENGTH` to `MAX_PASSWORD_LENGTH` in `src/lib/password-policy.js`). A missing or malformed link shows the invalid-link message instead of the form.
+4. `POST /auth/reset-password` checks the origin and validates both fields first, so typing mistakes do not spend the link. Then it verifies the token (`verifyOtp`, type `recovery`), sets the password (`updateUser`), ends every other session of the account (`signOut` with scope `others`) and opens the app signed in.
+5. Expired links show "El enlace caducó"; used or invalid ones "no es válido o ya se usó"; both offer **Pedir un enlace nuevo**. If saving the password fails after the link was spent, the temporary session is closed and the person asks for a new link.
+
+The token is verified only on submit, never when the page loads, so mail scanners that open links do not consume it. `/auth/callback` keeps rejecting recovery tokens, so a recovery link can never sign someone in without choosing a password. The reset page sends a same-origin referrer only, keeping the token out of third-party requests.
 
 ## Create the first administrator
 
@@ -72,7 +146,9 @@ In the Cloudflare dashboard open **Turnstile → Add widget**, add the productio
 
 ### Rate limiting
 
-Vercel Firewall rule on the `personal-prs` project: **Rate limit POST /auth/register and /auth/login** — fixed window, 60 s, 20 requests per IP, action Deny, matching `POST /auth/register` or `POST /auth/login`. The current Vercel plan allows a single rate-limit rule, so both routes share one budget (a second per-route rule returned "Rate limiting is not available for this plan"). If the plan changes, split it into stricter per-route rules (for example 5/min for register and 10/min for login). Turnstile, the code comparison and Supabase's own limits are the other layers; no in-app limiter exists.
+Password recovery has its own limiter in the app (`src/lib/server/rate-limit.js`): every request records the SHA-256 of the email and of the client IP in the `RateLimitEvent` table, never the values themselves, and is refused past 3 per email or 10 per IP in the last hour. Counters live in Postgres because serverless instances share no memory; rows older than a day are deleted on each write. A third party's address can be blocked for an hour by someone requesting it repeatedly; that only delays their recovery and protects their inbox.
+
+Vercel Firewall rule on the `personal-prs` project: **Rate limit POST /auth/register and /auth/login** — fixed window, 60 s, 20 requests per IP, action Deny, matching `POST /auth/register` or `POST /auth/login`. The current Vercel plan allows a single rate-limit rule, so both routes share one budget (a second per-route rule returned "Rate limiting is not available for this plan"). If the plan changes, split it into stricter per-route rules (for example 5/min for register and 10/min for login). Turnstile and Supabase's own limits are the other layers for sign-up and sign-in.
 
 ## Recover a stuck invitation
 
@@ -82,7 +158,7 @@ If a network failure happens after Supabase created the account but before the a
 
 - Access is granted to administrators listed in `SUPABASE_ADMIN_USER_IDS` and to accounts with an enabled profile. Profiles are created by accepting an invitation, for administrators on first access, or for confirmed self-service sign-ups; user-editable metadata never grants access, and a disabled profile is never recreated or re-enabled.
 - The server calls `getUser()` on every private request, which includes session revocation. Private records return 401 without a valid session and 403 without access. Invitation and user-management operations re-check the administrator role on every request.
-- Writes, sign-in, registration, invitation acceptance and sign-out require the request's exact origin. Private responses use `Cache-Control: private, no-store`.
+- Writes, sign-in, registration, password recovery and reset, invitation acceptance and sign-out require the request's exact origin. Private responses use `Cache-Control: private, no-store`.
 - Acceptance claims the invitation with a conditional update, so concurrent submissions create at most one account. If account creation fails, the claim is released.
 - Tables retain RLS with no policies; Prisma uses server access with explicit owner filters.
 - Settings are device-local, scoped by account UUID, and separate from demo state.
@@ -96,6 +172,7 @@ If a network failure happens after Supabase created the account but before the a
 4. With two accounts, verify each sees only its records.
 5. In **Administración → Usuarios**, disable the second account, confirm it loses access on reload, then re-enable it. Generate a **Nuevo link** for a pending invitation and confirm the previous link no longer works.
 6. Sign-up: open `/register` in a private window, register, confirm the email arrives, open the link (also on another device) and land in the app. Register again with the same email and confirm the message is the same. Open a link twice or after it expires and check the message.
-7. Run `node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-register-route.mjs scripts/test-turnstile.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-accept-route.mjs scripts/test-members.mjs scripts/test-bulk-records.mjs scripts/test-bulk-record-route.mjs scripts/test-timer-engine.mjs`, `npm run build` and `git diff --check`. These tests isolate Auth and persistence; they do not replace the browser checks above.
+7. Password recovery (on the published domain): from the sign-in screen open **¿Olvidaste tu contraseña?**, request a link for your account and for an unknown email (same message), confirm the email arrives from `Mis PRs` and whether it lands in spam. Open the link, try mismatched passwords (the link still works), then set a new one and land in the app. Check that another signed-in device loses access on reload, that the old password fails and the new one works, and that reopening the link shows the used-link message. Request four links for the same email within an hour and confirm the fourth is refused.
+8. Run `node --experimental-vm-modules --test scripts/test-rate-limit.mjs scripts/test-password-recovery-routes.mjs scripts/test-access.mjs scripts/test-register-route.mjs scripts/test-turnstile.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-accept-route.mjs scripts/test-members.mjs scripts/test-bulk-records.mjs scripts/test-bulk-record-route.mjs scripts/test-timer-engine.mjs`, `npm run build` and `git diff --check`. These tests isolate Auth and persistence; they do not replace the browser and email checks above.
 
-References: [SSR clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [password sign-in](https://supabase.com/docs/guides/auth/passwords), [admin createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser), [token-hash email links](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr), [Cloudflare Turnstile server validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/).
+References: [SSR clients](https://supabase.com/docs/guides/auth/server-side/creating-a-client), [password sign-in](https://supabase.com/docs/guides/auth/passwords), [admin createUser](https://supabase.com/docs/reference/javascript/auth-admin-createuser), [token-hash email links](https://supabase.com/docs/guides/auth/server-side/email-based-auth-with-pkce-flow-for-ssr), [custom SMTP](https://supabase.com/docs/guides/auth/auth-smtp), [Gmail app passwords](https://support.google.com/accounts/answer/185833), [Gmail sending limits](https://support.google.com/mail/answer/22839), [Cloudflare Turnstile server validation](https://developers.cloudflare.com/turnstile/get-started/server-side-validation/).

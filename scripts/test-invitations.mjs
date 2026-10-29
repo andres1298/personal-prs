@@ -58,6 +58,7 @@ async function service({ failProfile, authError, failDelete } = {}) {
     'server-only': {},
     'node:crypto': crypto,
     './prisma.js': { getPrisma: () => db },
+    '../password-policy.js': { MIN_PASSWORD_LENGTH: 8 },
     './supabase-admin.js': {
       getAuthAdmin: () => ({
         createUser: async (attributes) => {

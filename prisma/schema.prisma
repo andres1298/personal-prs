@@ -114,3 +114,14 @@ model PersonalRecord {
   @@index([profileId, movementId, repetitionMax, performedOn])
   @@index([movementId, measurementType])
 }
+
+// One row per request to a rate-limited endpoint. Rows older than a day are pruned on write.
+model RateLimitEvent {
+  id        String   @id @default(uuid(7)) @db.Uuid
+  // SHA-256 of the scope and subject (an email or IP address); the subject itself is never stored.
+  key       String
+  createdAt DateTime @default(now()) @db.Timestamptz(3)
+
+  @@index([key, createdAt])
+  @@index([createdAt])
+}

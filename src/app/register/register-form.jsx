@@ -2,13 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Icon from '../../components/ui/icon';
+import { MAX_PASSWORD_LENGTH, MIN_PASSWORD_LENGTH } from '../../lib/password-policy';
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 const messages = {
   invalid_name: 'Escribe tu nombre (máximo 80 caracteres).',
   invalid_email: 'Escribe un correo válido.',
-  invalid_password: 'La contraseña debe tener entre 8 y 72 caracteres.',
+  invalid_password: `La contraseña debe tener entre ${MIN_PASSWORD_LENGTH} y ${MAX_PASSWORD_LENGTH} caracteres.`,
   captcha_failed: 'No pudimos verificar que eres una persona. Inténtalo de nuevo.',
   rate_limited: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
   unavailable: 'El registro todavía no está disponible.',
@@ -92,7 +93,7 @@ export default function RegisterForm({ siteKey }) {
       <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="username" placeholder="correo@ejemplo.com" required /></label>
       <label className="field">
         <span>Contraseña</span>
-        <input name="password" type={showPassword ? 'text' : 'password'} minLength={8} maxLength={72} autoComplete="new-password" placeholder="Mínimo 8 caracteres" required />
+        <input name="password" type={showPassword ? 'text' : 'password'} minLength={MIN_PASSWORD_LENGTH} maxLength={MAX_PASSWORD_LENGTH} autoComplete="new-password" placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`} required />
         <button type="button" className="reveal-button" aria-pressed={showPassword} onClick={() => setShowPassword((shown) => !shown)}>{showPassword ? 'Ocultar' : 'Mostrar'}</button>
       </label>
     </div>
