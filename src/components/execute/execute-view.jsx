@@ -178,7 +178,7 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
 // Where the adjusted load stands against the percentage target: short of it, over it or on it.
 const TARGET_STATUS = {
   under: { icon: 'arrowDown', title: (lb) => `Faltan ${lb} lb`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
-  over: { icon: 'arrowUp', title: (lb) => `Te pasaste ${lb} lb`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
+  over: { icon: 'arrowUp', title: (lb) => `${lb} lb arriba`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
   exact: { icon: 'check', title: () => 'En el objetivo', detail: (_, goal, pct) => `Meta ${goal} lb · ${pct}%` },
 };
 
