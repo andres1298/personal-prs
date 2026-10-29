@@ -301,7 +301,7 @@ function Warmup({ load, base, done, onToggle, onReset }) {
         return <button type="button" key={i} className={`step${isDone ? ' done' : ''}${i === next ? ' next' : ''}${goal ? ' goal' : ''}`}
           aria-pressed={isDone} onClick={() => onToggle(i)}>
           <span className="check-circle"><Icon name="check" weight={3.2} /></span>
-          <span className="step-weight"><b className="num rounded">{step.total}</b><small className="num">{Math.round(step.total / base * 100)}%{goal && ' · objetivo'}</small></span>
+          <span className="step-weight"><b className="num rounded">{step.total}</b><small className="num">{Math.round(step.total / base * 100)}% · {goal ? 'objetivo' : `×${step.reps}`}</small></span>
           <span className="step-note"><MiniPlates plates={step.plates} />{step.note}</span>
         </button>;
       })}
