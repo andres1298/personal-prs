@@ -57,7 +57,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   const [quickOpen, setQuickOpen] = useState(false);
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [myMovementsOpen, setMyMovementsOpen] = useState(false);
-  const [newMovement, setNewMovement] = useState(null); // { tab, group, forForm }
+  const [newMovement, setNewMovement] = useState(null); // { tab, group }
   const [tour, updateTour, tourReady] = useStoredState(`prs_tour_${scope}`, { seen: false });
   const [tourOpen, setTourOpen] = useState(false);
   const tourSnapshot = useRef(null);
@@ -149,12 +149,6 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     if (ex.move === name) setEx({ view: 'pick', move: null, free: false, base: 0, extra: [], minus: [], done: [] });
     return result;
   }
-  // Demo sessions keep the static catalog, so they have no entry points to create movements.
-  const openNewMovement = hasBackend ? (preset = {}) => setNewMovement(preset) : undefined;
-  // A movement created from the record form becomes that form's movement.
-  const movementCreated = (movement) => {
-    if (newMovement?.forForm) setForm((current) => current && { ...current, created: movement.name });
-  };
   async function saveQuick(list) {
     await addRecords(list);
     setQuickOpen(false);
@@ -167,12 +161,10 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     <TimerPill />
     <main className="page" data-focus={focus}>
       <section className="tab-view wrap" hidden={tab !== 'exec'}>
-        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)}
-          onNewMovement={openNewMovement} />
+        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'prs'}>
-        <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={(move) => setDetail({ move })}
-          onNewMovement={openNewMovement} />
+        <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={(move) => setDetail({ move })} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'timer'}>
         <TimerView />
@@ -183,15 +175,13 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     <MoveDetailSheet detail={detail} records={records} onClose={() => setDetail(null)}
       onChangeRm={(rm) => setDetail((d) => ({ ...d, rm }))} onAdd={openForm}
       onExecute={(move) => { setDetail(null); updateSettings({ tab: 'exec' }); setEx(selectMovePatch(records, move)); window.scrollTo({ top: 0 }); }} />
-    <RecordFormSheet form={form} demo={!hasBackend} onClose={() => setForm(null)} onSave={saveRecord}
-      onNewMovement={(preset) => setNewMovement({ ...preset, forForm: true })} />
+    <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
       demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
     <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
       onNew={() => setNewMovement({})} onHide={movements.setHidden} onDelete={deleteMovement} />
-    <NewMovementSheet preset={newMovement} onClose={() => setNewMovement(null)} onCreate={movements.createMovement}
-      onCreated={movementCreated} />
+    <NewMovementSheet preset={newMovement} onClose={() => setNewMovement(null)} onCreate={movements.createMovement} />
     <TimerRunSheet />
     <GuidedTour open={tourOpen} steps={tourSteps} onStep={showTourStep} onClose={closeTour} />
   </>;
