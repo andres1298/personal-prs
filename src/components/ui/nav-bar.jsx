@@ -57,15 +57,17 @@ export function LargeTitle({ title, subtitle, trailing }) {
   </>;
 }
 
-/** Bar with a back button for pushed screens; the large title collapses into it. */
-export function NavBar({ back, title, trailing }) {
+/** Bar with a back button for pushed screens; the large title collapses into it.
+ *  `inline` keeps the title in the bar and skips the large title, for screens that must fit the viewport. */
+export function NavBar({ back, title, trailing, inline = false }) {
   const [barRef, titleRef, { scrolled, collapsed }] = useBarState();
+  const showInline = inline || collapsed;
   return <>
-    <div className="navbar" ref={barRef} data-scrolled={scrolled} data-collapsed={collapsed}>
+    <div className="navbar" ref={barRef} data-scrolled={scrolled} data-collapsed={showInline}>
       <span className="navbar-side">{back && <BackButton {...back} />}</span>
-      <span className="navbar-title" aria-hidden={!collapsed}>{title}</span>
+      <span className="navbar-title" aria-hidden={!showInline} role={inline ? 'heading' : undefined} aria-level={inline ? 1 : undefined}>{title}</span>
       <span className="navbar-side end">{trailing}</span>
     </div>
-    <h1 className="page-title" ref={titleRef}>{title}</h1>
+    {!inline && <h1 className="page-title" ref={titleRef}>{title}</h1>}
   </>;
 }

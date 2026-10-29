@@ -370,10 +370,10 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .card-head svg { width: 15px; height: 15px; }
 .card-head b { color: var(--label); }
 .card-head-detail { text-transform: none; font-size: 15px; font-weight: 500; letter-spacing: -.24px; }
-.base-line { display: flex; justify-content: center; margin-top: 10px; }
 .base-chip {
-  display: inline-flex; align-items: center; gap: 6px; height: 36px; padding: 0 14px; border-radius: 999px; background: var(--fill3);
-  color: var(--label2); font-size: 15px; transition: transform .2s var(--ease-out);
+  display: inline-flex; align-items: center; gap: 5px; height: 32px; padding: 0 12px; margin: -5px -6px -5px 0; border-radius: 999px;
+  background: var(--fill3); color: var(--label2); font-size: 15px; font-weight: 400; text-transform: none; letter-spacing: -.24px;
+  white-space: nowrap; transition: transform .2s var(--ease-out);
 }
 .base-chip b { color: var(--label); font-weight: 600; }
 .base-chip svg { width: 15px; height: 15px; color: var(--tint); }
@@ -399,29 +399,51 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 }
 .pct-input span { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: rgba(255, 255, 255, .75); font-weight: 700; pointer-events: none; }
 .hero { text-align: center; padding: 14px 0 2px; }
-.hero-weight { font-size: 88px; font-weight: 700; letter-spacing: -2px; line-height: 1; animation: pop .45s var(--bounce); }
+.hero-weight {
+  font-size: clamp(56px, 10.5dvh, 88px); font-weight: 700; letter-spacing: -2px; line-height: 1; animation: pop .45s var(--bounce);
+  transition: color .25s;
+}
 .hero-weight span { font-size: 28px; letter-spacing: 0; color: var(--label2); font-weight: 600; margin-left: 6px; }
 @keyframes pop { from { transform: scale(.94); opacity: .6; } }
 .hero-sub { color: var(--label2); font-size: 17px; margin-top: 10px; }
 .hero-exact { color: var(--label3); font-size: 13px; margin-top: 4px; }
-.adjust-pill {
-  display: inline-flex; align-items: center; gap: 10px; margin-top: 12px; padding: 5px 5px 5px 14px; border-radius: 999px;
-  background: color-mix(in srgb, var(--green) 16%, transparent); color: var(--green); font-size: 15px; font-weight: 600;
+.hero[data-status="under"] .hero-weight { color: var(--amber); }
+.hero[data-status="over"] .hero-weight { color: var(--red); }
+.hero[data-status="exact"] .hero-weight { color: var(--green); }
+
+/* Adjusted load against the percentage target: amber below, red over, green on it. */
+.target-status {
+  --sc: var(--green); display: flex; align-items: center; gap: 10px; margin-top: 12px; padding: 8px 8px 8px 10px; border-radius: 16px;
+  background: color-mix(in srgb, var(--sc) 14%, transparent); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--sc) 30%, transparent);
   animation: view-in .25s var(--ease-out);
 }
-.adjust-pill button { width: 26px; height: 26px; border-radius: 50%; display: grid; place-items: center; background: color-mix(in srgb, var(--green) 25%, transparent); }
-.adjust-pill svg { width: 12px; height: 12px; }
+.target-status[data-status="under"] { --sc: var(--amber); }
+.target-status[data-status="over"] { --sc: var(--red); }
+.target-icon { flex: none; width: 32px; height: 32px; border-radius: 50%; display: grid; place-items: center; background: var(--sc); color: #fff; }
+.target-icon svg { width: 17px; height: 17px; }
+.target-copy { flex: 1; min-width: 0; display: grid; gap: 1px; text-align: left; }
+.target-copy b { font-size: 17px; font-weight: 700; color: var(--label); }
+.target-copy small { color: var(--label2); font-size: 13px; letter-spacing: -.08px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.target-reset {
+  flex: none; display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 12px; border-radius: 999px;
+  background: var(--surface); color: var(--tint); font-size: 15px; font-weight: 600; transition: transform .15s var(--ease-out);
+}
+.target-reset svg { width: 15px; height: 15px; }
+.target-reset:active { transform: scale(.94); }
 
-.barbell { position: relative; display: flex; align-items: center; gap: 3px; height: 128px; margin-top: 10px; }
+/* The barbell is a size container: plates scale with its height, capped so they stay proportionate on tall screens. */
+.barbell { position: relative; display: flex; align-items: center; gap: 3px; height: 128px; margin-top: 10px; container-type: size; }
 .barbell::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 12px; margin-top: -6px; background: var(--fill); border-radius: 6px; }
-.simple .barbell { height: 156px; }
+/* Simple mode has no controls under the barbell: a fixed, larger bar instead of stretching the card. */
+.workbench .simple .load-card { flex: none; }
+.workbench .simple .barbell { flex: none; height: clamp(140px, 26dvh, 220px); }
 .collar {
   position: relative; z-index: 1; flex: none; width: 26px; height: 56px; margin-right: 4px; border-radius: 6px;
   background: var(--surface3); color: var(--label); font-size: 12px; font-weight: 700;
   display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg);
 }
 .plate {
-  position: relative; z-index: 1; flex: none; width: 34px; height: var(--h); border-radius: 7px; background: var(--pc); color: #111;
+  position: relative; z-index: 1; flex: none; width: 34px; height: calc(var(--h) * min(1cqh, 1.7px)); border-radius: 7px; background: var(--pc); color: #111;
   font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center;
   writing-mode: vertical-rl; transform: rotate(180deg); text-align: center;
   box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .15); animation: plate-in .4s var(--bounce); transition: filter .15s;
@@ -451,6 +473,37 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .plate-chips { align-items: center; min-height: 60px; }
 .plate-chips button { flex: none; display: grid; place-items: center; min-width: 44px; min-height: 44px; border-radius: 50%; transition: transform .15s var(--ease-out); }
 .plate-chips button:active { transform: scale(.9); }
+
+/* Working screen fitted to the viewport: everything between the navigation bar and the tab bar, with the
+   barbell taking the free height. Content that cannot fit (short or landscape screens) scrolls as usual. */
+.page:has(> .tab-view:not([hidden]) .workbench) { padding-bottom: 0; }
+.workbench {
+  --wb-top: calc(var(--safe-top) + 44px); --wb-bottom: calc(var(--tab-height) + max(var(--safe-bottom), 12px) + 12px);
+  display: flex; flex-direction: column; gap: 12px; min-height: calc(100dvh - var(--wb-top)); padding-bottom: var(--wb-bottom);
+}
+.page[data-focus="true"] .workbench { --wb-bottom: calc(var(--safe-bottom) + 16px); }
+html.has-timer .workbench { --wb-top: calc(var(--safe-top) + 90px); }
+.workbench .card { margin-bottom: 0; }
+.workbench .hero { padding-top: 10px; }
+.workbench-panel { flex: 1 0 auto; display: flex; flex-direction: column; }
+.workbench-panel .segmented { margin-bottom: 12px; }
+.workbench .load-card { flex: 1 0 auto; display: flex; flex-direction: column; }
+.workbench .barbell { flex: 1 0 0; height: auto; min-height: 84px; }
+@media (max-height: 740px) {
+  .workbench { gap: 10px; }
+  .workbench .card { padding: 10px 14px 12px; }
+  .workbench .hero { padding-top: 6px; }
+  .workbench .hero-sub { font-size: 15px; margin-top: 6px; }
+  .workbench .hero-exact { margin-top: 2px; }
+  .workbench .hero[data-editing="true"] .hero-exact { display: none; }
+  .workbench .hero[data-editing="true"] .hero-weight { font-size: 52px; }
+  .workbench .base-editor { margin-top: 8px; gap: 8px; }
+  .workbench .barbell { min-height: 76px; }
+  .workbench .target-status { margin-top: 8px; padding-block: 6px; }
+  .workbench .option-nav { margin-top: 8px; padding-top: 4px; }
+  .workbench .plate-chips { margin-top: 6px; min-height: 56px; }
+  .workbench .load-card .hint { display: none; }
+}
 
 /* Plate discs: outlined rim and lip, sized by weight */
 .plate-disc { position: relative; display: grid; place-items: center; width: var(--size); height: var(--size); }

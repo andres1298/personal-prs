@@ -117,6 +117,9 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
   const done = ex.key === load.key ? ex.done : [];
   const resetAdj = { extra: [], minus: [] };
   const title = ex.free ? 'Cálculo libre' : ex.move;
+  const editing = !(ex.base > 0) || ex.editBase;
+  const diff = load.target - load.start;
+  const status = !adjusted ? null : diff > 0 ? 'over' : diff < 0 ? 'under' : 'exact';
 
   // Store a desired load as the difference against the selected option.
   const addPlate = (plate) => load.plates && setEx({ extra: [...ex.extra, plate].sort((a, b) => b - a) });
@@ -130,7 +133,7 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
   });
 
   return <>
-    <NavBar
+    <NavBar inline
       back={{ label: ex.free ? 'Execute' : moveInfo(ex.move).group.name, onClick: () => go({ view: ex.free ? 'pick' : 'moves' }) }}
       title={title}
       trailing={<>
@@ -141,36 +144,60 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
       </>}
     />
 
-    <section className="card weight-card" data-tour="weight">
-      <div className="card-head">
-        <span><Icon name="number" weight={2.4} /> Peso total</span>
-        <span className="card-head-detail num">{ex.base > 0 && `${toKg(load.target)} kg`}</span>
-      </div>
-      <BaseEditor ex={ex} setEx={setEx} records={records} resetAdj={resetAdj} />
-      {ex.base > 0
-        ? <div className="hero">
-          <div className="hero-weight num rounded" key={load.target}>{load.target}<span>lb</span></div>
-          <div className="hero-sub num">{num(adjusted ? load.target / ex.base * 100 : ex.pct)}% de {num(ex.base)} lb</div>
-          <div className="hero-exact num">{num(ex.pct)}% exacto = {num2(load.raw)} lb · {load.target} lb es el {num2(load.target / ex.base * 100)}%</div>
-          {adjusted && <div className="adjust-pill num">
-            {load.target - load.start ? `${load.target > load.start ? '+' : '−'}${num(Math.abs(load.target - load.start))} lb sobre ${num(ex.pct)}%` : 'Carga ajustada'}
-            <button type="button" onClick={() => setEx(resetAdj)} aria-label={`Volver al ${num(ex.pct)}%`}><Icon name="xmark" weight={3} /></button>
-          </div>}
+    <div className="workbench">
+      <section className="card weight-card" data-tour="weight">
+        <div className="card-head">
+          <span><Icon name="number" weight={2.4} /> Peso total</span>
+          {!editing && <button type="button" className="base-chip" onClick={() => setEx({ editBase: true })} aria-label="Editar RM y porcentaje">
+            {!ex.free && <span>{ex.rm}RM · </span>}<b className="num">{num(ex.base)} lb</b> · <b className="num">{num(ex.pct)}%</b>
+            <Icon name="pencil" />
+          </button>}
         </div>
-        : <p className="empty compact">{ex.free ? 'Escribe un peso y el porcentaje para empezar' : 'Sin PR para este RM'}</p>}
-    </section>
+        {editing && <BaseEditor ex={ex} setEx={setEx} records={records} resetAdj={resetAdj} />}
+        {ex.base > 0
+          ? <div className="hero" data-status={status} data-editing={editing}>
+            <div className="hero-weight num rounded" key={load.target}>{load.target}<span>lb</span></div>
+            <div className="hero-sub num">{num(adjusted ? load.target / ex.base * 100 : ex.pct)}% de {num(ex.base)} lb · {toKg(load.target)} kg</div>
+            {!adjusted && <div className="hero-exact num">{num(ex.pct)}% exacto = {num2(load.raw)} lb · {load.target} lb es el {num2(load.target / ex.base * 100)}%</div>}
+          </div>
+          : <p className="empty compact">{ex.free ? 'Escribe un peso y el porcentaje para empezar' : 'Sin PR para este RM'}</p>}
+        {ex.base > 0 && adjusted && <TargetStatus status={status} load={load} pct={ex.pct} onReset={() => setEx(resetAdj)} />}
+      </section>
 
-    {ex.base > 0 && <div className={simple ? 'simple' : ''} data-tour="exec-panel">
-      {!simple && <SegmentedControl label="Vista" value={ex.panel} onChange={(panel) => setEx({ panel })}
-        options={[{ value: 'load', label: 'Barra' }, { value: 'warm', label: 'Calentamiento' }]} />}
-      {ex.panel === 'load' || simple
-        ? <LoadCard load={load} ex={ex} setEx={setEx} settings={settings} simple={simple} onAdd={addPlate} onRemove={removePlate} />
-        : <Warmup load={load} base={ex.base} done={done} onToggle={toggleStep} onReset={() => setEx({ key: load.key, done: [] })} />}
-    </div>}
+      {ex.base > 0 && <div className={`workbench-panel${simple ? ' simple' : ''}`} data-tour="exec-panel">
+        {!simple && <SegmentedControl label="Vista" value={ex.panel} onChange={(panel) => setEx({ panel })}
+          options={[{ value: 'load', label: 'Barra' }, { value: 'warm', label: 'Calentamiento' }]} />}
+        {ex.panel === 'load' || simple
+          ? <LoadCard load={load} ex={ex} setEx={setEx} settings={settings} simple={simple} onAdd={addPlate} onRemove={removePlate} />
+          : <Warmup load={load} base={ex.base} done={done} onToggle={toggleStep} onReset={() => setEx({ key: load.key, done: [] })} />}
+      </div>}
+    </div>
   </>;
 }
 
-// Compact line "1RM · 260 lb · 80% ✎" or the editor for RM/base and percentage.
+// Where the adjusted load stands against the percentage target: short of it, over it or on it.
+const TARGET_STATUS = {
+  under: { icon: 'arrowDown', title: (lb) => `Faltan ${lb} lb`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
+  over: { icon: 'arrowUp', title: (lb) => `Te pasaste ${lb} lb`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
+  exact: { icon: 'check', title: () => 'En el objetivo', detail: (_, goal, pct) => `Meta ${goal} lb · ${pct}%` },
+};
+
+function TargetStatus({ status, load, pct, onReset }) {
+  const copy = TARGET_STATUS[status];
+  const diff = Math.abs(load.target - load.start);
+  return <div className="target-status" data-status={status} role="status">
+    <span className="target-icon"><Icon name={copy.icon} weight={2.8} /></span>
+    <span className="target-copy">
+      <b className="num">{copy.title(num(diff))}</b>
+      <small className="num">{copy.detail(num(diff / 2), load.start, num(pct))}</small>
+    </span>
+    <button type="button" className="target-reset num" onClick={onReset} aria-label={`Volver al ${num(pct)}%`}>
+      <Icon name="undo" weight={2.4} />{num(pct)}%
+    </button>
+  </div>;
+}
+
+// Editor for the RM (or free base weight) and the percentage.
 function BaseEditor({ ex, setEx, records, resetAdj }) {
   const [pctText, setPctText] = useState(num(ex.pct));
   const [baseText, setBaseText] = useState(ex.base ? String(ex.base) : '');
@@ -184,14 +211,6 @@ function BaseEditor({ ex, setEx, records, resetAdj }) {
   };
   const onKey = (event) => { if (event.key === 'Enter') close(); };
 
-  if (ex.base > 0 && !ex.editBase) {
-    return <div className="base-line">
-      <button type="button" className="base-chip" onClick={() => setEx({ editBase: true })}>
-        {!ex.free && <span>{ex.rm}RM · </span>}<b className="num">{num(ex.base)} lb</b> · <b className="num">{num(ex.pct)}%</b>
-        <Icon name="pencil" />
-      </button>
-    </div>;
-  }
   const step = (delta) => setEx({ pct: Math.min(150, Math.max(5, Math.round((ex.pct + delta) * 10) / 10)), ...resetAdj });
   return <div className="base-editor" data-tour="base-editor">
     <div className="base-editor-row">
@@ -221,7 +240,7 @@ function BaseEditor({ ex, setEx, records, resetAdj }) {
 
 const plateVars = (plate) => {
   const [color, height] = PLATE_STYLE[plate] || ['--label3', 50];
-  return { '--h': `${height}%`, '--pc': `var(${color})` };
+  return { '--h': height, '--pc': `var(${color})` };
 };
 
 function LoadCard({ load, ex, setEx, settings, simple, onAdd, onRemove }) {
