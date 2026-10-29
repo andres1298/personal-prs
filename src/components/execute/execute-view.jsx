@@ -39,18 +39,17 @@ export function tourExercise(records) {
 
 const scrollTop = () => window.scrollTo({ top: 0 });
 
-export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings, onNewMovement }) {
+export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings }) {
   const go = (patch) => { setEx(patch); scrollTop(); };
   if (ex.view === 'pick') {
-    return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} onOpenSettings={onOpenSettings}
-      onNewMovement={onNewMovement} />;
+    return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} onOpenSettings={onOpenSettings} />;
   }
-  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} onNewMovement={onNewMovement} />;
+  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} />;
   return <Workbench ex={ex} setEx={setEx} go={go} settings={settings} records={records} onOpenSettings={onOpenSettings} />;
 }
 
 /* ---------- Picker ---------- */
-function Picker({ ex, go, settings, records, banner, onOpenSettings, onNewMovement }) {
+function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
   const canResume = ex.base > 0 && (ex.move || ex.free);
   const resumeTarget = canResume ? computeLoad(ex, settings, settings.simple).target : 0;
   return <>
@@ -79,11 +78,6 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings, onNewMoveme
           <small>{count ? `${count} con PR` : 'Sin PRs'}</small>
         </button>;
       })}
-      {onNewMovement && <button type="button" className="category-card add" onClick={() => onNewMovement({ tab: 'Lift' })}>
-        <Icon name="plus" weight={2.4} />
-        <b>Nuevo movimiento</b>
-        <small>O una categoría</small>
-      </button>}
     </div>
     <List>
       <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre" data-tour="free-calc"
@@ -93,7 +87,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings, onNewMoveme
 }
 
 /* ---------- Movements of a group ---------- */
-function Moves({ ex, go, records, onNewMovement }) {
+function Moves({ ex, go, records }) {
   const { groups } = getCatalog().Lift;
   const group = groups.find((g) => g.name === ex.cat) || groups[0] || { name: '', color: '--muted', moves: [] };
   const withPR = group.moves.filter((move) => firstRm(records, move));
@@ -111,8 +105,6 @@ function Moves({ ex, go, records, onNewMovement }) {
     {withPR.length ? <List>{withPR.map(row)}</List> : <p className="empty">Aún no tienes PRs en {group.name}</p>}
     {without.length > 0 && <List header="Sin PR registrado">{without.map(row)}</List>}
     <List>
-      {onNewMovement && <Row leading={<SymbolTile color="--indigo"><Icon name="plus" /></SymbolTile>} title="Nuevo movimiento"
-        subtitle={`En ${group.name}`} chevron onClick={() => onNewMovement({ tab: 'Lift', group: group.name })} />}
       <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre" chevron
         onClick={() => go({ view: 'run', free: true, editBase: false })} />
     </List>

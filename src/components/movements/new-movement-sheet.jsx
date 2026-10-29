@@ -24,10 +24,10 @@ function groupsOf(tab) {
 }
 
 /**
- * Creates an own movement. `preset` opens the sheet ({ tab, group }) and preselects where
- * the member came from; the new movement goes to `onCreated` before the sheet closes.
+ * Creates an own movement. `preset` opens the sheet ({ tab, group }) and can preselect
+ * the section and category.
  */
-export default function NewMovementSheet({ preset, onClose, onCreate, onCreated }) {
+export default function NewMovementSheet({ preset, onClose, onCreate }) {
   const alert = useAlert();
   const [name, setName] = useState('');
   const [tab, setTab] = useState('Lift');
@@ -65,8 +65,7 @@ export default function NewMovementSheet({ preset, onClose, onCreate, onCreated 
     else if (group !== CUSTOM_GROUP.name) input.groupName = group;
     setSaving(true);
     try {
-      const movement = await onCreate(input);
-      onCreated?.(movement);
+      await onCreate(input);
       onClose();
     } catch (err) {
       await alert({ title: 'No se pudo crear', message: err.message });
