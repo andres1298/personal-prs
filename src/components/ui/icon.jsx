@@ -17,6 +17,8 @@ const STROKE = {
   barbell: <path d="M6.5 6v12M3 9v6M17.5 6v12M21 9v6M6.5 12h11" />,
   flame: <path d="M12 21.5c3.9 0 6.5-2.6 6.5-6.3 0-3.4-2.4-5.6-4-8.2-.5 2-1.6 3.1-2.7 3.5C12.2 7.4 10.9 4.6 8.5 2.5c.3 3.4-3 6.3-3 11 0 4.4 2.6 8 6.5 8z" />,
   arrowUpRight: <path d="M7 17 17 7M8.5 7H17v8.5" />,
+  arrowUp: <path d="M12 19.5v-15M5.5 11 12 4.5 18.5 11" />,
+  arrowDown: <path d="M12 4.5v15M5.5 13l6.5 6.5 6.5-6.5" />,
   play: <path d="M7 4.5v15l12.5-7.5z" />,
   pause: <path d="M8 5v14M16 5v14" />,
   stop: <rect x="5.5" y="5.5" width="13" height="13" rx="2" />,
