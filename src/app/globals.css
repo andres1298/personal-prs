@@ -423,7 +423,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .target-icon svg { width: 17px; height: 17px; }
 .target-copy { flex: 1; min-width: 0; display: grid; gap: 1px; text-align: left; }
 .target-copy b { font-size: 17px; font-weight: 700; color: var(--label); }
-.target-copy small { color: var(--label2); font-size: 13px; letter-spacing: -.08px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.target-copy small { color: var(--label2); font-size: 13px; letter-spacing: -.08px; }
 .target-reset {
   flex: none; display: inline-flex; align-items: center; gap: 4px; height: 36px; padding: 0 12px; border-radius: 999px;
   background: var(--surface); color: var(--tint); font-size: 15px; font-weight: 600; transition: transform .15s var(--ease-out);
@@ -431,20 +431,22 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
 .target-reset svg { width: 15px; height: 15px; }
 .target-reset:active { transform: scale(.94); }
 
-/* The barbell is a size container: plates scale with its height, capped so they stay proportionate on tall screens. */
+/* The barbell is a size container. Plates and collar share one unit (1% of its height, capped), so width, height,
+   corners and labels scale together and every plate keeps its shape on short or tall screens. */
 .barbell { position: relative; display: flex; align-items: center; gap: 3px; height: 128px; margin-top: 10px; container-type: size; }
 .barbell::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 12px; margin-top: -6px; background: var(--fill); border-radius: 6px; }
 /* Simple mode has no controls under the barbell: a fixed, larger bar instead of stretching the card. */
 .workbench .simple .load-card { flex: none; }
 .workbench .simple .barbell { flex: none; height: clamp(140px, 26dvh, 220px); }
+.collar, .plate { --u: min(1cqh, 1.5px); }
 .collar {
-  position: relative; z-index: 1; flex: none; width: 26px; height: 56px; margin-right: 4px; border-radius: 6px;
-  background: var(--surface3); color: var(--label); font-size: 12px; font-weight: 700;
+  position: relative; z-index: 1; flex: none; width: calc(20 * var(--u)); height: calc(44 * var(--u)); margin-right: 4px;
+  border-radius: calc(5 * var(--u)); background: var(--surface3); color: var(--label); font-size: max(10px, calc(9.5 * var(--u))); font-weight: 700;
   display: flex; align-items: center; justify-content: center; writing-mode: vertical-rl; transform: rotate(180deg);
 }
 .plate {
-  position: relative; z-index: 1; flex: none; width: 34px; height: calc(var(--h) * min(1cqh, 1.7px)); border-radius: 7px; background: var(--pc); color: #111;
-  font-size: 15px; font-weight: 700; display: flex; align-items: center; justify-content: center;
+  position: relative; z-index: 1; flex: none; width: calc(26.5 * var(--u)); height: calc(var(--h) * var(--u));
+  border-radius: calc(5.5 * var(--u)); background: var(--pc); color: #111; font-size: max(10px, calc(11.5 * var(--u))); font-weight: 700; display: flex; align-items: center; justify-content: center;
   writing-mode: vertical-rl; transform: rotate(180deg); text-align: center;
   box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .15); animation: plate-in .4s var(--bounce); transition: filter .15s;
 }
@@ -453,7 +455,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 46px); }
   background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .4) 0 3px, transparent 3px 8px);
   box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .6);
 }
-.barbell.small .plate { width: 24px; font-size: 12px; }
+.barbell.small .plate { width: calc(19 * var(--u)); font-size: max(9px, calc(9.5 * var(--u))); }
 @keyframes plate-in { from { transform: rotate(180deg) scaleY(.4); opacity: 0; } }
 .barbell-empty { position: relative; z-index: 1; margin-left: 8px; padding: 0 8px; background: var(--surface); color: var(--label2); font-size: 15px; }
 .option-nav {
