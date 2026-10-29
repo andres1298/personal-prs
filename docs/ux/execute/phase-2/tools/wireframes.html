@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Execute wireframes</title>
+<style>
+  /* Low-fidelity wireframes: grey boxes, one accent, real sizes in CSS px. */
+  :root { --safe-top: 47px; --safe-bottom: 34px; --kbd: 336px; --accent: #0a5fd6; --ink: #111; --ink2: #4a4a4f; --line: #c9c9ce; --fill: #ececf0; --bg: #f6f6f8; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { height: 100%; }
+  body { font: 400 17px/1.25 Inter, system-ui, sans-serif; color: var(--ink); background: var(--bg); overflow: hidden; font-variant-numeric: tabular-nums; }
+  button { font: inherit; color: inherit; background: var(--fill); border: 0; border-radius: 12px; min-height: 44px; }
+  .screen { position: relative; height: 100vh; display: flex; flex-direction: column; padding-top: var(--safe-top); }
+  .status { position: absolute; top: 0; left: 0; right: 0; height: var(--safe-top); display: flex; align-items: center; padding: 0 28px; font-size: 15px; font-weight: 600; color: var(--ink2); }
+  .nav { height: 52px; display: flex; align-items: center; justify-content: space-between; padding: 0 12px 0 16px; gap: 8px; }
+  .nav h1 { font-size: 22px; font-weight: 700; }
+  .nav .icon { width: 44px; background: transparent; font-size: 22px; color: var(--accent); }
+  .pad { padding: 0 16px; }
+  .tabbar { margin-top: auto; height: calc(62px + var(--safe-bottom)); padding: 0 16px var(--safe-bottom); display: flex; gap: 10px; align-items: center; }
+  .tabbar .tabs { flex: 1; display: flex; height: 56px; background: #e2e2e7; border-radius: 28px; padding: 3px; }
+  .tabbar .tabs button { flex: 1; background: transparent; border-radius: 26px; font-size: 13px; font-weight: 600; min-height: 50px; }
+  .tabbar .tabs button.on { background: #fff; color: var(--accent); }
+  .tabbar .plus { width: 56px; height: 56px; border-radius: 28px; font-size: 28px; color: var(--accent); background: #e2e2e7; }
+  .kbd { height: var(--kbd); background: #cfd2d8; display: grid; place-items: center; color: #555; font-size: 15px; flex: none; }
+  .hero { font-size: 76px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+  .hero small { font-size: 26px; font-weight: 600; letter-spacing: 0; color: var(--ink2); margin-left: 4px; }
+  .sub { font-size: 17px; color: var(--ink2); }
+  .plates-text { font-size: 26px; font-weight: 700; }
+  .plates-text span { font-size: 15px; font-weight: 600; color: var(--ink2); margin-right: 6px; }
+  .bar { position: relative; height: 70px; display: flex; align-items: center; gap: 3px; }
+  .bar::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 10px; margin-top: -5px; background: var(--line); border-radius: 5px; }
+  .bar i { position: relative; width: 22px; border-radius: 5px; background: #8d8d93; font-style: normal; font-size: 11px; font-weight: 700; color: #fff; display: grid; place-items: center; }
+  .chiprow { display: flex; gap: 8px; overflow: hidden; padding: 0 16px; }
+  .chip { flex: none; padding: 0 14px; font-size: 15px; font-weight: 600; white-space: nowrap; }
+  .chip small { font-weight: 500; color: var(--ink2); margin-left: 6px; }
+  .chip.on, .pct.on { background: var(--accent); color: #fff; }
+  .chip.on small { color: #e6eefc; }
+  .grid { display: grid; gap: 8px; padding: 0 16px; }
+  .pct { font-size: 20px; font-weight: 700; min-height: 52px; }
+  .seg { display: flex; background: var(--fill); border-radius: 12px; padding: 2px; }
+  .seg button { flex: 1; background: transparent; font-size: 15px; font-weight: 600; min-height: 44px; }
+  .seg button.on { background: #fff; }
+  .row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 64px; padding: 8px 16px; border-bottom: 1px solid var(--line); background: #fff; width: 100%; border-radius: 0; text-align: left; }
+  .row b { font-size: 17px; }
+  .row .r { text-align: right; }
+  .row .r b { font-size: 22px; }
+  .row small { display: block; font-size: 15px; color: var(--ink2); }
+  .field { height: 48px; border-radius: 12px; background: #fff; border: 1.5px solid var(--line); display: flex; align-items: center; padding: 0 14px; font-size: 17px; color: var(--ink2); width: 100%; text-align: left; justify-content: flex-start; }
+  .field.focus { border-color: var(--accent); color: var(--ink); }
+  .card { background: #fff; border-radius: 18px; padding: 12px 16px; }
+  .label { font-size: 13px; font-weight: 700; color: var(--ink2); text-transform: uppercase; letter-spacing: .2px; }
+  .sheet { position: absolute; left: 0; right: 0; bottom: 0; top: calc(var(--safe-top) + 10px); background: #fff; border-radius: 14px 14px 0 0; box-shadow: 0 -8px 30px rgba(0,0,0,.18); display: flex; flex-direction: column; }
+  .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 6px auto; }
+  .dim { position: absolute; inset: 0; background: rgba(0,0,0,.25); }
+  .note { font-size: 13px; color: var(--ink2); }
+</style>
+</head>
+<body>
+<div id="app" class="screen"></div>
+<script>
+const q = new URLSearchParams(location.search);
+const vp = q.get('vp') || '390';
+const r = document.documentElement.style;
+if (vp === '360') { r.setProperty('--safe-top', '0px'); r.setProperty('--safe-bottom', '0px'); r.setProperty('--kbd', '300px'); }
+const status = vp === '360' ? '' : '<div class="status">9:41</div>';
+const tabbar = `<div class="tabbar"><div class="tabs"><button class="on">Cargar</button><button>PRs</button><button>Reloj</button></div><button class="plus" aria-label="Agregar">+</button></div>`;
+const plates = (list) => `<div class="bar"><i style="height:34px;width:16px">45</i>${list.map(([p, h]) => `<i style="height:${h}px">${p}</i>`).join('')}</div>`;
+const pctGrid = (cols, values, on) => `<div class="grid" style="grid-template-columns:repeat(${cols},1fr)">${values.map((v) => `<button class="pct${v === on ? ' on' : ''}">${v}${typeof v === 'number' ? '' : ''}</button>`).join('')}</div>`;
+const P = [50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100];
+
+const screens = {
+  // A · Calculadora: result on top, recents and a % keypad in the thumb zone.
+  A1: `${status}
+    <div class="nav"><button class="chip" style="background:transparent;padding:0;font-size:22px;font-weight:700">Back Squat ▾</button><button class="icon" aria-label="Ajustes">⚙︎</button></div>
+    <div class="pad" style="display:flex;align-items:center;gap:10px"><span class="sub" style="flex:1">Base</span><div class="seg" style="width:210px"><button class="on">1RM 260</button><button>3RM</button><button>5RM</button></div></div>
+    <div class="pad" style="margin-top:14px"><div class="hero">195<small>lb</small></div><div class="sub">75 % de 260 lb · 88,5 kg</div></div>
+    <div class="pad" style="margin-top:12px"><div class="plates-text"><span>Por lado</span>45 · 25 · 5</div>${plates([[45, 66], [25, 54], [5, 34]])}
+      <div style="display:flex;gap:8px"><button class="chip">Barra 45 lb</button><button class="chip">Calentamiento</button><button class="chip">Ajustar</button></div></div>
+    <div style="margin-top:auto"></div>
+    <div class="chiprow" style="margin-bottom:8px"><button class="chip">🔍 Buscar</button><button class="chip on">Back Squat<small>260</small></button><button class="chip">Deadlift<small>330</small></button><button class="chip">Clean<small>195</small></button></div>
+    ${pctGrid(4, [...P, '±'], 75)}
+    ${tabbar}`,
+  A2: `${status}
+    <div class="dim"></div>
+    <div class="sheet"><div class="grab"></div>
+      <div class="pad" style="display:flex;justify-content:space-between;align-items:center"><b>Buscar</b><button class="chip" style="background:transparent;color:var(--accent)">Cancelar</button></div>
+      <div style="margin-top:auto"></div>
+      <button class="row"><span><b>Cálculo libre</b><small>Con un peso que escribas</small></span><span class="r"><small>p. ej. «185 80»</small></span></button>
+      <button class="row"><span><b>Box Squat</b><small>Sin PR</small></span><span class="r"><small>Escribe tu peso</small></span></button>
+      <button class="row"><span><b>Back Squat</b><small>1RM 260 lb</small></span><span class="r"><b>195 lb</b><small>al 75 %</small></span></button>
+      <div class="pad" style="padding-top:8px;padding-bottom:8px"><div class="field focus">bs 75|</div></div>
+      <div class="kbd">Teclado</div></div>`,
+  // B · Tabla de cargas: every movement shows its load at the chosen %.
+  B1: `${status}
+    <div class="nav"><h1>Cargar</h1><button class="icon" aria-label="Ajustes">⚙︎</button></div>
+    <div class="chiprow" style="margin-bottom:8px"><button class="chip on">Todos</button><button class="chip">Sentadillas</button><button class="chip">Cargadas</button><button class="chip">Press</button></div>
+    <div style="flex:1;overflow:hidden">
+      <div class="pad label" style="padding-top:6px;padding-bottom:4px">Recientes</div>
+      <button class="row"><span><b>Back Squat</b><small>1RM 260</small></span><span class="r"><b>195 lb</b><small>45 · 25 · 5</small></span></button>
+      <button class="row"><span><b>Deadlift</b><small>1RM 330</small></span><span class="r"><b>250 lb</b><small>55 · 45 · 2,5</small></span></button>
+      <button class="row"><span><b>Clean</b><small>1RM 195</small></span><span class="r"><b>145 lb</b><small>45 · 5</small></span></button>
+      <div class="pad label" style="padding-top:10px;padding-bottom:4px">Todos</div>
+      <button class="row"><span><b>Bench Press</b><small>1RM 185</small></span><span class="r"><b>140 lb</b><small>45 · 2,5</small></span></button>
+      <button class="row"><span><b>Front Squat</b><small>1RM 215</small></span><span class="r"><b>160 lb</b><small>55 · 2,5</small></span></button>
+      <button class="row"><span><b>Push Jerk</b><small>3RM 165</small></span><span class="r"><b>125 lb</b><small>35 · 5</small></span></button>
+    </div>
+    <div style="padding-top:8px;background:var(--bg)">
+      <div class="pad" style="margin-bottom:8px"><button class="field">🔍 Buscar movimiento o peso</button></div>
+      ${pctGrid(6, [...P, '±'], 75)}
+    </div>
+    ${tabbar}`,
+  B2: `${status}
+    <div class="dim"></div>
+    <div class="sheet"><div class="grab"></div>
+      <div class="pad" style="display:flex;justify-content:space-between;align-items:center"><b style="font-size:22px">Back Squat</b><button class="chip" style="background:transparent;color:var(--accent)">Listo</button></div>
+      <div class="pad" style="margin-top:10px"><div class="hero">195<small>lb</small></div><div class="sub">75 % de 260 lb · 88,5 kg</div></div>
+      <div class="pad" style="margin-top:10px"><div class="plates-text"><span>Por lado</span>45 · 25 · 5</div>${plates([[45, 66], [25, 54], [5, 34]])}</div>
+      <div style="margin-top:auto"></div>
+      <div class="pad" style="display:grid;gap:8px;margin-bottom:8px"><div class="seg"><button class="on">1RM 260</button><button>3RM 235</button><button>5RM 215</button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px"><button>−5 %</button><button>Calentar</button><button>+5 %</button></div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px"><button>Barra 45 lb</button><button>Ajustar discos</button></div></div>
+      <div style="height:var(--safe-bottom)"></div></div>`,
+  // C · Pizarrón: type what the board says; history repeats a previous line.
+  C1: `${status}
+    <div class="pad" style="margin-top:8px"><div class="card"><div style="display:flex;justify-content:space-between"><b>Back Squat</b><span class="sub">1RM 260</span></div>
+      <div class="hero" style="font-size:64px;margin-top:4px">195<small>lb</small></div><div class="sub">75 % · 88,5 kg</div>
+      <div class="plates-text" style="font-size:22px;margin-top:6px"><span>Por lado</span>45 · 25 · 5</div>${plates([[45, 56], [25, 46], [5, 30]])}</div></div>
+    <div style="margin-top:auto"></div>
+    <div class="chiprow" style="margin-bottom:8px"><button class="chip on">Back Squat · 75 %</button><button class="chip">Box Squat · 75 %</button></div>
+    <div class="pad" style="margin-bottom:8px"><div class="field focus">bs 75|</div></div>
+    <div class="kbd">Teclado</div>`,
+  C2: `${status}
+    <div class="nav"><h1>Cargar</h1><button class="icon" aria-label="Ajustes">⚙︎</button></div>
+    <div class="pad"><div class="card"><div style="display:flex;justify-content:space-between"><b>Back Squat</b><span class="sub">1RM 260</span></div>
+      <div class="hero" style="margin-top:4px">195<small>lb</small></div><div class="sub">75 % · 88,5 kg</div>
+      <div class="plates-text" style="margin-top:8px"><span>Por lado</span>45 · 25 · 5</div>${plates([[45, 66], [25, 54], [5, 34]])}
+      <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:6px"><button>−5 %</button><button>+5 %</button><button>Calentar</button><button>Barra</button></div></div></div>
+    <div style="margin-top:auto"></div>
+    <div class="pad label" style="margin-bottom:4px">Últimos</div>
+    <div class="chiprow" style="margin-bottom:8px;flex-wrap:wrap;overflow:visible"><button class="chip">Deadlift · 80 %</button><button class="chip">Clean · 70 %</button></div>
+    <div class="pad" style="margin-bottom:8px"><button class="field">✎ Escribe lo del pizarrón: «bs 75»</button></div>
+    ${tabbar}`,
+};
+document.getElementById('app').innerHTML = screens[q.get('s')] || 'missing';
+</script>
+</body>
+</html>

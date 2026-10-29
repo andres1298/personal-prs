@@ -1,5 +1,5 @@
 """Phase 1 maps: thumb reach (right hand, one left-hand view), squint blur, and summary tables.
-Usage: python3 analyze.py <shotsDir> <outDir>
+Usage: python3 analyze.py <shotsDir> <outDir> [leftHandBase ...]
 Thumb model [Heuristica: Hoober 2013 / Hurff thumb zone], parameters fixed so it is reproducible:
 pivot = thumb base, 4 mm outside the right edge and 18 mm above the bottom edge (mirrored for the left hand).
 d < 25 mm -> media (flexion cerca de la base); 25-70 mm -> facil; 70-88 mm -> media; > 88 mm -> dificil.
@@ -125,7 +125,8 @@ for m in manifest:
         'centered': sum(t['align'] == 'center' for t in texts),
     })
 # One left-hand view
-thumb_map('05-run-75_390x844_light', 'left')
-thumb_map('01-picker_390x844_light', 'left')
+for left in sys.argv[3:] or ['05-run-75_390x844_light', '01-picker_390x844_light']:
+    if os.path.exists(os.path.join(SHOTS, left + '.json')):
+        thumb_map(left, 'left')
 json.dump(summary, open(os.path.join(OUT, 'summary.json'), 'w'), ensure_ascii=False, indent=1)
 print('ok', len(summary))
