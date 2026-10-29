@@ -1,20 +1,20 @@
 [
  {
-  "id": "A1",
-  "label": "A · Calculadora: resultado",
+  "id": "hf-A1",
+  "label": "A · Barra",
   "viewport": "390x844",
   "mode": "light",
-  "controls": 27,
-  "facil": 18,
-  "media": 4,
-  "dificil": 5,
+  "controls": 22,
+  "facil": 11,
+  "media": 7,
+  "dificil": 4,
   "small": [],
   "controls_detail": [
    {
     "n": 1,
-    "label": "Back Squat ▾",
+    "label": "Cambiar movimiento: Back Squat",
     "zone": "dificil",
-    "w": 139,
+    "w": 147,
     "h": 44,
     "small": false,
     "disabled": false
@@ -32,68 +32,59 @@
     "n": 3,
     "label": "1RM 260",
     "zone": "dificil",
-    "w": 69,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 4,
-    "label": "3RM",
+    "label": "3RM 235",
     "zone": "dificil",
-    "w": 69,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 5,
-    "label": "5RM",
-    "zone": "dificil",
-    "w": 69,
+    "label": "5RM 215",
+    "zone": "media",
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 6,
-    "label": "Barra 45 lb",
-    "zone": "media",
-    "w": 108,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 7,
-    "label": "Calentamiento",
+    "label": "Barra 45 lb",
     "zone": "facil",
-    "w": 133,
+    "w": 119,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 8,
-    "label": "Ajustar",
+    "label": "Buscar",
     "zone": "facil",
-    "w": 80,
+    "w": 100,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 9,
-    "label": "🔍 Buscar",
-    "zone": "media",
-    "w": 102,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 10,
-    "label": "Back Squat260",
+    "label": "Back Squat 260",
     "zone": "facil",
     "w": 140,
     "h": 44,
@@ -101,355 +92,194 @@
     "disabled": false
    },
    {
-    "n": 11,
-    "label": "Deadlift330",
-    "zone": "facil",
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
     "w": 115,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
+    "n": 11,
+    "label": "Clean 195",
+    "zone": "media",
+    "w": 102,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
     "n": 12,
-    "label": "50",
-    "zone": "facil",
-    "w": 84,
-    "h": 52,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 13,
-    "label": "55",
+    "label": "65%",
     "zone": "facil",
-    "w": 84,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 14,
-    "label": "60",
+    "label": "70%",
     "zone": "facil",
-    "w": 84,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 15,
-    "label": "65",
+    "label": "75%",
     "zone": "facil",
-    "w": 84,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 16,
-    "label": "70",
+    "label": "80%",
     "zone": "facil",
-    "w": 84,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 17,
-    "label": "75",
-    "zone": "facil",
-    "w": 84,
-    "h": 52,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 18,
-    "label": "80",
-    "zone": "facil",
-    "w": 84,
-    "h": 52,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 19,
-    "label": "85",
+    "label": "Cargar",
     "zone": "facil",
-    "w": 84,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 20,
-    "label": "90",
+    "label": "PRs",
     "zone": "facil",
-    "w": 84,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 21,
-    "label": "95",
+    "label": "Reloj",
     "zone": "facil",
-    "w": 84,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 22,
-    "label": "100",
-    "zone": "facil",
-    "w": 84,
-    "h": 52,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 23,
-    "label": "±",
+    "label": "Registrar PR o crear movimiento",
     "zone": "media",
-    "w": 84,
-    "h": 52,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 24,
-    "label": "Cargar",
-    "zone": "facil",
-    "w": 95,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 25,
-    "label": "PRs",
-    "zone": "facil",
-    "w": 95,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 26,
-    "label": "Reloj",
-    "zone": "facil",
-    "w": 95,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 27,
-    "label": "Agregar",
-    "zone": "media",
-    "w": 56,
-    "h": 56,
+    "w": 62,
+    "h": 62,
     "small": false,
     "disabled": false
    }
   ],
-  "contrast_fail": [
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   }
-  ],
-  "texts": 40,
+  "contrast_fail": [],
+  "texts": 38,
   "scrollHeight": 844,
   "largest": [
    {
     "text": "195",
-    "size": 76,
-    "weight": 800,
-    "ratio": 17.5,
-    "y": 153
-   },
-   {
-    "text": "45 · 25 · 5",
-    "size": 26,
+    "size": 92,
     "weight": 700,
-    "ratio": 17.5,
-    "y": 270
+    "ratio": 18.82,
+    "y": 95
    },
    {
     "text": "lb",
-    "size": 26,
+    "size": 28,
     "weight": 600,
-    "ratio": 8.16,
-    "y": 202
+    "ratio": 5.37,
+    "y": 156
    },
    {
-    "text": "Back Squat ▾",
+    "text": "Back Squat",
     "size": 22,
     "weight": 700,
-    "ratio": 17.5,
-    "y": 59
+    "ratio": 18.82,
+    "y": 58
    },
    {
-    "text": "50",
-    "size": 20,
+    "text": "65",
+    "size": 21,
     "weight": 700,
-    "ratio": 16.03,
-    "y": 536
+    "ratio": 21,
+    "y": 698
    },
    {
-    "text": "55",
-    "size": 20,
+    "text": "70",
+    "size": 21,
     "weight": 700,
-    "ratio": 16.03,
-    "y": 536
+    "ratio": 21,
+    "y": 698
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
+    "ratio": 5.8,
+    "y": 698
    }
   ],
-  "centered": 29
+  "centered": 26
  },
  {
-  "id": "A2",
-  "label": "A · Calculadora: buscar",
+  "id": "hf-A2",
+  "label": "A · Barra: buscar",
   "viewport": "390x844",
   "mode": "light",
-  "controls": 4,
-  "facil": 1,
-  "media": 2,
-  "dificil": 1,
+  "controls": 26,
+  "facil": 15,
+  "media": 7,
+  "dificil": 4,
   "small": [],
   "controls_detail": [
    {
     "n": 1,
-    "label": "Cancelar",
+    "label": "Cambiar movimiento: Back Squat",
     "zone": "dificil",
-    "w": 93,
+    "w": 147,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 2,
-    "label": "Cálculo libre Con un peso que escribas p. ej. «1",
-    "zone": "media",
-    "w": 390,
-    "h": 64,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 3,
-    "label": "Box Squat Sin PR Escribe tu peso",
-    "zone": "media",
-    "w": 390,
-    "h": 64,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 4,
-    "label": "Back Squat 1RM 260 lb 195 lb al 75 %",
-    "zone": "facil",
-    "w": 390,
-    "h": 64,
-    "small": false,
-    "disabled": false
-   }
-  ],
-  "contrast_fail": [],
-  "texts": 15,
-  "scrollHeight": 844,
-  "largest": [
-   {
-    "text": "195 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 388
-   },
-   {
-    "text": "Buscar",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 85
-   },
-   {
-    "text": "Cálculo libre",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 264
-   },
-   {
-    "text": "Box Squat",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 328
-   },
-   {
-    "text": "Back Squat",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 392
-   },
-   {
-    "text": "9:41",
-    "size": 15,
-    "weight": 600,
-    "ratio": 8.16,
-    "y": 13
-   }
-  ],
-  "centered": 1
- },
- {
-  "id": "B1",
-  "label": "B · Tabla de cargas al 75 %",
-  "viewport": "390x844",
-  "mode": "light",
-  "controls": 28,
-  "facil": 15,
-  "media": 7,
-  "dificil": 6,
-  "small": [],
-  "controls_detail": [
-   {
-    "n": 1,
     "label": "Ajustes",
     "zone": "dificil",
     "w": 44,
@@ -458,607 +288,285 @@
     "disabled": false
    },
    {
-    "n": 2,
-    "label": "Todos",
-    "zone": "dificil",
-    "w": 73,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
     "n": 3,
-    "label": "Sentadillas",
+    "label": "1RM 260",
     "zone": "dificil",
-    "w": 108,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 4,
-    "label": "Cargadas",
+    "label": "3RM 235",
     "zone": "dificil",
-    "w": 98,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 5,
-    "label": "Press",
-    "zone": "dificil",
-    "w": 69,
+    "label": "5RM 215",
+    "zone": "media",
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 6,
-    "label": "Back Squat 1RM 260 195 lb 45 · 25 · 5",
-    "zone": "dificil",
-    "w": 390,
-    "h": 64,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 7,
-    "label": "Deadlift 1RM 330 250 lb 55 · 45 · 2,5",
-    "zone": "media",
-    "w": 390,
-    "h": 64,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 8,
-    "label": "Clean 1RM 195 145 lb 45 · 5",
-    "zone": "media",
-    "w": 390,
-    "h": 64,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 9,
-    "label": "Bench Press 1RM 185 140 lb 45 · 2,5",
+    "label": "Back Squat 260",
     "zone": "facil",
-    "w": 390,
-    "h": 64,
+    "w": 140,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 10,
-    "label": "Front Squat 1RM 215 160 lb 55 · 2,5",
-    "zone": "facil",
-    "w": 390,
-    "h": 64,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 11,
-    "label": "Push Jerk 3RM 165 125 lb 35 · 5",
-    "zone": "facil",
-    "w": 390,
-    "h": 64,
+    "label": "Clean 195",
+    "zone": "media",
+    "w": 102,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 12,
-    "label": "🔍 Buscar movimiento o peso",
-    "zone": "facil",
-    "w": 358,
-    "h": 48,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 13,
-    "label": "50",
+    "label": "65%",
     "zone": "facil",
-    "w": 53,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 14,
-    "label": "55",
+    "label": "70%",
     "zone": "facil",
-    "w": 53,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 15,
-    "label": "60",
+    "label": "75%",
     "zone": "facil",
-    "w": 53,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 16,
-    "label": "65",
+    "label": "80%",
     "zone": "facil",
-    "w": 53,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 17,
-    "label": "70",
+    "label": "85%",
     "zone": "media",
-    "w": 53,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 18,
-    "label": "75",
+    "label": "90%",
     "zone": "media",
-    "w": 53,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 19,
-    "label": "80",
+    "label": "Cargar",
     "zone": "facil",
-    "w": 53,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 20,
-    "label": "85",
+    "label": "PRs",
     "zone": "facil",
-    "w": 53,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 21,
-    "label": "90",
+    "label": "Reloj",
     "zone": "facil",
-    "w": 53,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 22,
-    "label": "95",
-    "zone": "facil",
-    "w": 53,
-    "h": 52,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
     "small": false,
     "disabled": false
    },
    {
     "n": 23,
-    "label": "100",
-    "zone": "media",
+    "label": "Listo",
+    "zone": "facil",
     "w": 53,
-    "h": 52,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 24,
-    "label": "±",
-    "zone": "media",
-    "w": 53,
-    "h": 52,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 302,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 25,
-    "label": "Cargar",
+    "label": "Back Squat 1RM 260 lb · Sentadillas 195 lb al 75",
     "zone": "facil",
-    "w": 95,
-    "h": 50,
+    "w": 358,
+    "h": 59,
     "small": false,
     "disabled": false
    },
    {
     "n": 26,
-    "label": "PRs",
+    "label": "Box Squat Sin PR · Sentadillas Sin PR al 75 %",
     "zone": "facil",
-    "w": 95,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 27,
-    "label": "Reloj",
-    "zone": "facil",
-    "w": 95,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 28,
-    "label": "Agregar",
-    "zone": "media",
-    "w": 56,
-    "h": 56,
+    "w": 358,
+    "h": 59,
     "small": false,
     "disabled": false
    }
   ],
   "contrast_fail": [],
-  "texts": 50,
-  "scrollHeight": 844,
-  "largest": [
-   {
-    "text": "Cargar",
-    "size": 22,
-    "weight": 700,
-    "ratio": 17.5,
-    "y": 59
-   },
-   {
-    "text": "195 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 186
-   },
-   {
-    "text": "250 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 250
-   },
-   {
-    "text": "145 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 314
-   },
-   {
-    "text": "140 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 408
-   },
-   {
-    "text": "160 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 472
-   }
-  ],
-  "centered": 21
- },
- {
-  "id": "B2",
-  "label": "B · Tabla: detalle",
-  "viewport": "390x844",
-  "mode": "light",
-  "controls": 9,
-  "facil": 5,
-  "media": 3,
-  "dificil": 1,
-  "small": [],
-  "controls_detail": [
-   {
-    "n": 1,
-    "label": "Listo",
-    "zone": "dificil",
-    "w": 63,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 2,
-    "label": "1RM 260",
-    "zone": "facil",
-    "w": 118,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 3,
-    "label": "3RM 235",
-    "zone": "facil",
-    "w": 118,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 4,
-    "label": "5RM 215",
-    "zone": "media",
-    "w": 118,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 5,
-    "label": "−5 %",
-    "zone": "facil",
-    "w": 114,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 6,
-    "label": "Calentar",
-    "zone": "facil",
-    "w": 114,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 7,
-    "label": "+5 %",
-    "zone": "media",
-    "w": 114,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 8,
-    "label": "Barra 45 lb",
-    "zone": "facil",
-    "w": 175,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 9,
-    "label": "Ajustar discos",
-    "zone": "media",
-    "w": 175,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   }
-  ],
-  "contrast_fail": [
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   }
-  ],
-  "texts": 20,
+  "texts": 48,
   "scrollHeight": 844,
   "largest": [
    {
     "text": "195",
-    "size": 76,
-    "weight": 800,
-    "ratio": 18.88,
-    "y": 120
-   },
-   {
-    "text": "45 · 25 · 5",
-    "size": 26,
+    "size": 92,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 235
+    "ratio": 18.82,
+    "y": 95
    },
    {
     "text": "lb",
-    "size": 26,
+    "size": 28,
     "weight": 600,
-    "ratio": 8.81,
-    "y": 169
+    "ratio": 5.37,
+    "y": 156
    },
    {
     "text": "Back Squat",
     "size": 22,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 82
+    "ratio": 18.82,
+    "y": 58
    },
    {
-    "text": "9:41",
-    "size": 15,
-    "weight": 600,
-    "ratio": 8.16,
-    "y": 13
+    "text": "65",
+    "size": 21,
+    "weight": 700,
+    "ratio": 21,
+    "y": 698
    },
    {
-    "text": "Listo",
-    "size": 15,
-    "weight": 600,
+    "text": "70",
+    "size": 21,
+    "weight": 700,
+    "ratio": 21,
+    "y": 698
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
     "ratio": 5.8,
-    "y": 86
+    "y": 698
    }
   ],
-  "centered": 9
+  "centered": 27
  },
  {
-  "id": "C1",
-  "label": "C · Pizarrón: escribiendo",
+  "id": "hf-B1",
+  "label": "B · Tabla de cargas",
   "viewport": "390x844",
   "mode": "light",
-  "controls": 2,
-  "facil": 1,
-  "media": 1,
-  "dificil": 0,
+  "controls": 20,
+  "facil": 10,
+  "media": 6,
+  "dificil": 4,
   "small": [],
   "controls_detail": [
    {
     "n": 1,
-    "label": "Back Squat · 75 %",
-    "zone": "media",
-    "w": 161,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 2,
-    "label": "Box Squat · 75 %",
-    "zone": "facil",
-    "w": 153,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   }
-  ],
-  "contrast_fail": [
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   }
-  ],
-  "texts": 16,
-  "scrollHeight": 844,
-  "largest": [
-   {
-    "text": "195",
-    "size": 64,
-    "weight": 800,
-    "ratio": 18.88,
-    "y": 85
-   },
-   {
-    "text": "lb",
-    "size": 26,
-    "weight": 600,
-    "ratio": 8.81,
-    "y": 122
-   },
-   {
-    "text": "45 · 25 · 5",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 184
-   },
-   {
-    "text": "Back Squat",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 67
-   },
-   {
-    "text": "9:41",
-    "size": 15,
-    "weight": 600,
-    "ratio": 8.16,
-    "y": 13
-   },
-   {
-    "text": "Por lado",
-    "size": 15,
-    "weight": 600,
-    "ratio": 8.81,
-    "y": 188
-   }
-  ],
-  "centered": 2
- },
- {
-  "id": "C2",
-  "label": "C · Pizarrón: resultado",
-  "viewport": "390x844",
-  "mode": "light",
-  "controls": 12,
-  "facil": 8,
-  "media": 3,
-  "dificil": 1,
-  "small": [],
-  "controls_detail": [
-   {
-    "n": 1,
-    "label": "Ajustes",
+    "label": "Barra y discos",
     "zone": "dificil",
     "w": 44,
     "h": 44,
@@ -1067,52 +575,588 @@
    },
    {
     "n": 2,
-    "label": "−5 %",
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
     "zone": "media",
-    "w": 76,
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 358,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 302,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 46,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 148
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 243
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 338
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 434
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 529
+   },
+   {
+    "text": "Cargar al 75 %",
+    "size": 22,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 58
+   }
+  ],
+  "centered": 15
+ },
+ {
+  "id": "hf-B2",
+  "label": "B · Tabla: detalle",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 28,
+  "facil": 14,
+  "media": 10,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
+    "zone": "media",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 358,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 302,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Listo",
+    "zone": "media",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "1RM 260",
+    "zone": "media",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "3RM 235",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "5RM 215",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "Barra 45 lb",
+    "zone": "media",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 27,
+    "label": "−5 %",
+    "zone": "facil",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "+5 %",
+    "zone": "media",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 67,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 92,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 295
+   },
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 148
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 243
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 338
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 434
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 529
+   }
+  ],
+  "centered": 23
+ },
+ {
+  "id": "hf-C1",
+  "label": "C · Pizarrón",
+  "viewport": "390x844",
+  "mode": "light",
+  "controls": 13,
+  "facil": 11,
+  "media": 1,
+  "dificil": 1,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 3,
-    "label": "+5 %",
-    "zone": "media",
-    "w": 76,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 4,
-    "label": "Calentar",
+    "label": "Back Squat 75 %",
     "zone": "facil",
-    "w": 76,
+    "w": 146,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 5,
-    "label": "Barra",
-    "zone": "facil",
-    "w": 76,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 6,
-    "label": "Deadlift · 80 %",
-    "zone": "facil",
-    "w": 136,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 7,
-    "label": "Clean · 70 %",
+    "label": "Deadlift 80 %",
     "zone": "facil",
     "w": 121,
     "h": 44,
@@ -1120,153 +1164,143 @@
     "disabled": false
    },
    {
-    "n": 8,
-    "label": "✎ Escribe lo del pizarrón: «bs 75»",
+    "n": 6,
+    "label": "Clean 70 %",
     "zone": "facil",
-    "w": 358,
-    "h": 48,
+    "w": 108,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "−5 %",
+    "zone": "facil",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "+5 %",
+    "zone": "facil",
+    "w": 175,
+    "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 9,
-    "label": "Cargar",
+    "label": "Escribe el movimiento y el porcentaje",
     "zone": "facil",
-    "w": 95,
-    "h": 50,
+    "w": 304,
+    "h": 48,
     "small": false,
     "disabled": false
    },
    {
     "n": 10,
-    "label": "PRs",
+    "label": "Cargar",
     "zone": "facil",
-    "w": 95,
-    "h": 50,
+    "w": 103,
+    "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 11,
-    "label": "Reloj",
+    "label": "PRs",
     "zone": "facil",
-    "w": 95,
-    "h": 50,
+    "w": 103,
+    "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 12,
-    "label": "Agregar",
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "Registrar PR o crear movimiento",
     "zone": "media",
-    "w": 56,
-    "h": 56,
+    "w": 62,
+    "h": 62,
     "small": false,
     "disabled": false
    }
   ],
-  "contrast_fail": [
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   }
-  ],
-  "texts": 26,
+  "contrast_fail": [],
+  "texts": 23,
   "scrollHeight": 844,
   "largest": [
    {
     "text": "195",
-    "size": 76,
-    "weight": 800,
-    "ratio": 18.88,
-    "y": 128
-   },
-   {
-    "text": "45 · 25 · 5",
-    "size": 26,
+    "size": 92,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 242
+    "ratio": 18.82,
+    "y": 95
    },
    {
     "text": "lb",
-    "size": 26,
+    "size": 28,
     "weight": 600,
-    "ratio": 8.81,
-    "y": 177
-   },
-   {
-    "text": "Cargar",
-    "size": 22,
-    "weight": 700,
-    "ratio": 17.5,
-    "y": 59
+    "ratio": 5.37,
+    "y": 156
    },
    {
     "text": "Back Squat",
-    "size": 17,
+    "size": 22,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 111
+    "ratio": 18.82,
+    "y": 58
    },
    {
-    "text": "+",
-    "size": 28,
-    "weight": 400,
-    "ratio": 4.49,
-    "y": 762
+    "text": "45",
+    "size": 19,
+    "weight": 700,
+    "ratio": 18.21,
+    "y": 249
+   },
+   {
+    "text": "25",
+    "size": 19,
+    "weight": 700,
+    "ratio": 18.21,
+    "y": 249
+   },
+   {
+    "text": "5",
+    "size": 19,
+    "weight": 700,
+    "ratio": 18.21,
+    "y": 249
    }
   ],
-  "centered": 11
+  "centered": 10
  },
  {
-  "id": "A1",
-  "label": "A · Calculadora: resultado",
-  "viewport": "360x800",
+  "id": "hf-A3",
+  "label": "A · Calentamiento",
+  "viewport": "390x844",
   "mode": "light",
-  "controls": 27,
+  "controls": 30,
   "facil": 17,
-  "media": 5,
-  "dificil": 5,
+  "media": 9,
+  "dificil": 4,
   "small": [],
   "controls_detail": [
    {
     "n": 1,
-    "label": "Back Squat ▾",
+    "label": "Cambiar movimiento: Back Squat",
     "zone": "dificil",
-    "w": 139,
+    "w": 147,
     "h": 44,
     "small": false,
     "disabled": false
@@ -1284,68 +1318,59 @@
     "n": 3,
     "label": "1RM 260",
     "zone": "dificil",
-    "w": 69,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 4,
-    "label": "3RM",
+    "label": "3RM 235",
     "zone": "dificil",
-    "w": 69,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 5,
-    "label": "5RM",
-    "zone": "dificil",
-    "w": 69,
+    "label": "5RM 215",
+    "zone": "media",
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 6,
-    "label": "Barra 45 lb",
-    "zone": "media",
-    "w": 108,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 7,
-    "label": "Calentamiento",
-    "zone": "media",
-    "w": 133,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 8,
-    "label": "Ajustar",
+    "label": "Buscar",
     "zone": "facil",
-    "w": 80,
+    "w": 100,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 9,
-    "label": "🔍 Buscar",
-    "zone": "media",
-    "w": 102,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 10,
-    "label": "Back Squat260",
+    "label": "Back Squat 260",
     "zone": "facil",
     "w": 140,
     "h": 44,
@@ -1353,155 +1378,450 @@
     "disabled": false
    },
    {
-    "n": 11,
-    "label": "Deadlift330",
-    "zone": "facil",
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
     "w": 115,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
+    "n": 11,
+    "label": "Clean 195",
+    "zone": "media",
+    "w": 102,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
     "n": 12,
-    "label": "50",
-    "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 13,
-    "label": "55",
+    "label": "65%",
     "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 14,
-    "label": "60",
+    "label": "70%",
     "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 15,
-    "label": "65",
+    "label": "75%",
     "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 16,
-    "label": "70",
+    "label": "80%",
     "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 17,
-    "label": "75",
-    "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 18,
-    "label": "80",
-    "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 19,
-    "label": "85",
+    "label": "Cargar",
     "zone": "facil",
-    "w": 76,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 20,
-    "label": "90",
+    "label": "PRs",
     "zone": "facil",
-    "w": 76,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 21,
-    "label": "95",
+    "label": "Reloj",
     "zone": "facil",
-    "w": 76,
+    "w": 103,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 22,
-    "label": "100",
-    "zone": "facil",
-    "w": 76,
-    "h": 52,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
     "small": false,
     "disabled": false
    },
    {
     "n": 23,
-    "label": "±",
+    "label": "Listo",
     "zone": "media",
-    "w": 76,
-    "h": 52,
+    "w": 53,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 24,
-    "label": "Cargar",
-    "zone": "facil",
-    "w": 85,
-    "h": 50,
+    "label": "45 17 % · ×10 Barra sola",
+    "zone": "media",
+    "w": 358,
+    "h": 69,
     "small": false,
     "disabled": false
    },
    {
     "n": 25,
-    "label": "PRs",
+    "label": "75 29 % · ×5 Pon 15",
     "zone": "facil",
-    "w": 85,
-    "h": 50,
+    "w": 358,
+    "h": 73,
     "small": false,
     "disabled": false
    },
    {
     "n": 26,
-    "label": "Reloj",
+    "label": "105 40 % · ×5 Agrega 15",
     "zone": "facil",
-    "w": 85,
-    "h": 50,
+    "w": 358,
+    "h": 73,
     "small": false,
     "disabled": false
    },
    {
     "n": 27,
-    "label": "Agregar",
+    "label": "135 52 % · ×3 Quita 15 + 15 · pon 45",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "155 60 % · ×2 Agrega 10",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 29,
+    "label": "185 71 % · ×1 Quita 10 · pon 25",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 30,
+    "label": "195 75 % · objetivo Agrega 5",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 61,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 92,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 95
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 5.37,
+    "y": 156
+   },
+   {
+    "text": "45",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 299
+   },
+   {
+    "text": "75",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 370
+   },
+   {
+    "text": "105",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 443
+   },
+   {
+    "text": "135",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 517
+   }
+  ],
+  "centered": 27
+ },
+ {
+  "id": "hf-A1",
+  "label": "A · Barra",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 22,
+  "facil": 11,
+  "media": 7,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
     "zone": "media",
-    "w": 56,
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "Clean 195",
+    "zone": "media",
+    "w": 102,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
     "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "80%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
     "small": false,
     "disabled": false
    }
@@ -1509,199 +1829,1867 @@
   "contrast_fail": [
    {
     "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    },
    {
     "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    },
    {
     "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    },
    {
     "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    }
   ],
-  "texts": 39,
+  "texts": 38,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 92,
+    "weight": 700,
+    "ratio": 21,
+    "y": 95
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 9.5,
+    "y": 156
+   },
+   {
+    "text": "Back Squat",
+    "size": 22,
+    "weight": 700,
+    "ratio": 21,
+    "y": 58
+   },
+   {
+    "text": "65",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 698
+   },
+   {
+    "text": "70",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 698
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
+    "ratio": 7.42,
+    "y": 698
+   }
+  ],
+  "centered": 26
+ },
+ {
+  "id": "hf-A2",
+  "label": "A · Barra: buscar",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 26,
+  "facil": 15,
+  "media": 7,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
+    "zone": "media",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "Clean 195",
+    "zone": "media",
+    "w": 102,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "80%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "Listo",
+    "zone": "facil",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 302,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "Back Squat 1RM 260 lb · Sentadillas 195 lb al 75",
+    "zone": "facil",
+    "w": 358,
+    "h": 59,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "Box Squat Sin PR · Sentadillas Sin PR al 75 %",
+    "zone": "facil",
+    "w": 358,
+    "h": 59,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 48,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 92,
+    "weight": 700,
+    "ratio": 21,
+    "y": 95
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 9.5,
+    "y": 156
+   },
+   {
+    "text": "Back Squat",
+    "size": 22,
+    "weight": 700,
+    "ratio": 21,
+    "y": 58
+   },
+   {
+    "text": "65",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 698
+   },
+   {
+    "text": "70",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 698
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
+    "ratio": 7.42,
+    "y": 698
+   }
+  ],
+  "centered": 27
+ },
+ {
+  "id": "hf-B1",
+  "label": "B · Tabla de cargas",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 20,
+  "facil": 10,
+  "media": 6,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
+    "zone": "media",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 358,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 302,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 46,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 148
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 243
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 338
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 434
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 529
+   },
+   {
+    "text": "Cargar al 75 %",
+    "size": 22,
+    "weight": 700,
+    "ratio": 21,
+    "y": 58
+   }
+  ],
+  "centered": 15
+ },
+ {
+  "id": "hf-B2",
+  "label": "B · Tabla: detalle",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 28,
+  "facil": 14,
+  "media": 10,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
+    "zone": "media",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 358,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 358,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 302,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Listo",
+    "zone": "media",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "1RM 260",
+    "zone": "media",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "3RM 235",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "5RM 215",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "Barra 45 lb",
+    "zone": "media",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 27,
+    "label": "−5 %",
+    "zone": "facil",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "+5 %",
+    "zone": "media",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 67,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 92,
+    "weight": 700,
+    "ratio": 21,
+    "y": 295
+   },
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 148
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 243
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 338
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 434
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 529
+   }
+  ],
+  "centered": 23
+ },
+ {
+  "id": "hf-C1",
+  "label": "C · Pizarrón",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 13,
+  "facil": 11,
+  "media": 1,
+  "dificil": 1,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Back Squat 75 %",
+    "zone": "facil",
+    "w": 146,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Deadlift 80 %",
+    "zone": "facil",
+    "w": 121,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Clean 70 %",
+    "zone": "facil",
+    "w": 108,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "−5 %",
+    "zone": "facil",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "+5 %",
+    "zone": "facil",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Escribe el movimiento y el porcentaje",
+    "zone": "facil",
+    "w": 304,
+    "h": 48,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 23,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 92,
+    "weight": 700,
+    "ratio": 21,
+    "y": 95
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 9.5,
+    "y": 156
+   },
+   {
+    "text": "Back Squat",
+    "size": 22,
+    "weight": 700,
+    "ratio": 21,
+    "y": 58
+   },
+   {
+    "text": "45",
+    "size": 19,
+    "weight": 700,
+    "ratio": 12.84,
+    "y": 249
+   },
+   {
+    "text": "25",
+    "size": 19,
+    "weight": 700,
+    "ratio": 12.84,
+    "y": 249
+   },
+   {
+    "text": "5",
+    "size": 19,
+    "weight": 700,
+    "ratio": 12.84,
+    "y": 249
+   }
+  ],
+  "centered": 10
+ },
+ {
+  "id": "hf-A3",
+  "label": "A · Calentamiento",
+  "viewport": "390x844",
+  "mode": "dark",
+  "controls": 30,
+  "facil": 17,
+  "media": 9,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
+    "zone": "media",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "Clean 195",
+    "zone": "media",
+    "w": 102,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "80%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 103,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "Listo",
+    "zone": "media",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "45 17 % · ×10 Barra sola",
+    "zone": "media",
+    "w": 358,
+    "h": 69,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "75 29 % · ×5 Pon 15",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "105 40 % · ×5 Agrega 15",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 27,
+    "label": "135 52 % · ×3 Quita 15 + 15 · pon 45",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "155 60 % · ×2 Agrega 10",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 29,
+    "label": "185 71 % · ×1 Quita 10 · pon 25",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 30,
+    "label": "195 75 % · objetivo Agrega 5",
+    "zone": "facil",
+    "w": 358,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 61,
+  "scrollHeight": 844,
+  "largest": [
+   {
+    "text": "195",
+    "size": 92,
+    "weight": 700,
+    "ratio": 21,
+    "y": 95
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 9.5,
+    "y": 156
+   },
+   {
+    "text": "45",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 299
+   },
+   {
+    "text": "75",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 370
+   },
+   {
+    "text": "105",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 443
+   },
+   {
+    "text": "135",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 517
+   }
+  ],
+  "centered": 27
+ },
+ {
+  "id": "hf-A1",
+  "label": "A · Barra",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 21,
+  "facil": 10,
+  "media": 6,
+  "dificil": 5,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 36,
   "scrollHeight": 800,
   "largest": [
    {
     "text": "195",
-    "size": 76,
-    "weight": 800,
-    "ratio": 17.5,
+    "size": 88,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 49
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 5.37,
     "y": 106
    },
    {
-    "text": "45 · 25 · 5",
-    "size": 26,
-    "weight": 700,
-    "ratio": 17.5,
-    "y": 223
-   },
-   {
-    "text": "lb",
-    "size": 26,
-    "weight": 600,
-    "ratio": 8.16,
-    "y": 155
-   },
-   {
-    "text": "Back Squat ▾",
+    "text": "Back Squat",
     "size": 22,
     "weight": 700,
-    "ratio": 17.5,
-    "y": 12
+    "ratio": 18.82,
+    "y": 11
    },
    {
-    "text": "50",
-    "size": 20,
+    "text": "65",
+    "size": 21,
     "weight": 700,
-    "ratio": 16.03,
-    "y": 507
+    "ratio": 21,
+    "y": 678
    },
    {
-    "text": "55",
-    "size": 20,
+    "text": "70",
+    "size": 21,
     "weight": 700,
-    "ratio": 16.03,
-    "y": 507
+    "ratio": 21,
+    "y": 678
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
+    "ratio": 5.8,
+    "y": 678
    }
   ],
-  "centered": 29
+  "centered": 24
  },
  {
-  "id": "A2",
-  "label": "A · Calculadora: buscar",
+  "id": "hf-A2",
+  "label": "A · Barra: buscar",
   "viewport": "360x800",
   "mode": "light",
-  "controls": 4,
-  "facil": 1,
-  "media": 2,
-  "dificil": 1,
+  "controls": 25,
+  "facil": 14,
+  "media": 6,
+  "dificil": 5,
   "small": [],
   "controls_detail": [
    {
     "n": 1,
-    "label": "Cancelar",
+    "label": "Cambiar movimiento: Back Squat",
     "zone": "dificil",
-    "w": 93,
+    "w": 147,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 2,
-    "label": "Cálculo libre Con un peso que escribas p. ej. «1",
-    "zone": "media",
-    "w": 360,
-    "h": 64,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 3,
-    "label": "Box Squat Sin PR Escribe tu peso",
-    "zone": "media",
-    "w": 360,
-    "h": 64,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 4,
-    "label": "Back Squat 1RM 260 lb 195 lb al 75 %",
-    "zone": "facil",
-    "w": 360,
-    "h": 64,
-    "small": false,
-    "disabled": false
-   }
-  ],
-  "contrast_fail": [],
-  "texts": 14,
-  "scrollHeight": 800,
-  "largest": [
-   {
-    "text": "195 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 380
-   },
-   {
-    "text": "Buscar",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 38
-   },
-   {
-    "text": "Cálculo libre",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 256
-   },
-   {
-    "text": "Box Squat",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 320
-   },
-   {
-    "text": "Back Squat",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 384
-   },
-   {
-    "text": "Cancelar",
-    "size": 15,
-    "weight": 600,
-    "ratio": 5.8,
-    "y": 39
-   }
-  ],
-  "centered": 1
- },
- {
-  "id": "B1",
-  "label": "B · Tabla de cargas al 75 %",
-  "viewport": "360x800",
-  "mode": "light",
-  "controls": 28,
-  "facil": 15,
-  "media": 6,
-  "dificil": 7,
-  "small": [],
-  "controls_detail": [
-   {
-    "n": 1,
     "label": "Ajustes",
     "zone": "dificil",
     "w": 44,
@@ -1710,607 +3698,276 @@
     "disabled": false
    },
    {
-    "n": 2,
-    "label": "Todos",
-    "zone": "dificil",
-    "w": 73,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
     "n": 3,
-    "label": "Sentadillas",
+    "label": "1RM 260",
     "zone": "dificil",
-    "w": 108,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 4,
-    "label": "Cargadas",
+    "label": "3RM 235",
     "zone": "dificil",
-    "w": 98,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 5,
-    "label": "Press",
+    "label": "5RM 215",
     "zone": "dificil",
-    "w": 69,
+    "w": 88,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 6,
-    "label": "Back Squat 1RM 260 195 lb 45 · 25 · 5",
-    "zone": "dificil",
-    "w": 360,
-    "h": 64,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 7,
-    "label": "Deadlift 1RM 330 250 lb 55 · 45 · 2,5",
-    "zone": "dificil",
-    "w": 360,
-    "h": 64,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 8,
-    "label": "Clean 1RM 195 145 lb 45 · 5",
-    "zone": "media",
-    "w": 360,
-    "h": 64,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 9,
-    "label": "Bench Press 1RM 185 140 lb 45 · 2,5",
+    "label": "Back Squat 260",
     "zone": "facil",
-    "w": 360,
-    "h": 64,
+    "w": 140,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 10,
-    "label": "Front Squat 1RM 215 160 lb 55 · 2,5",
-    "zone": "facil",
-    "w": 360,
-    "h": 64,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 11,
-    "label": "Push Jerk 3RM 165 125 lb 35 · 5",
-    "zone": "facil",
-    "w": 360,
-    "h": 64,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 12,
-    "label": "🔍 Buscar movimiento o peso",
+    "label": "65%",
     "zone": "facil",
-    "w": 328,
-    "h": 48,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 13,
-    "label": "50",
+    "label": "70%",
     "zone": "facil",
-    "w": 48,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 14,
-    "label": "55",
+    "label": "75%",
     "zone": "facil",
-    "w": 48,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 15,
-    "label": "60",
-    "zone": "facil",
-    "w": 48,
-    "h": 52,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 16,
-    "label": "65",
-    "zone": "facil",
-    "w": 48,
-    "h": 52,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 17,
-    "label": "70",
+    "label": "90%",
     "zone": "media",
-    "w": 48,
-    "h": 52,
+    "w": 62,
+    "h": 56,
     "small": false,
     "disabled": false
    },
    {
     "n": 18,
-    "label": "75",
-    "zone": "media",
-    "w": 48,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 19,
-    "label": "80",
+    "label": "PRs",
     "zone": "facil",
-    "w": 48,
+    "w": 93,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 20,
-    "label": "85",
+    "label": "Reloj",
     "zone": "facil",
-    "w": 48,
+    "w": 93,
     "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 21,
-    "label": "90",
-    "zone": "facil",
-    "w": 48,
-    "h": 52,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
     "small": false,
     "disabled": false
    },
    {
     "n": 22,
-    "label": "95",
+    "label": "Listo",
     "zone": "facil",
-    "w": 48,
-    "h": 52,
+    "w": 53,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 23,
-    "label": "100",
-    "zone": "media",
-    "w": 48,
-    "h": 52,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 272,
+    "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 24,
-    "label": "±",
-    "zone": "media",
-    "w": 48,
-    "h": 52,
+    "label": "Back Squat 1RM 260 lb · Sentadillas 195 lb al 75",
+    "zone": "facil",
+    "w": 328,
+    "h": 59,
     "small": false,
     "disabled": false
    },
    {
     "n": 25,
-    "label": "Cargar",
+    "label": "Box Squat Sin PR · Sentadillas Sin PR al 75 %",
     "zone": "facil",
-    "w": 85,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 26,
-    "label": "PRs",
-    "zone": "facil",
-    "w": 85,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 27,
-    "label": "Reloj",
-    "zone": "facil",
-    "w": 85,
-    "h": 50,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 28,
-    "label": "Agregar",
-    "zone": "media",
-    "w": 56,
-    "h": 56,
+    "w": 328,
+    "h": 59,
     "small": false,
     "disabled": false
    }
   ],
   "contrast_fail": [],
-  "texts": 49,
-  "scrollHeight": 800,
-  "largest": [
-   {
-    "text": "Cargar",
-    "size": 22,
-    "weight": 700,
-    "ratio": 17.5,
-    "y": 12
-   },
-   {
-    "text": "195 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 139
-   },
-   {
-    "text": "250 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 203
-   },
-   {
-    "text": "145 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 267
-   },
-   {
-    "text": "140 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 361
-   },
-   {
-    "text": "160 lb",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 425
-   }
-  ],
-  "centered": 21
- },
- {
-  "id": "B2",
-  "label": "B · Tabla: detalle",
-  "viewport": "360x800",
-  "mode": "light",
-  "controls": 9,
-  "facil": 5,
-  "media": 3,
-  "dificil": 1,
-  "small": [],
-  "controls_detail": [
-   {
-    "n": 1,
-    "label": "Listo",
-    "zone": "dificil",
-    "w": 63,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 2,
-    "label": "1RM 260",
-    "zone": "facil",
-    "w": 108,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 3,
-    "label": "3RM 235",
-    "zone": "facil",
-    "w": 108,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 4,
-    "label": "5RM 215",
-    "zone": "media",
-    "w": 108,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 5,
-    "label": "−5 %",
-    "zone": "facil",
-    "w": 104,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 6,
-    "label": "Calentar",
-    "zone": "facil",
-    "w": 104,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 7,
-    "label": "+5 %",
-    "zone": "media",
-    "w": 104,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 8,
-    "label": "Barra 45 lb",
-    "zone": "facil",
-    "w": 160,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 9,
-    "label": "Ajustar discos",
-    "zone": "media",
-    "w": 160,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   }
-  ],
-  "contrast_fail": [
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   }
-  ],
-  "texts": 19,
+  "texts": 46,
   "scrollHeight": 800,
   "largest": [
    {
     "text": "195",
-    "size": 76,
-    "weight": 800,
-    "ratio": 18.88,
-    "y": 73
-   },
-   {
-    "text": "45 · 25 · 5",
-    "size": 26,
+    "size": 88,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 188
+    "ratio": 18.82,
+    "y": 49
    },
    {
     "text": "lb",
-    "size": 26,
+    "size": 28,
     "weight": 600,
-    "ratio": 8.81,
-    "y": 122
+    "ratio": 5.37,
+    "y": 106
    },
    {
     "text": "Back Squat",
     "size": 22,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 35
+    "ratio": 18.82,
+    "y": 11
    },
    {
-    "text": "Listo",
-    "size": 15,
-    "weight": 600,
+    "text": "65",
+    "size": 21,
+    "weight": 700,
+    "ratio": 21,
+    "y": 678
+   },
+   {
+    "text": "70",
+    "size": 21,
+    "weight": 700,
+    "ratio": 21,
+    "y": 678
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
     "ratio": 5.8,
-    "y": 39
-   },
-   {
-    "text": "Por lado",
-    "size": 15,
-    "weight": 600,
-    "ratio": 8.81,
-    "y": 197
+    "y": 678
    }
   ],
-  "centered": 9
+  "centered": 25
  },
  {
-  "id": "C1",
-  "label": "C · Pizarrón: escribiendo",
+  "id": "hf-B1",
+  "label": "B · Tabla de cargas",
   "viewport": "360x800",
   "mode": "light",
-  "controls": 2,
-  "facil": 1,
-  "media": 1,
-  "dificil": 0,
+  "controls": 20,
+  "facil": 9,
+  "media": 7,
+  "dificil": 4,
   "small": [],
   "controls_detail": [
    {
     "n": 1,
-    "label": "Back Squat · 75 %",
-    "zone": "media",
-    "w": 161,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 2,
-    "label": "Box Squat · 75 %",
-    "zone": "facil",
-    "w": 153,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   }
-  ],
-  "contrast_fail": [
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   },
-   {
-    "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
-    "required": 4.5
-   }
-  ],
-  "texts": 15,
-  "scrollHeight": 800,
-  "largest": [
-   {
-    "text": "195",
-    "size": 64,
-    "weight": 800,
-    "ratio": 18.88,
-    "y": 38
-   },
-   {
-    "text": "lb",
-    "size": 26,
-    "weight": 600,
-    "ratio": 8.81,
-    "y": 75
-   },
-   {
-    "text": "45 · 25 · 5",
-    "size": 22,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 136
-   },
-   {
-    "text": "Back Squat",
-    "size": 17,
-    "weight": 700,
-    "ratio": 18.88,
-    "y": 20
-   },
-   {
-    "text": "Por lado",
-    "size": 15,
-    "weight": 600,
-    "ratio": 8.81,
-    "y": 142
-   },
-   {
-    "text": "Back Squat · 75 %",
-    "size": 15,
-    "weight": 600,
-    "ratio": 5.8,
-    "y": 404
-   }
-  ],
-  "centered": 2
- },
- {
-  "id": "C2",
-  "label": "C · Pizarrón: resultado",
-  "viewport": "360x800",
-  "mode": "light",
-  "controls": 12,
-  "facil": 7,
-  "media": 3,
-  "dificil": 2,
-  "small": [],
-  "controls_detail": [
-   {
-    "n": 1,
-    "label": "Ajustes",
+    "label": "Barra y discos",
     "zone": "dificil",
     "w": 44,
     "h": 44,
@@ -2319,52 +3976,588 @@
    },
    {
     "n": 2,
-    "label": "−5 %",
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
     "zone": "dificil",
-    "w": 68,
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 328,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 272,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 43,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 128
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 223
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 318
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 414
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 509
+   },
+   {
+    "text": "Cargar al 75 %",
+    "size": 22,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 11
+   }
+  ],
+  "centered": 13
+ },
+ {
+  "id": "hf-B2",
+  "label": "B · Tabla: detalle",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 28,
+  "facil": 13,
+  "media": 11,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
+    "zone": "dificil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 328,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 272,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Listo",
+    "zone": "media",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "1RM 260",
+    "zone": "media",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "3RM 235",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "5RM 215",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "Barra 45 lb",
+    "zone": "media",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 27,
+    "label": "−5 %",
+    "zone": "facil",
+    "w": 160,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "+5 %",
+    "zone": "media",
+    "w": 160,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 64,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 88,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 278
+   },
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 128
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 223
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 318
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 414
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 509
+   }
+  ],
+  "centered": 21
+ },
+ {
+  "id": "hf-C1",
+  "label": "C · Pizarrón",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 13,
+  "facil": 9,
+  "media": 3,
+  "dificil": 1,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 3,
-    "label": "+5 %",
-    "zone": "media",
-    "w": 68,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 4,
-    "label": "Calentar",
-    "zone": "media",
-    "w": 68,
+    "label": "Back Squat 75 %",
+    "zone": "facil",
+    "w": 146,
     "h": 44,
     "small": false,
     "disabled": false
    },
    {
     "n": 5,
-    "label": "Barra",
-    "zone": "facil",
-    "w": 68,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 6,
-    "label": "Deadlift · 80 %",
-    "zone": "facil",
-    "w": 136,
-    "h": 44,
-    "small": false,
-    "disabled": false
-   },
-   {
-    "n": 7,
-    "label": "Clean · 70 %",
+    "label": "Deadlift 80 %",
     "zone": "facil",
     "w": 121,
     "h": 44,
@@ -2372,47 +4565,646 @@
     "disabled": false
    },
    {
-    "n": 8,
-    "label": "✎ Escribe lo del pizarrón: «bs 75»",
+    "n": 6,
+    "label": "Clean 70 %",
+    "zone": "media",
+    "w": 108,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "−5 %",
     "zone": "facil",
-    "w": 328,
-    "h": 48,
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "+5 %",
+    "zone": "media",
+    "w": 175,
+    "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 9,
-    "label": "Cargar",
+    "label": "Escribe el movimiento y el porcentaje",
     "zone": "facil",
-    "w": 85,
-    "h": 50,
+    "w": 304,
+    "h": 48,
     "small": false,
     "disabled": false
    },
    {
     "n": 10,
-    "label": "PRs",
+    "label": "Cargar",
     "zone": "facil",
-    "w": 85,
-    "h": 50,
+    "w": 93,
+    "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 11,
-    "label": "Reloj",
+    "label": "PRs",
     "zone": "facil",
-    "w": 85,
-    "h": 50,
+    "w": 93,
+    "h": 52,
     "small": false,
     "disabled": false
    },
    {
     "n": 12,
-    "label": "Agregar",
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "Registrar PR o crear movimiento",
     "zone": "media",
-    "w": 56,
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 23,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 88,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 49
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 5.37,
+    "y": 106
+   },
+   {
+    "text": "Back Squat",
+    "size": 22,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 11
+   },
+   {
+    "text": "45",
+    "size": 19,
+    "weight": 700,
+    "ratio": 18.21,
+    "y": 198
+   },
+   {
+    "text": "25",
+    "size": 19,
+    "weight": 700,
+    "ratio": 18.21,
+    "y": 198
+   },
+   {
+    "text": "5",
+    "size": 19,
+    "weight": 700,
+    "ratio": 18.21,
+    "y": 198
+   }
+  ],
+  "centered": 10
+ },
+ {
+  "id": "hf-A3",
+  "label": "A · Calentamiento",
+  "viewport": "360x800",
+  "mode": "light",
+  "controls": 29,
+  "facil": 16,
+  "media": 8,
+  "dificil": 5,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
     "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "Listo",
+    "zone": "media",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "45 17 % · ×10 Barra sola",
+    "zone": "media",
+    "w": 328,
+    "h": 69,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "75 29 % · ×5 Pon 15",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "105 40 % · ×5 Agrega 15",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "135 52 % · ×3 Quita 15 + 15 · pon 45",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 27,
+    "label": "155 60 % · ×2 Agrega 10",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "185 71 % · ×1 Quita 10 · pon 25",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 29,
+    "label": "195 75 % · objetivo Agrega 5",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 59,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 88,
+    "weight": 700,
+    "ratio": 18.82,
+    "y": 49
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 5.37,
+    "y": 106
+   },
+   {
+    "text": "45",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 277
+   },
+   {
+    "text": "75",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 348
+   },
+   {
+    "text": "105",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 421
+   },
+   {
+    "text": "135",
+    "size": 24,
+    "weight": 700,
+    "ratio": 21,
+    "y": 495
+   }
+  ],
+  "centered": 25
+ },
+ {
+  "id": "hf-A1",
+  "label": "A · Barra",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 21,
+  "facil": 10,
+  "media": 6,
+  "dificil": 5,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
     "small": false,
     "disabled": false
    }
@@ -2420,87 +5212,1575 @@
   "contrast_fail": [
    {
     "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    },
    {
     "text": "45",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    },
    {
     "text": "25",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    },
    {
     "text": "5",
-    "size": 11,
-    "weight": 700,
-    "fg": "#ffffff",
-    "bg": "#8d8d93",
-    "ratio": 3.3,
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
     "required": 4.5
    }
   ],
-  "texts": 25,
+  "texts": 36,
   "scrollHeight": 800,
   "largest": [
    {
     "text": "195",
-    "size": 76,
-    "weight": 800,
-    "ratio": 18.88,
-    "y": 81
-   },
-   {
-    "text": "45 · 25 · 5",
-    "size": 26,
+    "size": 88,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 194
+    "ratio": 21,
+    "y": 49
    },
    {
     "text": "lb",
-    "size": 26,
+    "size": 28,
     "weight": 600,
-    "ratio": 8.81,
-    "y": 130
-   },
-   {
-    "text": "Cargar",
-    "size": 22,
-    "weight": 700,
-    "ratio": 17.5,
-    "y": 12
+    "ratio": 9.5,
+    "y": 106
    },
    {
     "text": "Back Squat",
-    "size": 17,
+    "size": 22,
     "weight": 700,
-    "ratio": 18.88,
-    "y": 64
+    "ratio": 21,
+    "y": 11
    },
    {
-    "text": "+",
-    "size": 28,
-    "weight": 400,
-    "ratio": 4.49,
-    "y": 752
+    "text": "65",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 678
+   },
+   {
+    "text": "70",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 678
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
+    "ratio": 7.42,
+    "y": 678
    }
   ],
-  "centered": 11
+  "centered": 24
+ },
+ {
+  "id": "hf-A2",
+  "label": "A · Barra: buscar",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 25,
+  "facil": 14,
+  "media": 6,
+  "dificil": 5,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "Listo",
+    "zone": "facil",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 272,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "Back Squat 1RM 260 lb · Sentadillas 195 lb al 75",
+    "zone": "facil",
+    "w": 328,
+    "h": 59,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "Box Squat Sin PR · Sentadillas Sin PR al 75 %",
+    "zone": "facil",
+    "w": 328,
+    "h": 59,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 46,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 88,
+    "weight": 700,
+    "ratio": 21,
+    "y": 49
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 9.5,
+    "y": 106
+   },
+   {
+    "text": "Back Squat",
+    "size": 22,
+    "weight": 700,
+    "ratio": 21,
+    "y": 11
+   },
+   {
+    "text": "65",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 678
+   },
+   {
+    "text": "70",
+    "size": 21,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 678
+   },
+   {
+    "text": "75",
+    "size": 21,
+    "weight": 700,
+    "ratio": 7.42,
+    "y": 678
+   }
+  ],
+  "centered": 25
+ },
+ {
+  "id": "hf-B1",
+  "label": "B · Tabla de cargas",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 20,
+  "facil": 9,
+  "media": 7,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
+    "zone": "dificil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 328,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 272,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [],
+  "texts": 43,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 128
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 223
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 318
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 414
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 509
+   },
+   {
+    "text": "Cargar al 75 %",
+    "size": 22,
+    "weight": 700,
+    "ratio": 21,
+    "y": 11
+   }
+  ],
+  "centered": 13
+ },
+ {
+  "id": "hf-B2",
+  "label": "B · Tabla: detalle",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 28,
+  "facil": 13,
+  "media": 11,
+  "dificil": 4,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Back Squat 1RM 260 195lb 45 · 25 · 5",
+    "zone": "dificil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Deadlift 1RM 330 250lb 55 · 45 · 2,5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Clean 1RM 195 145lb 45 · 5",
+    "zone": "media",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Front Squat 1RM 215 160lb 55 · 2,5",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Push Press 1RM 155 115lb 35",
+    "zone": "facil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Pull-up Máx. 20 reps 15reps de 20",
+    "zone": "dificil",
+    "w": 328,
+    "h": 95,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Box Squat Sin PR Sin PR",
+    "zone": "dificil",
+    "w": 328,
+    "h": 65,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Buscar movimiento",
+    "zone": "facil",
+    "w": 272,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Listo",
+    "zone": "media",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "1RM 260",
+    "zone": "media",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "3RM 235",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "5RM 215",
+    "zone": "facil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "Barra 45 lb",
+    "zone": "media",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 27,
+    "label": "−5 %",
+    "zone": "facil",
+    "w": 160,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "+5 %",
+    "zone": "media",
+    "w": 160,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 64,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 88,
+    "weight": 700,
+    "ratio": 21,
+    "y": 278
+   },
+   {
+    "text": "195",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 128
+   },
+   {
+    "text": "250",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 223
+   },
+   {
+    "text": "145",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 318
+   },
+   {
+    "text": "160",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 414
+   },
+   {
+    "text": "115",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 509
+   }
+  ],
+  "centered": 21
+ },
+ {
+  "id": "hf-C1",
+  "label": "C · Pizarrón",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 13,
+  "facil": 9,
+  "media": 3,
+  "dificil": 1,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Barra y discos",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "Back Squat 75 %",
+    "zone": "facil",
+    "w": 146,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "Deadlift 80 %",
+    "zone": "facil",
+    "w": 121,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Clean 70 %",
+    "zone": "media",
+    "w": 108,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "−5 %",
+    "zone": "facil",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "+5 %",
+    "zone": "media",
+    "w": 175,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Escribe el movimiento y el porcentaje",
+    "zone": "facil",
+    "w": 304,
+    "h": 48,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 23,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 88,
+    "weight": 700,
+    "ratio": 21,
+    "y": 49
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 9.5,
+    "y": 106
+   },
+   {
+    "text": "Back Squat",
+    "size": 22,
+    "weight": 700,
+    "ratio": 21,
+    "y": 11
+   },
+   {
+    "text": "45",
+    "size": 19,
+    "weight": 700,
+    "ratio": 12.84,
+    "y": 198
+   },
+   {
+    "text": "25",
+    "size": 19,
+    "weight": 700,
+    "ratio": 12.84,
+    "y": 198
+   },
+   {
+    "text": "5",
+    "size": 19,
+    "weight": 700,
+    "ratio": 12.84,
+    "y": 198
+   }
+  ],
+  "centered": 10
+ },
+ {
+  "id": "hf-A3",
+  "label": "A · Calentamiento",
+  "viewport": "360x800",
+  "mode": "dark",
+  "controls": 29,
+  "facil": 16,
+  "media": 8,
+  "dificil": 5,
+  "small": [],
+  "controls_detail": [
+   {
+    "n": 1,
+    "label": "Cambiar movimiento: Back Squat",
+    "zone": "dificil",
+    "w": 147,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 2,
+    "label": "Ajustes",
+    "zone": "dificil",
+    "w": 44,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 3,
+    "label": "1RM 260",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 4,
+    "label": "3RM 235",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 5,
+    "label": "5RM 215",
+    "zone": "dificil",
+    "w": 88,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 6,
+    "label": "Calentamiento",
+    "zone": "facil",
+    "w": 144,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 7,
+    "label": "Barra 45 lb",
+    "zone": "facil",
+    "w": 119,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 8,
+    "label": "Buscar",
+    "zone": "facil",
+    "w": 100,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 9,
+    "label": "Back Squat 260",
+    "zone": "facil",
+    "w": 140,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 10,
+    "label": "Deadlift 330",
+    "zone": "media",
+    "w": 115,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 11,
+    "label": "60%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 12,
+    "label": "65%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 13,
+    "label": "70%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 14,
+    "label": "75%",
+    "zone": "facil",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 15,
+    "label": "80%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 16,
+    "label": "85%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 17,
+    "label": "90%",
+    "zone": "media",
+    "w": 62,
+    "h": 56,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 18,
+    "label": "Cargar",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 19,
+    "label": "PRs",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 20,
+    "label": "Reloj",
+    "zone": "facil",
+    "w": 93,
+    "h": 52,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 21,
+    "label": "Registrar PR o crear movimiento",
+    "zone": "media",
+    "w": 62,
+    "h": 62,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 22,
+    "label": "Listo",
+    "zone": "media",
+    "w": 53,
+    "h": 44,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 23,
+    "label": "45 17 % · ×10 Barra sola",
+    "zone": "media",
+    "w": 328,
+    "h": 69,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 24,
+    "label": "75 29 % · ×5 Pon 15",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 25,
+    "label": "105 40 % · ×5 Agrega 15",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 26,
+    "label": "135 52 % · ×3 Quita 15 + 15 · pon 45",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 27,
+    "label": "155 60 % · ×2 Agrega 10",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 28,
+    "label": "185 71 % · ×1 Quita 10 · pon 25",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   },
+   {
+    "n": 29,
+    "label": "195 75 % · objetivo Agrega 5",
+    "zone": "facil",
+    "w": 328,
+    "h": 73,
+    "small": false,
+    "disabled": false
+   }
+  ],
+  "contrast_fail": [
+   {
+    "text": "45",
+    "size": 12,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "45",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "25",
+    "size": 16,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   },
+   {
+    "text": "5",
+    "size": 13,
+    "weight": 800,
+    "fg": "#111111",
+    "bg": "#1c1c1e",
+    "ratio": 1.11,
+    "required": 4.5
+   }
+  ],
+  "texts": 59,
+  "scrollHeight": 800,
+  "largest": [
+   {
+    "text": "195",
+    "size": 88,
+    "weight": 700,
+    "ratio": 21,
+    "y": 49
+   },
+   {
+    "text": "lb",
+    "size": 28,
+    "weight": 600,
+    "ratio": 9.5,
+    "y": 106
+   },
+   {
+    "text": "45",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 277
+   },
+   {
+    "text": "75",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 348
+   },
+   {
+    "text": "105",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 421
+   },
+   {
+    "text": "135",
+    "size": 24,
+    "weight": 700,
+    "ratio": 17.01,
+    "y": 495
+   }
+  ],
+  "centered": 25
  }
 ]
