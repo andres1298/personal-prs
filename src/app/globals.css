@@ -173,6 +173,12 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
   padding: 0 14px max(var(--safe-bottom), 14px); pointer-events: none;
   transition: transform .45s var(--spring), opacity .3s;
 }
+/* The app's ground behind the bar, fading in above it, so content scrolling underneath (such as the outlined
+   free-calculation row) does not show around the bar and read as a broken border. */
+.tab-bar::before {
+  content: ''; position: absolute; z-index: -1; inset: -40px 0 0; pointer-events: none;
+  background: linear-gradient(to bottom, transparent, var(--bg) 36px);
+}
 .tab-bar[data-hidden="true"] { transform: translateY(140%); opacity: 0; }
 .tab-bar > * { pointer-events: auto; }
 .tab-group {
