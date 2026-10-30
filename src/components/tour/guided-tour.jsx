@@ -4,6 +4,7 @@ import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import Icon from '../ui/icon';
 import { useModalLayer, usePresence } from '../ui/sheet';
+import { useBackLayer } from '../back-navigation';
 
 /**
  * Steps of the basic app flow. `target` matches a `data-tour` attribute; steps
@@ -140,6 +141,8 @@ export default function GuidedTour({ open, steps = TOUR_STEPS, onStep, onClose }
   const titleId = useId();
   const bodyId = useId();
   useModalLayer(mounted && open, root);
+  // Going back closes the tour, as Saltar tour does.
+  useBackLayer(open, () => onClose?.(false));
   useEffect(() => { stepHandler.current = onStep; }, [onStep]);
 
   const step = steps[index];

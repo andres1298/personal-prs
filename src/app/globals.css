@@ -96,7 +96,14 @@ svg { display: block; flex: none; }
    the page scrolls; reserving that height keeps the tab bar flush with the bottom edge. */
 @media (display-mode: standalone) { html { min-height: calc(100% + var(--safe-top)); } }
 
-.page { padding-bottom: calc(var(--tab-height) + var(--safe-bottom) + 40px); }
+.page {
+  position: relative; z-index: 1; min-height: 100dvh; padding-bottom: calc(var(--tab-height) + var(--safe-bottom) + 40px);
+  background: var(--bg); touch-action: pan-y;
+}
+/* Edge swipe back (installed iPhone app): the screen follows the finger over the previous one. */
+.page.swiping { box-shadow: -12px 0 32px rgba(0, 0, 0, .35); }
+.swipe-under { position: fixed; inset: 0; z-index: 0; overflow: hidden; pointer-events: none; background: var(--bg); }
+.swipe-under::after { content: ''; position: fixed; inset: 0; background: #000; opacity: var(--dim, .25); }
 .page[data-focus="true"] { padding-bottom: calc(var(--safe-bottom) + 24px); }
 .tab-view { animation: view-in .35s var(--ease); }
 @keyframes view-in { from { opacity: 0; transform: translateY(8px); } }

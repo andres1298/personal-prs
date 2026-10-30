@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useBackLayer } from '../back-navigation';
 
 const EXIT_MS = 420;
 const DISMISS_DISTANCE = 110;
@@ -56,6 +57,7 @@ export default function Sheet({ open, onClose, title, leading, trailing, childre
   const drag = useRef(null);
   const titleId = useId();
   useModalLayer(mounted && open, root);
+  useBackLayer(open, onClose);
 
   useEffect(() => {
     if (!open) return undefined;

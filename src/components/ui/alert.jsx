@@ -3,6 +3,7 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useModalLayer, usePresence } from './sheet';
+import { useBackLayer } from '../back-navigation';
 
 const AlertContext = createContext(null);
 
@@ -41,6 +42,7 @@ function AlertView({ alert, open, onChoose }) {
   const root = useRef(null);
   useModalLayer(mounted && open, root);
   const cancel = alert?.actions.find((action) => action.role === 'cancel');
+  useBackLayer(open, () => onChoose(cancel));
 
   useEffect(() => {
     if (!open) return undefined;
