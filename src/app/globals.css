@@ -373,7 +373,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
 .category-card {
   --b: var(--b-gray); position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; justify-content: space-between;
   min-height: 140px; padding: 14px 14px 16px; border-radius: var(--radius); background: var(--b); color: var(--block-ink); text-align: left;
-  transition: transform .25s var(--ease);
+  transition: transform .25s var(--ease); container-type: inline-size;
 }
 .category-card:active { transform: scale(.96); }
 /* With an odd number of groups the last tile takes the whole row. */
@@ -386,7 +386,12 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
 .category-count { display: flex; align-items: baseline; gap: 8px; }
 .category-count b { font-size: 48px; }
 .category-count small { font-size: 13px; font-weight: 600; }
-.category-name { font-size: clamp(14px, 4.3vw, 19px); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+/* The name shrinks to fit its tile on one line (about .95em per expanded capital, --chars from the name), down to 13 px;
+   longer names wrap by word to a second line instead of being cut. */
+.category-name {
+  font-size: clamp(13px, calc(100cqw / (var(--chars, 10) * .95)), clamp(14px, 4.3vw, 19px)); line-height: 1;
+  display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden;
+}
 
 .outline-row {
   width: 100%; min-height: 72px; display: flex; align-items: center; gap: 14px; padding: 0 18px; margin-bottom: 18px;
