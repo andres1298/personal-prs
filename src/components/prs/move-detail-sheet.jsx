@@ -23,6 +23,7 @@ function ProgressChart({ records, color, type }) {
       const tone = css.getPropertyValue(color).trim();
       const label = css.getPropertyValue('--ink2').trim();
       const grid = css.getPropertyValue('--line').trim();
+      const font = { family: css.getPropertyValue('--font-archivo').trim() || undefined, weight: 600 };
       const context = canvas.current.getContext('2d');
       const fill = context.createLinearGradient(0, 0, 0, 200);
       fill.addColorStop(0, alpha(tone, 0.35));
@@ -44,8 +45,8 @@ function ProgressChart({ records, color, type }) {
             tooltip: { displayColors: false, callbacks: { label: (c) => (isWeight ? `${c.raw} lb · ${toKg(c.raw)} kg` : formatValue(c.raw, type)) } },
           },
           scales: {
-            x: { ticks: { color: label, maxRotation: 0, autoSkipPadding: 16 }, grid: { display: false }, border: { display: false } },
-            y: { reverse: type === 'time', ticks: { color: label, callback: (v) => formatValue(v, type) }, grid: { color: grid }, border: { display: false } },
+            x: { ticks: { color: label, font, maxRotation: 0, autoSkipPadding: 16 }, grid: { display: false }, border: { display: false } },
+            y: { reverse: type === 'time', ticks: { color: label, font, callback: (v) => formatValue(v, type) }, grid: { color: grid }, border: { display: false } },
           },
         },
       });
@@ -72,26 +73,28 @@ export default function MoveDetailSheet({ detail: current, records, onClose, onC
       <button type="button" className="nav-icon" onClick={() => onAdd(move, rm)} aria-label="Registrar"><Icon name="plus" weight={2.6} /></button>
       <button type="button" className="nav-text strong" onClick={onClose}>Cerrar</button>
     </>}>
-    {move && <>
-      <p className="eyebrow center" style={{ '--c': `var(${group.color})` }}><i className="dot" />{group.name}</p>
+    {move && <div style={{ '--c': `var(${group.color})` }}>
+      <p className="eyebrow"><i className="dot" />{group.name}</p>
       {isWeight && <SegmentedControl label="Repeticiones máximas" value={rm} onChange={(next) => onChangeRm(next)}
         options={RMS.map((n) => ({ value: n, label: `${n}RM` }))} />}
       <div className="pr-hero">
-        <div className="pr-value num rounded" key={`${move}-${rm}`}>{best ? formatValue(best.value, type) : '—'}</div>
+        <div className="pr-value display num" key={`${move}-${rm}`}>
+          {best ? isWeight ? <>{best.value}<small>lb</small></> : formatValue(best.value, type) : '—'}
+        </div>
         {best && isWeight && <div className="pr-kg num">{toKg(best.value)} kg</div>}
         <p className="pr-date">{best ? `PR del ${formatDate(best.date)}` : 'Aún no hay registros'}</p>
       </div>
       {history.length > 1 && <ProgressChart records={history} color={group.color} type={type} />}
-      {isWeight && firstRm(records, move) && <button type="button" className="filled-button" onClick={() => onExecute(move)}>
+      {isWeight && firstRm(records, move) && <button type="button" className="filled-button block" onClick={() => onExecute(move)}>
         <Icon name="bolt" fill /> Execute
       </button>}
       <List header="Historial">
         {history.length
           ? history.slice().reverse().map((r, i) => <Row key={`${r.date}-${r.value}-${i}`} title={formatDate(r.date)}
             subtitle={[isWeight && `${toKg(r.value)} kg`, r.notes].filter(Boolean).join(' · ') || undefined}
-            detail={formatValue(r.value, type)} />)
+            value detail={isWeight ? <>{r.value}<small>lb</small></> : formatValue(r.value, type)} />)
           : <p className="empty compact">Sin registros</p>}
       </List>
-    </>}
+    </div>}
   </Sheet>;
 }

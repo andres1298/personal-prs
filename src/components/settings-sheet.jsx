@@ -20,7 +20,7 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
       <div className="row"><SegmentedControl label="Peso de la barra" value={settings.bar} onChange={(bar) => updateSettings({ bar })}
         options={BARS.map((bar) => ({ value: bar, label: `${bar} lb` }))} className="flush" /></div>
     </List>
-    <List header="Discos que tienes" footer="Las combinaciones y la escalera de calentamiento solo usan los discos activos.">
+    <List header="Discos que tienes" footer="Las combinaciones solo usan los discos activos.">
       <div className="row plate-toggles">
         {ALL_PLATES.map((plate) => {
           const on = settings.plates.includes(plate);
