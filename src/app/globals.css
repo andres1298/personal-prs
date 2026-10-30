@@ -344,6 +344,10 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
 .empty.compact { padding: 18px 16px; }
 .hint { color: var(--ink2); font-size: 13px; text-align: center; }
 
+/* Controls drawn at 40–42 px reach 44 px of touch area without changing their look. */
+:is(.pill-btn, .nav-text.strong, .segmented button, .target-reset, .pct-stepper button) { position: relative; }
+:is(.pill-btn, .nav-text.strong, .segmented button, .target-reset, .pct-stepper button)::after { content: ''; position: absolute; inset: -2px; }
+
 /* ---------- Execute: picker ---------- */
 .resume-card {
   width: 100%; display: flex; align-items: stretch; margin-bottom: 12px;
@@ -473,7 +477,7 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 }
 .base-field { min-height: 46px; padding: 0 14px; border-radius: 12px; background: var(--surface); }
 .base-field input { width: 84px; text-align: left; }
-.base-field input::placeholder { color: var(--ink3); }
+.base-field input::placeholder { color: var(--ink3); text-transform: none; }
 
 .workbench-panel { flex: 1 0 auto; display: flex; flex-direction: column; gap: 12px; }
 .workbench-panel .segmented { margin: 0; }
@@ -622,9 +626,11 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .sheet-header { flex: none; padding: 8px 16px 4px; touch-action: none; cursor: grab; }
 .grabber { display: block; width: 40px; height: 5px; margin: 0 auto 8px; border-radius: 3px; background: var(--line); }
 /* Title on the left, actions on the right; a leading control (minimize) goes before the title. */
-.sheet-bar { display: flex; align-items: center; gap: 10px; min-height: 48px; }
+/* A title that does not fit beside the actions takes its own line and the actions wrap under it. */
+.sheet-bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; min-height: 48px; }
 .sheet-bar-side { display: flex; align-items: center; gap: 6px; flex: none; }
-.sheet-title { flex: 1; min-width: 0; font-size: clamp(22px, 6.4vw, 30px); overflow-wrap: break-word; }
+.sheet-bar-side.end { margin-left: auto; }
+.sheet-title { flex: 1 1 auto; min-width: 0; font-size: clamp(22px, 6.4vw, 30px); overflow-wrap: break-word; }
 .sheet-body { flex: 1; overflow-y: auto; overscroll-behavior: contain; padding: 10px 16px calc(var(--safe-bottom) + 28px); -webkit-overflow-scrolling: touch; }
 
 /* ---------- Alerts ---------- */
