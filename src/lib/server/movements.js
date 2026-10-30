@@ -7,7 +7,7 @@ export const MAX_CUSTOM_MOVEMENTS = 30;
 export const MOVEMENT_NAME_MAX = 40;
 export const GROUP_NAME_MAX = 24;
 const CUSTOM_GROUP = 'Custom';
-const CATEGORY_TYPES = { LIFT: 'WEIGHT', CARDIO: 'TIME', BENCHMARK: 'TIME' };
+const CATEGORY_TYPES = { LIFT: 'WEIGHT', CARDIO: 'TIME', BENCHMARK: 'TIME', GYMNASTICS: 'REPS' };
 
 export class MovementInputError extends Error {}
 export class MovementNotFoundError extends Error {}
@@ -59,7 +59,7 @@ function validatedKind(input) {
     }
     return { category: measurementType === 'WEIGHT' ? 'LIFT' : 'BENCHMARK', measurementType };
   }
-  if (!Object.hasOwn(CATEGORY_TYPES, category)) throw new MovementInputError('Category must be LIFT, CARDIO or BENCHMARK.');
+  if (!Object.hasOwn(CATEGORY_TYPES, category)) throw new MovementInputError('Category must be LIFT, CARDIO, BENCHMARK or GYMNASTICS.');
   if (measurementType !== undefined && measurementType !== CATEGORY_TYPES[category]) {
     throw new MovementInputError('The measurement type does not match the category.');
   }

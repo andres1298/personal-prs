@@ -9,7 +9,8 @@ import { List, Row } from '../ui/list';
 import { Switch, SymbolTile } from '../ui/controls';
 
 const plural = (count, one, many) => `${count} ${count === 1 ? one : many}`;
-const SECTIONS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks' };
+const SECTIONS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks', GYMNASTICS: 'Gymnastics' };
+const UNITS = { WEIGHT: 'Peso', TIME: 'Tiempo', REPS: 'Repeticiones' };
 const ownGroup = (movement) => (movement.groupName === 'Custom' ? CUSTOM_GROUP.name : movement.groupName);
 
 export default function MyMovementsSheet({ open, onClose, movements, onNew, onHide, onDelete }) {
@@ -58,7 +59,7 @@ export default function MyMovementsSheet({ open, onClose, movements, onNew, onHi
     trailing={<button type="button" className="nav-text strong" onClick={onClose}>Listo</button>}>
     <List header="Creados por ti" footer="Solo tú los ves. Al eliminar uno se borran también sus registros.">
       {own.map((movement) => <Row key={movement.id} title={movement.name}
-        subtitle={`${SECTIONS[movement.category] ?? 'Benchmarks'} · ${ownGroup(movement)} · ${movement.measurementType === 'WEIGHT' ? 'Peso' : 'Tiempo'}`}>
+        subtitle={`${SECTIONS[movement.category] ?? 'Benchmarks'} · ${ownGroup(movement)} · ${UNITS[movement.measurementType] ?? 'Tiempo'}`}>
         <button type="button" className="nav-text danger" aria-label={`Eliminar ${movement.name}`} onClick={() => remove(movement)}>
           Eliminar
         </button>

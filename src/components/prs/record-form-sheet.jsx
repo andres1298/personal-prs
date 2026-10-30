@@ -7,6 +7,12 @@ import Sheet from '../ui/sheet';
 import { SegmentedControl } from '../ui/controls';
 
 const firstMove = () => getCatalog().Lift.groups[0]?.moves[0] ?? '';
+// The value field for each measurement type.
+const FIELD = {
+  weight: { label: 'Peso', inputMode: 'decimal', placeholder: 'lb', error: 'Escribe un peso mayor que cero.' },
+  time: { label: 'Tiempo', inputMode: 'numeric', placeholder: 'mm:ss', error: 'Escribe el tiempo como mm:ss, por ejemplo 4:45.' },
+  reps: { label: 'Repeticiones', inputMode: 'numeric', placeholder: 'reps', error: 'Escribe un número entero de repeticiones mayor que cero.' },
+};
 
 function RecordForm({ initial, onSave, formId, onSavingChange }) {
   const alert = useAlert();
@@ -45,8 +51,8 @@ function RecordForm({ initial, onSave, formId, onSavingChange }) {
         </select>
       </label>
       <label className="field">
-        <span>{type === 'time' ? 'Tiempo' : 'Peso'}</span>
-        <input required inputMode={type === 'time' ? 'numeric' : 'decimal'} placeholder={type === 'time' ? 'mm:ss' : 'lb'}
+        <span>{FIELD[type].label}</span>
+        <input required inputMode={FIELD[type].inputMode} placeholder={FIELD[type].placeholder}
           value={value} aria-invalid={invalid} onChange={(event) => { setValue(event.target.value); setInvalid(false); }} />
       </label>
       <label className="field">
@@ -54,7 +60,7 @@ function RecordForm({ initial, onSave, formId, onSavingChange }) {
         <input type="date" required value={date} onChange={(event) => setDate(event.target.value)} />
       </label>
     </div>
-    {invalid && <p className="field-error" role="alert">{type === 'time' ? 'Escribe el tiempo como mm:ss, por ejemplo 4:45.' : 'Escribe un peso mayor que cero.'}</p>}
+    {invalid && <p className="field-error" role="alert">{FIELD[type].error}</p>}
     {type === 'weight' && <SegmentedControl label="Repeticiones máximas" value={rm} onChange={setRm}
       options={RMS.map((n) => ({ value: n, label: `${n}RM` }))} />}
     <div className="list form-group">

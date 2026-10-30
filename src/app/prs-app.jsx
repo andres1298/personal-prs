@@ -185,7 +185,8 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     <TimerPill />
     <main className="page" ref={page} data-focus={focus}>
       <section className="tab-view wrap" hidden={tab !== 'exec'}>
-        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)} />
+        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)}
+          onOpenRecord={(move) => setDetail({ move })} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'prs'}>
         <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={(move) => setDetail({ move })} />

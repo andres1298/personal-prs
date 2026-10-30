@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { CATALOG_TABS, bestRecord, firstRm, formatValue, getCatalog } from '../../lib/catalog';
+import { CATALOG_TABS, bestRecord, firstRm, getCatalog } from '../../lib/catalog';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
 import { LargeTitle } from '../ui/nav-bar';
 import { SegmentedControl } from '../ui/controls';
+import RecordValue from '../ui/record-value';
 
 export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
   const [tab, setTab] = useState('Lift');
@@ -19,7 +20,7 @@ export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
       return rm ? <>{bestRecord(records, move, rm).value}<small>lb</small>{rm > 1 && <em>{rm}RM</em>}</> : null;
     }
     const best = bestRecord(records, move);
-    return best ? formatValue(best.value, type) : null;
+    return best ? <RecordValue value={best.value} type={type} /> : null;
   };
 
   return <>
