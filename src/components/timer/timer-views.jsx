@@ -98,7 +98,7 @@ function TimerConfigSheet({ editing, setEditing }) {
   }[config.type];
 
   return <Sheet open={!!editing} onClose={close} title={config && TEMPLATES[config.type].name}
-    leading={<button type="button" className="nav-text" onClick={close}>Cancelar</button>}>
+    trailing={<button type="button" className="nav-text strong" onClick={close}>Cancelar</button>}>
     {config && <>
       <div className="template-head">
         <TemplateTile type={config.type} size="xl" />

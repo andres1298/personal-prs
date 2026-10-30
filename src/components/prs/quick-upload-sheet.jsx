@@ -34,10 +34,12 @@ export default function QuickUploadSheet({ open, records, onClose, onSave }) {
   }
 
   return <Sheet open={open} onClose={onClose} title="Carga rápida"
-    leading={<button type="button" className="nav-text" onClick={onClose}>Cancelar</button>}
-    trailing={<button type="button" className="nav-text strong" disabled={!valid || saving} onClick={save}>
-      {saving ? 'Guardando…' : entries.length ? `Guardar (${entries.length})` : 'Guardar'}
-    </button>}>
+    trailing={<>
+      <button type="button" className="nav-text" onClick={onClose}>Cancelar</button>
+      <button type="button" className="nav-text strong" disabled={!valid || saving} onClick={save}>
+        {saving ? 'Guardando…' : entries.length ? `Guardar (${entries.length})` : 'Guardar'}
+      </button>
+    </>}>
     <p className="sheet-lead">Completa los pesos que te faltan. Se guardan con fecha de hoy.</p>
     <SegmentedControl label="Repeticiones máximas" value={rm} onChange={setRm}
       options={RMS.map((n) => ({ value: n, label: `${n}RM${moves.every((m) => latestRecord(records, m, n)) ? ' ✓' : ''}` }))} />

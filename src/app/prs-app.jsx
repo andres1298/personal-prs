@@ -34,9 +34,9 @@ export default function App(props) {
 
 function Banner({ loading, demo, error, stale, onRetry }) {
   if (loading) return <div className="banner" role="status"><span className="spinner" aria-hidden="true" />Cargando tus PRs…</div>;
-  if (demo) return <div className="banner warn"><span>Datos de ejemplo · cambios solo en esta sesión</span><Link href="/">Iniciar sesión</Link></div>;
-  if (error) return <div className="banner warn" role="alert"><span>{error}</span><button type="button" onClick={onRetry}>Reintentar</button></div>;
-  if (stale) return <div className="banner warn" aria-live="polite"><span>{stale}</span><button type="button" onClick={onRetry}>Actualizar</button></div>;
+  if (demo) return <div className="banner warn"><span>Datos de ejemplo · cambios solo en esta sesión</span><Link className="pill-btn" href="/">Iniciar sesión</Link></div>;
+  if (error) return <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={onRetry}>Reintentar</button></div>;
+  if (stale) return <div className="banner warn" aria-live="polite"><span>{stale}</span><button type="button" className="pill-btn" onClick={onRetry}>Actualizar</button></div>;
   return null;
 }
 

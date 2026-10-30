@@ -73,10 +73,12 @@ export default function NewMovementSheet({ preset, onClose, onCreate }) {
   }
 
   return <Sheet open={!!preset} onClose={onClose} title="Nuevo movimiento" layer={3}
-    leading={<button type="button" className="nav-text" onClick={onClose}>Cancelar</button>}
-    trailing={<button type="submit" form="new-movement-form" className="nav-text strong" disabled={!canSave}>
-      {saving ? 'Guardando…' : 'Guardar'}
-    </button>}>
+    trailing={<>
+      <button type="button" className="nav-text" onClick={onClose}>Cancelar</button>
+      <button type="submit" form="new-movement-form" className="nav-text strong" disabled={!canSave}>
+        {saving ? 'Guardando…' : 'Guardar'}
+      </button>
+    </>}>
     <form id="new-movement-form" className="form" onSubmit={save} noValidate>
       <div className="list form-group">
         <label className="field">

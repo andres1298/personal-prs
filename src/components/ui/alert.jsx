@@ -7,9 +7,9 @@ import { useModalLayer, usePresence } from './sheet';
 const AlertContext = createContext(null);
 
 /**
- * iOS alert. `useAlert()` returns `show({ title, message, actions })`, which
- * resolves with the chosen action's value. Roles: 'cancel' (bold), 'destructive'
- * (red) or default. Without actions it shows a single OK.
+ * Alert card. `useAlert()` returns `show({ title, message, actions })`, which
+ * resolves with the chosen action's value. Roles: 'cancel' (quiet), 'destructive'
+ * (coral) or default (inverted). Without actions it shows a single OK.
  */
 export function AlertProvider({ children }) {
   const [alert, setAlert] = useState(null);

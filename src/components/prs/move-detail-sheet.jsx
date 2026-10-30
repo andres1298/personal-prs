@@ -68,8 +68,10 @@ export default function MoveDetailSheet({ detail: current, records, onClose, onC
   const best = move ? bestRecord(records, move, rm) : null;
 
   return <Sheet open={!!current} onClose={onClose} title={move}
-    leading={<button type="button" className="nav-text" onClick={onClose}>Cerrar</button>}
-    trailing={<button type="button" className="nav-icon" onClick={() => onAdd(move, rm)} aria-label="Registrar"><Icon name="plus" weight={2.4} /></button>}>
+    trailing={<>
+      <button type="button" className="nav-icon" onClick={() => onAdd(move, rm)} aria-label="Registrar"><Icon name="plus" weight={2.6} /></button>
+      <button type="button" className="nav-text strong" onClick={onClose}>Cerrar</button>
+    </>}>
     {move && <>
       <p className="eyebrow center" style={{ '--c': `var(${group.color})` }}><i className="dot" />{group.name}</p>
       {isWeight && <SegmentedControl label="Repeticiones máximas" value={rm} onChange={(next) => onChangeRm(next)}

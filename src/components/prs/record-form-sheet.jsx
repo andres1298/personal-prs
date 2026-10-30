@@ -72,8 +72,10 @@ export default function RecordFormSheet({ form, onClose, onSave }) {
   const [saving, setSaving] = useState(false);
   const formId = 'record-form';
   return <Sheet open={!!form} onClose={onClose} title="Nuevo registro" layer={1}
-    leading={<button type="button" className="nav-text" onClick={onClose}>Cancelar</button>}
-    trailing={<button type="submit" form={formId} className="nav-text strong" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button>}>
+    trailing={<>
+      <button type="button" className="nav-text" onClick={onClose}>Cancelar</button>
+      <button type="submit" form={formId} className="nav-text strong" disabled={saving}>{saving ? 'Guardando…' : 'Guardar'}</button>
+    </>}>
     {last.current && <RecordForm key={last.current.id} initial={last.current} onSave={onSave}
       formId={formId} onSavingChange={setSaving} />}
   </Sheet>;
