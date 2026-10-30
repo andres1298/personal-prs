@@ -21,8 +21,8 @@ function ProgressChart({ records, color, type }) {
       if (!active || !canvas.current) return;
       const css = getComputedStyle(document.documentElement);
       const tone = css.getPropertyValue(color).trim();
-      const label = css.getPropertyValue('--label2').trim();
-      const grid = css.getPropertyValue('--separator').trim();
+      const label = css.getPropertyValue('--ink2').trim();
+      const grid = css.getPropertyValue('--line').trim();
       const context = canvas.current.getContext('2d');
       const fill = context.createLinearGradient(0, 0, 0, 200);
       fill.addColorStop(0, alpha(tone, 0.35));

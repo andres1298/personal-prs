@@ -245,7 +245,7 @@ function BaseEditor({ ex, setEx, records, resetAdj }) {
 }
 
 const plateVars = (plate) => {
-  const [color, height] = PLATE_STYLE[plate] || ['--label3', 50];
+  const [color, height] = PLATE_STYLE[plate] || ['--ink3', 50];
   return { '--h': height, '--pc': `var(${color})` };
 };
 
@@ -292,7 +292,7 @@ function LoadCard({ load, ex, setEx, settings, simple, onAdd, onRemove }) {
 
 function MiniPlates({ plates }) {
   return <span className="mini-plates">{plates.map((plate, i) => {
-    const [color, height] = PLATE_STYLE[plate] || ['--label3', 50];
+    const [color, height] = PLATE_STYLE[plate] || ['--ink3', 50];
     return <i key={i} style={{ height: Math.round(height * 0.26), '--pc': `var(${color})` }} />;
   })}</span>;
 }

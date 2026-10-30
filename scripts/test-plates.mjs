@@ -114,9 +114,9 @@ test('a member catalog adds own movements, hides turned-off ones and keeps their
     ]);
     assert.deepEqual(catalog.Cardio.groups.map((group) => [group.name, group.moves]), [['Mis movimientos', ['Sprint']]]);
     const colors = Object.fromEntries(catalog.Lift.groups.map((group) => [group.name, group.color]));
-    assert.equal(colors['Mis movimientos'], '--indigo');
-    assert.match(colors.Gimnasia, /^--[a-z]+$/);
-    assert.notEqual(colors.Gimnasia, '--muted');
+    assert.equal(colors['Mis movimientos'], '--b-lilac');
+    assert.match(colors.Gimnasia, /^--b-[a-z]+$/);
+    assert.notEqual(colors.Gimnasia, '--b-gray');
     assert.deepEqual(catalog.Benchmarks.groups.map((group) => [group.name, group.moves]), [
       ['Girls', ['Grace']], ['Mis movimientos', ['Sled Push']],
     ]);

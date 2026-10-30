@@ -11,10 +11,10 @@ import { useTimer } from './timer-provider';
 
 const glyph = (d) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 export const TEMPLATES = {
-  amrap: { name: 'AMRAP', color: '--green', icon: glyph('M6 5v14M10 5v14M14 5v14M18 5v14M3.5 15.5l17-7') },
-  emom: { name: 'EMOM', color: '--cyan', icon: glyph('M2.5 12h3M8 12h3M13.5 12h3M19 12h2.5') },
-  tabata: { name: 'TABATA', color: '--indigo', icon: glyph('M5 6v12M9.5 9v6M14 6v12M18.5 9v6') },
-  fortime: { name: 'FOR TIME', color: '--amber', icon: glyph('M4 9h7M4 13h16M13 17h7') },
+  amrap: { name: 'AMRAP', color: '--b-green', icon: glyph('M6 5v14M10 5v14M14 5v14M18 5v14M3.5 15.5l17-7') },
+  emom: { name: 'EMOM', color: '--b-cyan', icon: glyph('M2.5 12h3M8 12h3M13.5 12h3M19 12h2.5') },
+  tabata: { name: 'TABATA', color: '--b-lilac', icon: glyph('M5 6v12M9.5 9v6M14 6v12M18.5 9v6') },
+  fortime: { name: 'FOR TIME', color: '--b-yellow', icon: glyph('M4 9h7M4 13h16M13 17h7') },
 };
 const FIELDS = {
   amrap: [['duration', 'Duración']],

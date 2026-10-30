@@ -9,8 +9,8 @@ const MAX_PLATES_SIDE = 8;
 
 // Visual color token and height (%) per plate.
 export const PLATE_STYLE = {
-  55: ['--red', 100], 45: ['--blue', 100], 35: ['--amber', 92], 25: ['--green', 84],
-  15: ['--purple', 74], 10: ['--p10', 64], 5: ['--p5', 48], 2.5: ['--p25s', 38],
+  55: ['--p55', 100], 45: ['--p45', 100], 35: ['--p35', 92], 25: ['--p25', 84],
+  15: ['--p15', 74], 10: ['--p10', 64], 5: ['--p5', 48], 2.5: ['--p2', 38],
 };
 
 export const sum = (list) => list.reduce((total, plate) => total + plate, 0);

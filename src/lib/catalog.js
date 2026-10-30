@@ -6,21 +6,21 @@ export const RMS = [1, 3, 5];
 
 const BASE_CATALOG = {
   Lift: { type: 'weight', groups: [
-    { name: 'Squats', color: '--red', moves: ['Back Squat', 'Front Squat', 'Overhead Squat'] },
-    { name: 'Cleans', color: '--blue', moves: ['Clean', 'Hang Power Clean', 'Hang Squat Clean', 'Muscle Clean', 'Power Clean', 'Squat Clean'] },
-    { name: 'Presses', color: '--amber', moves: ['Strict Press', 'Push Press', 'Bench Press'] },
-    { name: 'Jerks', color: '--green', moves: ['Push Jerk', 'Split Jerk', 'Clean & Jerk'] },
-    { name: 'Snatches', color: '--purple', moves: ['Snatch', 'Power Snatch', 'Hang Power Snatch', 'Squat Snatch'] },
-    { name: 'Deadlifts', color: '--teal', moves: ['Deadlift', 'Sumo Deadlift'] },
+    { name: 'Squats', color: '--b-pink', moves: ['Back Squat', 'Front Squat', 'Overhead Squat'] },
+    { name: 'Cleans', color: '--b-blue', moves: ['Clean', 'Hang Power Clean', 'Hang Squat Clean', 'Muscle Clean', 'Power Clean', 'Squat Clean'] },
+    { name: 'Presses', color: '--b-yellow', moves: ['Strict Press', 'Push Press', 'Bench Press'] },
+    { name: 'Jerks', color: '--b-green', moves: ['Push Jerk', 'Split Jerk', 'Clean & Jerk'] },
+    { name: 'Snatches', color: '--b-lilac', moves: ['Snatch', 'Power Snatch', 'Hang Power Snatch', 'Squat Snatch'] },
+    { name: 'Deadlifts', color: '--b-cyan', moves: ['Deadlift', 'Sumo Deadlift'] },
   ] },
   Cardio: { type: 'time', groups: [
-    { name: 'Run', color: '--red', moves: ['400 m', '1 mile', '5 km'] },
-    { name: 'Row', color: '--teal', moves: ['500 m Row', '2 km Row'] },
-    { name: 'Bike', color: '--amber', moves: ['50 cal Bike'] },
+    { name: 'Run', color: '--b-lime', moves: ['400 m', '1 mile', '5 km'] },
+    { name: 'Row', color: '--b-cyan', moves: ['500 m Row', '2 km Row'] },
+    { name: 'Bike', color: '--b-yellow', moves: ['50 cal Bike'] },
   ] },
   Benchmarks: { type: 'time', groups: [
-    { name: 'Girls', color: '--purple', moves: ['Fran', 'Grace', 'Isabel', 'Helen', 'Diane'] },
-    { name: 'Heroes', color: '--red', moves: ['Murph', 'DT'] },
+    { name: 'Girls', color: '--b-lilac', moves: ['Fran', 'Grace', 'Isabel', 'Helen', 'Diane'] },
+    { name: 'Heroes', color: '--b-pink', moves: ['Murph', 'DT'] },
   ] },
 };
 
@@ -39,7 +39,7 @@ export const DEMO_RECORDS = [
   { move: 'Fran', value: 285, date: '2026-08-10' },
 ];
 
-const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--muted', moves: [] } };
+const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--b-gray', moves: [] } };
 
 /* ---------- Active catalog ---------- */
 // The catalog depends on the member (own movements, shared ones turned off), but the
@@ -48,10 +48,11 @@ const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--mut
 // `info` also knows turned-off movements, so their history keeps its unit and group.
 const TABS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks' };
 export const TAB_CATEGORIES = Object.fromEntries(Object.entries(TABS).map(([category, tab]) => [tab, category]));
-export const CUSTOM_GROUP = { name: 'Mis movimientos', color: '--indigo' };
+export const CUSTOM_GROUP = { name: 'Mis movimientos', color: '--b-lilac' };
 // Own movements created before categories existed are stored under this group.
 const LEGACY_CUSTOM_GROUP = 'Custom';
-const CUSTOM_COLORS = ['--teal', '--pink', '--green', '--amber', '--blue', '--purple', '--mint', '--cyan'];
+// Eight slots so each existing group keeps its hue: teal→cyan, pink, green, amber→yellow, blue, purple→lilac, mint→lime, cyan.
+const CUSTOM_COLORS = ['--b-cyan', '--b-pink', '--b-green', '--b-yellow', '--b-blue', '--b-lilac', '--b-lime', '--b-cyan'];
 
 // A member's own group keeps the same color wherever it shows and whatever groups are added later.
 function customColor(name) {
@@ -89,7 +90,7 @@ export function buildCatalog(movements) {
     let group = tab.groups.find((g) => g.name === label);
     if (!group) {
       const color = label === CUSTOM_GROUP.name ? CUSTOM_GROUP.color
-        : BASE_GROUPS.get(label)?.color ?? (movement.custom ? customColor(label) : '--muted');
+        : BASE_GROUPS.get(label)?.color ?? (movement.custom ? customColor(label) : '--b-gray');
       group = { name: label, color, moves: [], hidden: new Set() };
       tab.groups.push(group);
     }

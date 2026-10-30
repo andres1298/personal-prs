@@ -63,7 +63,7 @@ export default function MyMovementsSheet({ open, onClose, movements, onNew, onHi
           Eliminar
         </button>
       </Row>)}
-      <Row leading={<SymbolTile color="--indigo"><Icon name="plus" /></SymbolTile>} title="Nuevo movimiento"
+      <Row leading={<SymbolTile color="--b-lilac"><Icon name="plus" /></SymbolTile>} title="Nuevo movimiento"
         subtitle="En una categoría existente o una nueva" chevron onClick={onNew} />
     </List>
     {shared.map((group) => <List key={group.name} header={group.name}
