@@ -374,6 +374,8 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
   transition: transform .25s var(--ease);
 }
 .category-card:active { transform: scale(.96); }
+/* With an odd number of groups the last tile takes the whole row. */
+.category-card:last-child:nth-child(odd) { grid-column: 1 / -1; }
 .category-letter {
   position: absolute; z-index: -1; right: -6px; top: -14px; font-size: 128px; line-height: 1; color: rgba(13, 13, 13, .09);
   pointer-events: none; transition: transform .5s var(--spring);
@@ -470,12 +472,13 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .pct-stepper button { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; transition: background-color .15s, transform .15s; }
 .pct-stepper button:active { background: var(--surface2); transform: scale(.92); }
 .pct-stepper svg { width: 18px; height: 18px; }
-.pct-field, .base-field { display: flex; align-items: baseline; gap: 2px; font-weight: 900; font-size: 14px; }
+.pct-field { display: flex; align-items: baseline; gap: 2px; font-weight: 900; font-size: 14px; }
 /* 16 px is the floor for inputs on iOS (no zoom); the expanded 20 px number stays above it. */
-:is(.pct-field, .base-field) input {
+.pct-field input {
   width: 50px; padding: 0; border: 0; background: transparent; outline: none; color: var(--ink); text-align: right; font-size: 20px;
 }
-.base-field { min-height: 46px; padding: 0 14px; border-radius: 12px; background: var(--surface); }
+/* The free base weight: number and unit on one baseline, centered in the field like the percentage beside it. */
+.base-field { display: flex; align-items: center; min-height: 46px; padding: 0 14px; border-radius: 12px; background: var(--surface); cursor: text; }
 .base-field input { width: 84px; text-align: left; }
 .base-field input::placeholder { color: var(--ink3); text-transform: none; }
 

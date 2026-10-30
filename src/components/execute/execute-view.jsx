@@ -217,9 +217,9 @@ function BaseControls({ ex, setEx, records, resetAdj }) {
   const step = (delta) => setEx({ pct: Math.min(150, Math.max(5, Math.round((ex.pct + delta) * 10) / 10)), ...resetAdj });
   return <div className="base-controls" data-tour="base-editor">
     {ex.free
-      ? <label className="base-field"><input className="display num" inputMode="decimal" placeholder="Peso" value={baseText} autoFocus={!ex.base}
+      ? <label className="base-field"><span className="pct-field"><input className="display num" inputMode="decimal" placeholder="Peso" value={baseText} autoFocus={!ex.base}
         aria-label="Peso base en libras" enterKeyHint="done" onKeyDown={onKey}
-        onChange={(event) => { setBaseText(event.target.value); setEx({ base: parseFloat(event.target.value.replace(',', '.')) || 0, ...resetAdj }); }} />lb</label>
+        onChange={(event) => { setBaseText(event.target.value); setEx({ base: parseFloat(event.target.value.replace(',', '.')) || 0, ...resetAdj }); }} />lb</span></label>
       : <div className="rm-tabs" role="group" aria-label="Repeticiones máximas">
         {RMS.map((rm) => <button type="button" key={rm} aria-pressed={rm === ex.rm} disabled={!bestRecord(records, ex.move, rm)}
           onClick={() => rm !== ex.rm && setEx({ rm, base: bestRecord(records, ex.move, rm)?.value || 0, ...resetAdj })}>{rm}RM</button>)}
