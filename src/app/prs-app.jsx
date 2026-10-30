@@ -97,7 +97,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     }).then((start) => start && setQuickOpen(true));
   }, [tourPending, hasBackend, synced, error, records.length, scope, alert]);
 
-  // Simple mode has no warm-up ladder, so its step is left out.
+  // Simple mode has no percentages panel, so its step is left out.
   const tourSteps = useMemo(() => TOUR_STEPS.filter((step) => !(settings.simple && step.advanced)), [settings.simple]);
   // Each tour step shows its tab and Execute screen. The working screen uses a sample
   // lift, so the exercise in progress is kept aside and restored when the tour closes.

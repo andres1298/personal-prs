@@ -20,20 +20,20 @@ export const TOUR_STEPS = [
     body: 'Toca una categoría y luego un movimiento. La app toma tu PR y calcula la carga al porcentaje que quieras.',
   },
   {
-    tab: 'exec', exec: { view: 'run', editBase: false, panel: 'load' }, target: 'weight', title: 'Tu peso de trabajo',
+    tab: 'exec', exec: { view: 'run', panel: 'load' }, target: 'weight', title: 'Tu peso de trabajo',
     body: 'Al elegir un movimiento ves el peso al porcentaje elegido, redondeado a lo que puedes armar, y su equivalente en kg.',
   },
   {
-    tab: 'exec', exec: { view: 'run', editBase: true, panel: 'load' }, target: 'base-editor', title: 'Cambia el RM y el porcentaje',
-    body: 'Toca la línea del PR para editarla: elige 1RM, 3RM o 5RM y ajusta el % con −10, −5, +5 y +10 o escribiéndolo.',
+    tab: 'exec', exec: { view: 'run', panel: 'load' }, target: 'base-editor', title: 'Cambia el RM y el porcentaje',
+    body: 'Elige 1RM, 3RM o 5RM y ajusta el % de 5 en 5 con − y +, o toca el número para escribirlo.',
   },
   {
-    tab: 'exec', exec: { view: 'run', editBase: false, panel: 'load' }, target: 'barbell', title: 'Los discos por lado',
+    tab: 'exec', exec: { view: 'run', panel: 'load' }, target: 'barbell', title: 'Los discos por lado',
     body: 'Así se arma la barra con tus discos. Cambia de combinación con las flechas, toca un disco de abajo para agregarlo o uno de la barra para quitarlo.',
   },
   {
-    tab: 'exec', exec: { view: 'run', editBase: false, panel: 'warm' }, target: 'exec-panel', title: 'Escalera de calentamiento',
-    body: 'Series de aproximación hasta tu peso objetivo. Márcalas a medida que las completas.', advanced: true,
+    tab: 'exec', exec: { view: 'run', panel: 'pcts' }, target: 'exec-panel', title: 'Porcentajes',
+    body: 'Mira el peso y los discos del 100% al 40%. Toca un porcentaje para usarlo arriba.', advanced: true,
   },
   {
     tab: 'exec', exec: { view: 'pick' }, target: 'free-calc', title: 'Cálculo libre',
@@ -41,7 +41,7 @@ export const TOUR_STEPS = [
   },
   {
     tab: 'exec', exec: { view: 'pick' }, target: 'settings', title: 'Tu barra y tus discos',
-    body: 'En Ajustes eliges la barra y los discos que tienes. Las combinaciones y el calentamiento solo usan esos discos.',
+    body: 'En Ajustes eliges la barra y los discos que tienes. Las combinaciones solo usan esos discos.',
   },
   {
     tab: 'prs', target: 'prs-groups', title: 'Tus récords',
@@ -103,8 +103,8 @@ const sameLayout = (a, b) => a.vw === b.vw && a.vh === b.vh && (a.spot === b.spo
 function revealTarget(node) {
   const behavior = prefersReducedMotion() ? 'auto' : 'smooth';
   if (getComputedStyle(node).position === 'fixed') return;
-  // The modal layer locks page scrolling, which also unsticks the bar, so bar targets need the top.
-  if (node.closest('.navbar')) { window.scrollTo({ top: 0, behavior }); return; }
+  // The modal layer locks page scrolling, which also unsticks the bars, so targets in them need the top.
+  if (node.closest('.navbar, .wb-head')) { window.scrollTo({ top: 0, behavior }); return; }
   const box = node.getBoundingClientRect();
   const total = box.height + GAP + CARD_ESTIMATE;
   const desired = total <= window.innerHeight - GUTTER * 2 ? (window.innerHeight - total) / 2 : 72;
@@ -230,7 +230,7 @@ export default function GuidedTour({ open, steps = TOUR_STEPS, onStep, onClose }
       <div className="tour-content" key={index} data-direction={direction > 0 ? 'next' : 'back'} aria-live="polite">
         {step.icon && <span className="tour-badge"><Icon name={step.icon} weight={2.6} /></span>}
         <p className="tour-count num">{index + 1} de {steps.length}</p>
-        <h2 id={titleId}>{step.title}</h2>
+        <h2 className="display" id={titleId}>{step.title}</h2>
         <p id={bodyId}>{step.body}</p>
       </div>
       <div className="tour-progress" aria-hidden="true">
