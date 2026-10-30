@@ -2,8 +2,8 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { ALL_PLATES, buildLadder, computeLoad, plateOptions, round5, subtractPlates } from '../src/lib/plates.js';
 import {
-  bestRecord, buildCatalog, firstRm, formatValue, getCatalog, isValidQuickWeight, latestRecord, moveInfo, parseValue, recordsOf, setCatalog,
-  today, weightGroups,
+  bestRecord, buildCatalog, firstRm, formatValue, getCatalog, isValidQuickWeight, isValidReps, latestRecord, moveInfo, parseValue, recordsOf,
+  repsGroups, setCatalog, today, weightGroups,
 } from '../src/lib/catalog.js';
 
 const gym = { bar: 45, plates: [...ALL_PLATES] };
@@ -76,6 +76,12 @@ test('records resolve best values by measurement type and repetition maximum', (
   assert.equal(firstRm(records, 'Back Squat'), 1);
   assert.equal(firstRm(records, 'Front Squat'), undefined);
   assert.equal(latestRecord(records, 'Back Squat', 1).value, 250);
+  // Gymnastics: maximum repetitions, higher is better, without a repetition maximum.
+  const reps = [{ move: 'Pull-ups', value: 15, date: '2026-01-01' }, { move: 'Pull-ups', value: 18, date: '2026-02-01' }];
+  assert.equal(moveInfo('Pull-ups').type, 'reps');
+  assert.equal(moveInfo('Pull-ups').tab, 'Gymnastics');
+  assert.equal(bestRecord(reps, 'Pull-ups').value, 18);
+  assert.equal(repsGroups().map((group) => group.name).join(), 'Gymnastics');
 });
 
 test('values parse and format in lb and m:ss', () => {
@@ -88,6 +94,12 @@ test('values parse and format in lb and m:ss', () => {
   assert.ok(isValidQuickWeight('102,5'));
   assert.ok(!isValidQuickWeight('0'));
   assert.ok(!isValidQuickWeight('12345'));
+  assert.equal(parseValue('18', 'reps'), 18);
+  assert.ok(Number.isNaN(parseValue('12,5', 'reps')));
+  assert.equal(formatValue(18, 'reps'), '18 reps');
+  assert.ok(isValidReps('75'));
+  assert.ok(!isValidReps('0'));
+  assert.ok(!isValidReps('7.5'));
   assert.match(today(new Date('2026-10-18T12:00:00')), /^2026-10-1[78]$/);
 });
 

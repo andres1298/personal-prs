@@ -1,13 +1,14 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { RMS, bestRecord, firstRm, getCatalog, moveInfo, num, toKg } from '../../lib/catalog';
+import { RMS, bestRecord, firstRm, getCatalog, moveInfo, num, repsGroups, toKg, weightGroups } from '../../lib/catalog';
 import { DEFAULT_PCT, PLATE_STYLE, computeLoad, plateOptions, round5, sum } from '../../lib/plates';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
 import { BackButton, LargeTitle, NavBar } from '../ui/nav-bar';
 import { SegmentedControl } from '../ui/controls';
 import PlateDisc from '../ui/plate-disc';
+import RecordValue from '../ui/record-value';
 
 export const EXERCISE_DEFAULTS = {
   view: 'pick', cat: null, move: null, free: false, rm: 1, base: 0, pct: 80,
@@ -43,13 +44,15 @@ export function tourExercise(records) {
 const scrollTop = () => window.scrollTo({ top: 0 });
 const block = (color) => ({ '--b': `var(${color})` });
 const FREE_PATCH = { view: 'run', free: true };
+// Lifts calculate loads; gymnastics groups list maximum repetitions and open each movement's record.
+const executeGroups = () => [...weightGroups(), ...repsGroups()];
 
-export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings }) {
+export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings, onOpenRecord }) {
   const go = (patch) => { setEx(patch); scrollTop(); };
   if (ex.view === 'pick') {
     return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} onOpenSettings={onOpenSettings} />;
   }
-  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} />;
+  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} onOpenRecord={onOpenRecord} />;
   return <Workbench ex={ex} setEx={setEx} go={go} settings={settings} records={records} onOpenSettings={onOpenSettings} />;
 }
 
@@ -75,7 +78,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
       </button>
     </div>}
     <div className="category-grid" data-tour="categories">
-      {getCatalog().Lift.groups.map((group) => {
+      {executeGroups().map((group) => {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={block(group.color)}
           onClick={() => go({ cat: group.name, view: 'moves' })}>
@@ -94,13 +97,21 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
 }
 
 /* ---------- Movements of a group ---------- */
-function Moves({ ex, go, records }) {
-  const { groups } = getCatalog().Lift;
+function Moves({ ex, go, records, onOpenRecord }) {
+  const groups = executeGroups();
   const group = groups.find((g) => g.name === ex.cat) || groups[0] || { name: '', color: '--b-gray', moves: [] };
+  const reps = repsGroups().includes(group);
   const withPR = group.moves.filter((move) => firstRm(records, move));
   const without = group.moves.filter((move) => !firstRm(records, move));
   const row = (move) => {
     const rm = firstRm(records, move);
+    // Gymnastics rows open the movement's record, with or without one, to see it or add the first.
+    if (reps) {
+      const best = bestRecord(records, move);
+      return <Row key={move} chevron value={!!best} onClick={() => onOpenRecord?.(move)}
+        leading={<i className="dot" style={{ '--c': best ? 'var(--b)' : 'var(--line)' }} />}
+        title={move} detail={best ? <RecordValue value={best.value} type="reps" /> : 'Sin PR'} />;
+    }
     return <Row key={move} disabled={!rm} chevron={!!rm} value={!!rm}
       onClick={() => go(selectMovePatch(records, move))}
       leading={<i className="dot" style={{ '--c': rm ? 'var(--b)' : 'var(--line)' }} />}
@@ -117,10 +128,12 @@ function Moves({ ex, go, records }) {
     </NavBar>
     {withPR.length ? <List>{withPR.map(row)}</List> : <p className="empty">Aún no tienes PRs en {group.name}</p>}
     {without.length > 0 && <List header="Sin PR registrado">{without.map(row)}</List>}
-    <List>
-      <Row leading={<span className="row-icon display" aria-hidden="true">%</span>} title="Cálculo libre"
-        subtitle="Cualquier peso y porcentaje" chevron onClick={() => go(FREE_PATCH)} />
-    </List>
+    {reps
+      ? <p className="list-footer">Máximo de repeticiones sin pausa. Toca un movimiento para ver su historial o registrar uno nuevo.</p>
+      : <List>
+        <Row leading={<span className="row-icon display" aria-hidden="true">%</span>} title="Cálculo libre"
+          subtitle="Cualquier peso y porcentaje" chevron onClick={() => go(FREE_PATCH)} />
+      </List>}
   </div>;
 }
 

@@ -4,7 +4,7 @@
 export function SegmentedControl({ options, value, onChange, label, className = '' }) {
   const index = Math.max(0, options.findIndex((option) => option.value === value));
   return <div
-    className={`segmented ${className}`} role="radiogroup" aria-label={label}
+    className={`segmented${options.length > 3 ? ' dense' : ''} ${className}`} role="radiogroup" aria-label={label}
     style={{ '--count': options.length, '--index': index }}
   >
     <span className="segmented-thumb" aria-hidden="true" />

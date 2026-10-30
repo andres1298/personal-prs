@@ -6,6 +6,7 @@ import Icon from '../ui/icon';
 import Sheet from '../ui/sheet';
 import { List, Row } from '../ui/list';
 import { SegmentedControl } from '../ui/controls';
+import RecordValue from '../ui/record-value';
 
 const alpha = (hex, a) => {
   const [r, g, b] = hex.replace('#', '').match(/../g).map((part) => parseInt(part, 16));
@@ -46,7 +47,7 @@ function ProgressChart({ records, color, type }) {
           },
           scales: {
             x: { ticks: { color: label, font, maxRotation: 0, autoSkipPadding: 16 }, grid: { display: false }, border: { display: false } },
-            y: { reverse: type === 'time', ticks: { color: label, font, callback: (v) => formatValue(v, type) }, grid: { color: grid }, border: { display: false } },
+            y: { reverse: type === 'time', ticks: { color: label, font, precision: type === 'reps' ? 0 : undefined, callback: (v) => formatValue(v, type) }, grid: { color: grid }, border: { display: false } },
           },
         },
       });
@@ -79,7 +80,7 @@ export default function MoveDetailSheet({ detail: current, records, onClose, onC
         options={RMS.map((n) => ({ value: n, label: `${n}RM` }))} />}
       <div className="pr-hero">
         <div className="pr-value display num" key={`${move}-${rm}`}>
-          {best ? isWeight ? <>{best.value}<small>lb</small></> : formatValue(best.value, type) : '—'}
+          {best ? <RecordValue value={best.value} type={type} /> : '—'}
         </div>
         {best && isWeight && <div className="pr-kg num">{toKg(best.value)} kg</div>}
         <p className="pr-date">{best ? `PR del ${formatDate(best.date)}` : 'Aún no hay registros'}</p>
@@ -92,7 +93,7 @@ export default function MoveDetailSheet({ detail: current, records, onClose, onC
         {history.length
           ? history.slice().reverse().map((r, i) => <Row key={`${r.date}-${r.value}-${i}`} title={formatDate(r.date)}
             subtitle={[isWeight && `${toKg(r.value)} kg`, r.notes].filter(Boolean).join(' · ') || undefined}
-            value detail={isWeight ? <>{r.value}<small>lb</small></> : formatValue(r.value, type)} />)
+            value detail={<RecordValue value={r.value} type={type} />} />)
           : <p className="empty compact">Sin registros</p>}
       </List>
     </div>}

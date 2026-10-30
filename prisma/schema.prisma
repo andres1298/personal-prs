@@ -13,12 +13,15 @@ datasource db {
 enum MeasurementType {
   WEIGHT
   TIME
+  // Maximum unbroken repetitions (gymnastics); higher is better.
+  REPS
 }
 
 enum MovementCategory {
   LIFT
   CARDIO
   BENCHMARK
+  GYMNASTICS
 }
 
 model Profile {

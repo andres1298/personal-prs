@@ -85,12 +85,16 @@ test('creates movements in a chosen section and group, reusing the spelling of a
   assert.equal((await api.createMovement(ownerId, { name: 'Tabata', category: 'BENCHMARK', groupName: 'sprints' })).groupName, 'sprints');
   // Without a group, own movements share the default one; a matching measurement type is accepted.
   assert.equal((await api.createMovement(ownerId, { name: 'Row Sprint', category: 'CARDIO', measurementType: 'TIME' })).groupName, 'Custom');
+  // Gymnastics movements are measured in repetitions.
+  const lunges = await api.createMovement(ownerId, { name: 'Wall Walks', category: 'GYMNASTICS' });
+  assert.deepEqual([lunges.category, lunges.measurementType], ['GYMNASTICS', 'REPS']);
   // Another member's group never decides the spelling.
   db.movements.push({ ...shared('theirs', 'Their Move'), ownerId: otherId, groupName: 'Gymnastics' });
   assert.equal((await api.createMovement(ownerId, { name: 'Ring Dip', category: 'LIFT', groupName: 'GYMNASTICS' })).groupName, 'GYMNASTICS');
   for (const input of [
     { name: 'Bad', category: 'YOGA' }, { name: 'Bad', category: 'LIFT', measurementType: 'TIME' },
-    { name: 'Bad', category: 'CARDIO', measurementType: 'WEIGHT' }, { name: 'Bad', category: 'LIFT', groupName: '' },
+    { name: 'Bad', category: 'CARDIO', measurementType: 'WEIGHT' }, { name: 'Bad', category: 'GYMNASTICS', measurementType: 'WEIGHT' },
+    { name: 'Bad', measurementType: 'REPS' }, { name: 'Bad', category: 'LIFT', groupName: '' },
     { name: 'Bad', category: 'LIFT', groupName: 'x'.repeat(api.GROUP_NAME_MAX + 1) }, { name: 'Bad', category: 'LIFT', groupName: 7 },
     { name: 'Bad', category: 'LIFT', groupName: 'Bell\u0007' },
   ]) await assert.rejects(api.createMovement(ownerId, input), api.MovementInputError);
