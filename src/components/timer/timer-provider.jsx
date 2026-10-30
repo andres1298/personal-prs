@@ -2,7 +2,7 @@
 
 import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import {
-  TIMER_TYPES, addRound, cuesBetween, finish, normalizeConfig, pause, restoreRun, resume, snapshot, start, undoRound,
+  TIMER_TYPES, addRound, cuesBetween, finish, normalizeConfig, pause, restoreRun, resume, resumeCuesBetween, snapshot, start, undoRound,
 } from '../../lib/timer-engine';
 import { createSoundPlayer } from '../../lib/timer-sounds';
 import { readStored, useWakeLock, writeStored } from '../hooks';
@@ -20,6 +20,7 @@ export function TimerProvider({ scope, children }) {
   const configKey = `prs_timer_cfg_${scope}`;
   const sound = useRef(null);
   const lastElapsed = useRef(0);
+  const lastTick = useRef(0);
   const [configs, setConfigs] = useState(defaultConfigs);
   const [run, setRun] = useState(null);
   const [ready, setReady] = useState(false);
@@ -71,13 +72,15 @@ export function TimerProvider({ scope, children }) {
   useEffect(() => {
     if (!active) return;
     const view = snapshot(run, now);
+    const previousTick = lastTick.current;
+    lastTick.current = now;
     if (!view.paused) {
       // Skip cues missed while the page was suspended instead of replaying a burst.
       const gap = view.elapsed - lastElapsed.current;
-      if (gap > 0 && gap <= 1500) {
-        const cues = cuesBetween(view.plan, lastElapsed.current, view.elapsed);
-        if (cues.length) sound.current?.play(cues[cues.length - 1].cue);
-      }
+      const cues = gap > 0 && gap <= 1500 ? cuesBetween(view.plan, lastElapsed.current, view.elapsed) : [];
+      // The resume countdown runs on the clock, not on the workout's elapsed time.
+      if (previousTick && now - previousTick <= 1500) cues.push(...resumeCuesBetween(run, previousTick, now));
+      if (cues.length) sound.current?.play(cues[cues.length - 1].cue);
       lastElapsed.current = view.elapsed;
     }
     if (view.done) {

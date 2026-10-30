@@ -14,6 +14,7 @@ const TAB_HINTS = {
   Lift: 'Se mide en libras con 1RM, 3RM o 5RM. Aparece en Execute y en la carga rápida.',
   Cardio: 'Se mide en tiempo (mm:ss); un tiempo menor es mejor.',
   Benchmarks: 'Se mide en tiempo (mm:ss); un tiempo menor es mejor.',
+  Gymnastics: 'Se mide en repeticiones máximas sin pausa; más es mejor. Aparece en Execute y en la carga rápida.',
 };
 
 // The section's groups, with "Mis movimientos" always offered as the default place.
@@ -73,10 +74,12 @@ export default function NewMovementSheet({ preset, onClose, onCreate }) {
   }
 
   return <Sheet open={!!preset} onClose={onClose} title="Nuevo movimiento" layer={3}
-    leading={<button type="button" className="nav-text" onClick={onClose}>Cancelar</button>}
-    trailing={<button type="submit" form="new-movement-form" className="nav-text strong" disabled={!canSave}>
-      {saving ? 'Guardando…' : 'Guardar'}
-    </button>}>
+    trailing={<>
+      <button type="button" className="nav-text" onClick={onClose}>Cancelar</button>
+      <button type="submit" form="new-movement-form" className="nav-text strong" disabled={!canSave}>
+        {saving ? 'Guardando…' : 'Guardar'}
+      </button>
+    </>}>
     <form id="new-movement-form" className="form" onSubmit={save} noValidate>
       <div className="list form-group">
         <label className="field">

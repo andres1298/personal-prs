@@ -11,7 +11,7 @@ const authErrors = {
 export function AuthShell({ title, subtitle, children }) {
   return <main className="auth-panel wrap">
     <Image className="app-icon" src="/icon-192.png" width={84} height={84} alt="" priority />
-    <h1>{title}</h1>
+    <h1 className="display">{title}</h1>
     {subtitle && <p className="auth-subtitle">{subtitle}</p>}
     {children}
   </main>;

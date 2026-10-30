@@ -63,9 +63,13 @@ async function validatedRecord(profileId, input) {
   if (input.performedOn.startsWith('0000') || !Number.isFinite(performedOn.getTime()) || performedOn.toISOString().slice(0, 10) !== input.performedOn) {
     throw new RecordInputError('Performed date is invalid.');
   }
+  // Repetition records count whole, unbroken repetitions.
+  if (movement.measurementType === 'REPS' && !/^\d{1,4}$/.test(value)) {
+    throw new RecordInputError('Repetitions must be a whole number up to 9999.');
+  }
   const repetitionMax = input.repetitionMax ?? null;
   if (movement.measurementType === 'WEIGHT' ? ![1, 3, 5].includes(repetitionMax) : repetitionMax !== null) {
-    throw new RecordInputError('Weight records require 1, 3 or 5 repetitions; time records have none.');
+    throw new RecordInputError('Weight records require 1, 3 or 5 repetitions; time and repetition records have none.');
   }
   return {
     movementId: movement.id,
@@ -138,7 +142,7 @@ export async function createRecord(authUserId, input) {
   return recordDto(record);
 }
 
-// Quick upload only fills gaps: every movement and repetition pair must be new for the owner.
+// Quick upload only fills gaps: every movement and repetition pair (none for repetition records) must be new for the owner.
 export async function createRecords(authUserId, inputs) {
   const profileId = requireProfileId(authUserId);
   if (!Array.isArray(inputs) || inputs.length === 0 || inputs.length > MAX_BULK_RECORDS) {
@@ -148,7 +152,7 @@ export async function createRecords(authUserId, inputs) {
   const pairs = new Set();
   for (const input of inputs) {
     const data = await validatedRecord(profileId, input);
-    if (data.measurementType !== 'WEIGHT') throw new RecordInputError('Quick upload accepts weight records only.');
+    if (data.measurementType === 'TIME') throw new RecordInputError('Quick upload accepts weight and repetition records only.');
     const pair = `${data.movementId}:${data.repetitionMax}`;
     if (pairs.has(pair)) throw new RecordInputError('Each movement and repetition pair may appear once.');
     pairs.add(pair);

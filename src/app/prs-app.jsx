@@ -20,6 +20,8 @@ import SettingsSheet from '../components/settings-sheet';
 import GuidedTour, { TOUR_STEPS } from '../components/tour/guided-tour';
 import { TimerProvider } from '../components/timer/timer-provider';
 import { TimerPill, TimerRunSheet, TimerView } from '../components/timer/timer-views';
+import { useHistoryBack, useOpenLayers } from '../components/back-navigation';
+import EdgeSwipeBack from '../components/edge-swipe-back';
 
 const SETTINGS_DEFAULTS = { bar: 45, plates: [...ALL_PLATES], lastPct: 70, wake: true, simple: false, tab: 'exec' };
 
@@ -34,9 +36,9 @@ export default function App(props) {
 
 function Banner({ loading, demo, error, stale, onRetry }) {
   if (loading) return <div className="banner" role="status"><span className="spinner" aria-hidden="true" />Cargando tus PRs…</div>;
-  if (demo) return <div className="banner warn"><span>Datos de ejemplo · cambios solo en esta sesión</span><Link href="/">Iniciar sesión</Link></div>;
-  if (error) return <div className="banner warn" role="alert"><span>{error}</span><button type="button" onClick={onRetry}>Reintentar</button></div>;
-  if (stale) return <div className="banner warn" aria-live="polite"><span>{stale}</span><button type="button" onClick={onRetry}>Actualizar</button></div>;
+  if (demo) return <div className="banner warn"><span>Datos de ejemplo · cambios solo en esta sesión</span><Link className="pill-btn" href="/">Iniciar sesión</Link></div>;
+  if (error) return <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={onRetry}>Reintentar</button></div>;
+  if (stale) return <div className="banner warn" aria-live="polite"><span>{stale}</span><button type="button" className="pill-btn" onClick={onRetry}>Actualizar</button></div>;
   return null;
 }
 
@@ -97,7 +99,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     }).then((start) => start && setQuickOpen(true));
   }, [tourPending, hasBackend, synced, error, records.length, scope, alert]);
 
-  // Simple mode has no warm-up ladder, so its step is left out.
+  // Simple mode has no percentages panel, so its step is left out.
   const tourSteps = useMemo(() => TOUR_STEPS.filter((step) => !(settings.simple && step.advanced)), [settings.simple]);
   // Each tour step shows its tab and Execute screen. The working screen uses a sample
   // lift, so the exercise in progress is kept aside and restored when the tour closes.
@@ -123,6 +125,28 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     setTimeout(() => setTourOpen(true), 380);
   };
 
+  // Back goes from PRs or Timer to Execute, then up Execute's screens: working screen, group, picker.
+  // While the tour runs it moves between screens itself, so the depth it found stays in place.
+  const execDepth = ex.view === 'run' ? (ex.free ? 1 : 2) : ex.view === 'moves' ? 1 : 0;
+  const liveDepth = execDepth + (tab === 'exec' ? 0 : 1);
+  const tourDepth = useRef(liveDepth);
+  if (!tourOpen) tourDepth.current = liveDepth;
+  const screenDepth = tourOpen ? tourDepth.current : liveDepth;
+  const screenBack = () => {
+    if (tab !== 'exec') updateSettings({ tab: 'exec' });
+    else if (ex.view === 'run') setEx({ view: ex.free ? 'pick' : 'moves' });
+    else if (ex.view === 'moves') setEx({ view: 'pick' });
+    window.scrollTo({ top: 0 });
+  };
+  useHistoryBack(screenDepth, screenBack, ready && connected);
+  const openLayers = useOpenLayers();
+  const page = useRef(null);
+  // The screen going back would show, drawn under the edge swipe.
+  const previousScreen = () => <section className="wrap">
+    <ExecuteView ex={tab === 'exec' ? { ...ex, view: ex.view === 'run' && !ex.free ? 'moves' : 'pick' } : ex} setEx={() => {}}
+      settings={settings} records={records} banner={banner} onOpenSettings={() => {}} />
+  </section>;
+
   const goTab = (next) => {
     if (next === tab) { window.scrollTo({ top: 0, behavior: 'smooth' }); return; }
     updateSettings({ tab: next });
@@ -146,7 +170,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     const name = movements.movements.find((movement) => movement.id === id)?.name;
     if (result.deletedRecords) reloadRecords();
     if (detail?.move === name) setDetail(null);
-    if (ex.move === name) setEx({ view: 'pick', move: null, free: false, base: 0, extra: [], minus: [], done: [] });
+    if (ex.move === name) setEx({ view: 'pick', move: null, free: false, base: 0, extra: [], minus: [] });
     return result;
   }
   async function saveQuick(list) {
@@ -159,9 +183,10 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
 
   return <>
     <TimerPill />
-    <main className="page" data-focus={focus}>
+    <main className="page" ref={page} data-focus={focus}>
       <section className="tab-view wrap" hidden={tab !== 'exec'}>
-        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)} />
+        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)}
+          onOpenRecord={(move) => setDetail({ move })} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'prs'}>
         <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={(move) => setDetail({ move })} />
@@ -171,6 +196,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
       </section>
     </main>
     <TabBar tab={tab} onTab={goTab} onAdd={onAdd} hidden={focus} />
+    <EdgeSwipeBack target={page} enabled={screenDepth > 0 && !openLayers} onBack={screenBack} renderPrevious={previousScreen} />
 
     <MoveDetailSheet detail={detail} records={records} onClose={() => setDetail(null)}
       onChangeRm={(rm) => setDetail((d) => ({ ...d, rm }))} onAdd={openForm}

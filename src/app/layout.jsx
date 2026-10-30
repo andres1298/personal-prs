@@ -1,4 +1,8 @@
+import { Archivo } from 'next/font/google';
 import './globals.css';
+
+// Variable width and weight: the display style uses the expanded width (125%) at weight 900.
+const archivo = Archivo({ subsets: ['latin'], axes: ['wdth'], display: 'swap', variable: '--font-archivo' });
 
 export const metadata = {
   title: 'Mis PRs',
@@ -22,11 +26,11 @@ export const viewport = {
   viewportFit: 'cover',
   colorScheme: 'light dark',
   themeColor: [
-    { media: '(prefers-color-scheme: light)', color: '#f2f2f7' },
-    { media: '(prefers-color-scheme: dark)', color: '#000000' },
+    { media: '(prefers-color-scheme: light)', color: '#f3f1ec' },
+    { media: '(prefers-color-scheme: dark)', color: '#0d0d0d' },
   ],
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="es"><body>{children}</body></html>;
+  return <html lang="es" className={archivo.variable}><body>{children}</body></html>;
 }

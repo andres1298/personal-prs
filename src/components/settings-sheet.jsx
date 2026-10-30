@@ -20,7 +20,7 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
       <div className="row"><SegmentedControl label="Peso de la barra" value={settings.bar} onChange={(bar) => updateSettings({ bar })}
         options={BARS.map((bar) => ({ value: bar, label: `${bar} lb` }))} className="flush" /></div>
     </List>
-    <List header="Discos que tienes" footer="Las combinaciones y la escalera de calentamiento solo usan los discos activos.">
+    <List header="Discos que tienes" footer="Las combinaciones solo usan los discos activos.">
       <div className="row plate-toggles">
         {ALL_PLATES.map((plate) => {
           const on = settings.plates.includes(plate);
@@ -30,23 +30,23 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
       </div>
     </List>
     <List header="App">
-      <Row leading={<SymbolTile color="--indigo"><Icon name="simple" /></SymbolTile>} title="Modo simple"
+      <Row leading={<SymbolTile color="--b-lilac"><Icon name="simple" /></SymbolTile>} title="Modo simple"
         subtitle="Solo ejercicio, peso, % y la barra final">
         <Switch checked={!!settings.simple} label="Modo simple" onChange={(simple) => updateSettings({ simple })} />
       </Row>
-      <Row leading={<SymbolTile color="--amber"><Icon name="sun" /></SymbolTile>} title="Pantalla siempre encendida"
+      <Row leading={<SymbolTile color="--b-yellow"><Icon name="sun" /></SymbolTile>} title="Pantalla siempre encendida"
         subtitle="Mientras estás en un levantamiento">
         <Switch checked={settings.wake !== false} label="Pantalla siempre encendida" onChange={(wake) => updateSettings({ wake })} />
       </Row>
-      <Row leading={<SymbolTile color="--purple"><Icon name="sparkles" /></SymbolTile>} title="Ver tour de la app"
+      <Row leading={<SymbolTile color="--b-pink"><Icon name="sparkles" /></SymbolTile>} title="Ver tour de la app"
         subtitle="Repasa el flujo básico paso a paso" chevron onClick={onTour} />
     </List>
     {!demo && <List header="Movimientos">
-      <Row leading={<SymbolTile color="--indigo"><Icon name="barbell" /></SymbolTile>} title="Mis movimientos"
+      <Row leading={<SymbolTile color="--b-cyan"><Icon name="barbell" /></SymbolTile>} title="Mis movimientos"
         subtitle="Crea los tuyos o desactiva los del catálogo" chevron onClick={onMyMovements} />
     </List>}
     <List header="Cuenta">
-      <Row leading={<SymbolTile color="--blue"><Icon name="person" /></SymbolTile>} title="Datos"
+      <Row leading={<SymbolTile color="--b-blue"><Icon name="person" /></SymbolTile>} title="Datos"
         subtitle={demo ? 'Datos de ejemplo · cambios solo en esta sesión' : 'Conectado a tu cuenta'} />
       {demo
         ? <Link className="row row-button tint-row" href="/">Iniciar sesión</Link>

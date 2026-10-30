@@ -3,13 +3,14 @@
 import { createContext, useCallback, useContext, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { useModalLayer, usePresence } from './sheet';
+import { useBackLayer } from '../back-navigation';
 
 const AlertContext = createContext(null);
 
 /**
- * iOS alert. `useAlert()` returns `show({ title, message, actions })`, which
- * resolves with the chosen action's value. Roles: 'cancel' (bold), 'destructive'
- * (red) or default. Without actions it shows a single OK.
+ * Alert card. `useAlert()` returns `show({ title, message, actions })`, which
+ * resolves with the chosen action's value. Roles: 'cancel' (quiet), 'destructive'
+ * (coral) or default (inverted). Without actions it shows a single OK.
  */
 export function AlertProvider({ children }) {
   const [alert, setAlert] = useState(null);
@@ -41,6 +42,7 @@ function AlertView({ alert, open, onChoose }) {
   const root = useRef(null);
   useModalLayer(mounted && open, root);
   const cancel = alert?.actions.find((action) => action.role === 'cancel');
+  useBackLayer(open, () => onChoose(cancel));
 
   useEffect(() => {
     if (!open) return undefined;

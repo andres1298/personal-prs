@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { CATALOG_TABS, bestRecord, firstRm, formatValue, getCatalog } from '../../lib/catalog';
+import { CATALOG_TABS, bestRecord, firstRm, getCatalog } from '../../lib/catalog';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
 import { LargeTitle } from '../ui/nav-bar';
 import { SegmentedControl } from '../ui/controls';
+import RecordValue from '../ui/record-value';
 
 export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
   const [tab, setTab] = useState('Lift');
@@ -16,16 +17,17 @@ export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
   const label = (move) => {
     if (type === 'weight') {
       const rm = firstRm(records, move);
-      return rm ? <>{bestRecord(records, move, rm).value} lb{rm > 1 && <small>{rm}RM</small>}</> : null;
+      return rm ? <>{bestRecord(records, move, rm).value}<small>lb</small>{rm > 1 && <em>{rm}RM</em>}</> : null;
     }
     const best = bestRecord(records, move);
-    return best ? formatValue(best.value, type) : null;
+    return best ? <RecordValue value={best.value} type={type} /> : null;
   };
 
   return <>
-    <LargeTitle title="PRs" trailing={<button type="button" className="nav-text" data-tour="quick-upload" onClick={onQuick} disabled={busy}>
-      <Icon name="bolt" fill /> Carga rápida
-    </button>} />
+    <LargeTitle title="PRs" subtitle="Tus mejores marcas" wideAction
+      trailing={<button type="button" className="pill-btn" data-tour="quick-upload" onClick={onQuick} disabled={busy}>
+        <Icon name="bolt" fill /> Carga rápida
+      </button>} />
     {banner}
     <SegmentedControl label="Categoría" value={tab} onChange={(next) => { setTab(next); setGroup(null); }}
       options={CATALOG_TABS.map((key) => ({ value: key, label: key }))} />
@@ -39,8 +41,10 @@ export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
       })}
     </div>
     {visible.map((g) => <List key={g.name} header={<><i className="dot" style={{ '--c': `var(${g.color})` }} />{g.name}</>}>
-      {g.moves.map((move) => <Row key={move} title={move} chevron onClick={() => onOpen(move)}
-        detail={label(move) || <span className="muted">—</span>} />)}
+      {g.moves.map((move) => {
+        const value = label(move);
+        return <Row key={move} title={move} chevron onClick={() => onOpen(move)} value={!!value} detail={value || <span className="muted">—</span>} />;
+      })}
     </List>)}
   </>;
 }

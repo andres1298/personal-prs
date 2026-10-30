@@ -1,50 +1,58 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { RMS, bestRecord, firstRm, getCatalog, moveInfo, num, num2, toKg } from '../../lib/catalog';
-import { DEFAULT_PCT, PLATE_STYLE, computeLoad, sum } from '../../lib/plates';
+import { RMS, bestRecord, firstRm, getCatalog, moveInfo, num, repsGroups, toKg, weightGroups } from '../../lib/catalog';
+import { DEFAULT_PCT, PLATE_STYLE, computeLoad, plateOptions, round5, sum } from '../../lib/plates';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
-import { LargeTitle, NavBar } from '../ui/nav-bar';
-import { SegmentedControl, SymbolTile } from '../ui/controls';
+import { BackButton, LargeTitle, NavBar } from '../ui/nav-bar';
+import { SegmentedControl } from '../ui/controls';
 import PlateDisc from '../ui/plate-disc';
+import RecordValue from '../ui/record-value';
 
 export const EXERCISE_DEFAULTS = {
   view: 'pick', cat: null, move: null, free: false, rm: 1, base: 0, pct: 80,
-  extra: [], minus: [], editBase: false, sel: 0, panel: 'load', done: [], key: '', ts: 0,
+  extra: [], minus: [], sel: 0, panel: 'load', ts: 0,
 };
+const PANELS = ['load', 'pcts'];
 
-// Old sessions go back to the picker; malformed stored lists are reset.
+// Old sessions go back to the picker; malformed stored lists are reset. Fields of earlier versions (the base
+// editor and the warm-up ladder) are dropped, and the warm-up panel opens as the barbell.
 export function restoreExercise(stored) {
-  const ex = { ...stored, extra: Array.isArray(stored.extra) ? stored.extra : [], minus: Array.isArray(stored.minus) ? stored.minus : [] };
-  if (!Array.isArray(ex.done)) ex.done = [];
-  if (Date.now() - (ex.ts || 0) > 8 * 3600e3 && ex.view !== 'pick') Object.assign(ex, { view: 'pick', done: [] });
+  const { editBase, done, key, ...rest } = stored;
+  const ex = { ...rest, extra: Array.isArray(rest.extra) ? rest.extra : [], minus: Array.isArray(rest.minus) ? rest.minus : [] };
+  if (!PANELS.includes(ex.panel)) ex.panel = 'load';
+  if (Date.now() - (ex.ts || 0) > 8 * 3600e3 && ex.view !== 'pick') ex.view = 'pick';
   return ex;
 }
 
 export function selectMovePatch(records, move) {
   const rm = firstRm(records, move) || 1;
   return {
-    view: 'run', move, free: false, cat: moveInfo(move).group.name, extra: [], minus: [], sel: 0, panel: 'load', done: [],
-    rm, base: bestRecord(records, move, rm)?.value || 0, pct: DEFAULT_PCT, editBase: true,
+    view: 'run', move, free: false, cat: moveInfo(move).group.name, extra: [], minus: [], sel: 0, panel: 'load',
+    rm, base: bestRecord(records, move, rm)?.value || 0, pct: DEFAULT_PCT,
   };
 }
 
 // Exercise the guided tour shows: the first lift with a PR, or a free calculation.
 export function tourExercise(records) {
   const move = getCatalog().Lift.groups.flatMap((group) => group.moves).find((name) => firstRm(records, name));
-  if (move) return { ...selectMovePatch(records, move), editBase: false };
+  if (move) return selectMovePatch(records, move);
   return { ...EXERCISE_DEFAULTS, view: 'run', free: true, base: 225, pct: DEFAULT_PCT };
 }
 
 const scrollTop = () => window.scrollTo({ top: 0 });
+const block = (color) => ({ '--b': `var(${color})` });
+const FREE_PATCH = { view: 'run', free: true };
+// Lifts calculate loads; gymnastics groups list maximum repetitions and open each movement's record.
+const executeGroups = () => [...weightGroups(), ...repsGroups()];
 
-export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings }) {
+export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings, onOpenRecord }) {
   const go = (patch) => { setEx(patch); scrollTop(); };
   if (ex.view === 'pick') {
     return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} onOpenSettings={onOpenSettings} />;
   }
-  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} />;
+  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} onOpenRecord={onOpenRecord} />;
   return <Workbench ex={ex} setEx={setEx} go={go} settings={settings} records={records} onOpenSettings={onOpenSettings} />;
 }
 
@@ -54,7 +62,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
   const resumeTarget = canResume ? computeLoad(ex, settings, settings.simple).target : 0;
   return <>
     <LargeTitle title="Execute" subtitle="¿Qué vas a levantar?"
-      trailing={<button type="button" className="nav-icon" aria-label="Ajustes" data-tour="settings" onClick={onOpenSettings}><Icon name="gear" /></button>} />
+      trailing={<button type="button" className="sq-btn" aria-label="Ajustes" data-tour="settings" onClick={onOpenSettings}><Icon name="gear" /></button>} />
     {banner}
     {canResume && <div className="resume-card">
       <button type="button" className="resume-main" onClick={() => go({ view: 'run' })}>
@@ -62,53 +70,71 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
           <small>Continuar</small>
           <b>{ex.free ? 'Cálculo libre' : ex.move} · {num(ex.pct)}%</b>
         </span>
-        <span className="resume-weight num rounded">{resumeTarget}<small>lb</small></span>
+        <span className="resume-weight display num">{resumeTarget}<small>lb</small></span>
       </button>
       <button type="button" className="resume-dismiss" aria-label="Quitar cálculo anterior"
-        onClick={() => go({ move: null, free: false, base: 0, extra: [], minus: [], done: [] })}>
+        onClick={() => go({ move: null, free: false, base: 0, extra: [], minus: [] })}>
         <Icon name="xmark" weight={2.6} />
       </button>
     </div>}
     <div className="category-grid" data-tour="categories">
-      {getCatalog().Lift.groups.map((group) => {
+      {executeGroups().map((group) => {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
-        return <button type="button" key={group.name} className="category-card" style={{ '--c': `var(${group.color})` }}
+        return <button type="button" key={group.name} className="category-card" style={block(group.color)}
           onClick={() => go({ cat: group.name, view: 'moves' })}>
-          <b>{group.name}</b>
-          <small>{count ? `${count} con PR` : 'Sin PRs'}</small>
+          <span className="category-letter display" aria-hidden="true">{group.name[0]}</span>
+          <span className="category-count"><b className="display num">{count}</b><small>{count ? 'con PR' : 'Sin PRs'}</small></span>
+          <span className="category-name display">{group.name}</span>
         </button>;
       })}
     </div>
-    <List>
-      <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre" data-tour="free-calc"
-        subtitle="Cualquier peso y porcentaje" chevron onClick={() => go({ view: 'run', free: true, editBase: false })} />
-    </List>
+    <button type="button" className="outline-row" data-tour="free-calc" onClick={() => go(FREE_PATCH)}>
+      <span className="outline-glyph display" aria-hidden="true">%</span>
+      <span className="outline-copy"><b>Cálculo libre</b><small>Cualquier peso y porcentaje</small></span>
+      <Icon name="arrowRight" weight={2.4} />
+    </button>
   </>;
 }
 
 /* ---------- Movements of a group ---------- */
-function Moves({ ex, go, records }) {
-  const { groups } = getCatalog().Lift;
-  const group = groups.find((g) => g.name === ex.cat) || groups[0] || { name: '', color: '--muted', moves: [] };
+function Moves({ ex, go, records, onOpenRecord }) {
+  const groups = executeGroups();
+  const group = groups.find((g) => g.name === ex.cat) || groups[0] || { name: '', color: '--b-gray', moves: [] };
+  const reps = repsGroups().includes(group);
   const withPR = group.moves.filter((move) => firstRm(records, move));
   const without = group.moves.filter((move) => !firstRm(records, move));
   const row = (move) => {
     const rm = firstRm(records, move);
-    return <Row key={move} disabled={!rm} chevron={!!rm}
+    // Gymnastics rows open the movement's record, with or without one, to see it or add the first.
+    if (reps) {
+      const best = bestRecord(records, move);
+      return <Row key={move} chevron value={!!best} onClick={() => onOpenRecord?.(move)}
+        leading={<i className="dot" style={{ '--c': best ? 'var(--b)' : 'var(--line)' }} />}
+        title={move} detail={best ? <RecordValue value={best.value} type="reps" /> : 'Sin PR'} />;
+    }
+    return <Row key={move} disabled={!rm} chevron={!!rm} value={!!rm}
       onClick={() => go(selectMovePatch(records, move))}
-      leading={<i className="dot" style={{ '--c': `var(${rm ? group.color : '--label4'})` }} />}
+      leading={<i className="dot" style={{ '--c': rm ? 'var(--b)' : 'var(--line)' }} />}
       title={move}
-      detail={rm ? <>{bestRecord(records, move, rm).value} lb{rm > 1 && <small>{rm}RM</small>}</> : 'Sin PR'} />;
+      detail={rm ? <>{bestRecord(records, move, rm).value}<small>lb</small>{rm > 1 && <em>{rm}RM</em>}</> : 'Sin PR'} />;
   };
-  return <>
-    <NavBar back={{ label: 'Execute', onClick: () => go({ view: 'pick' }) }} title={group.name} />
+  return <div style={block(group.color)}>
+    <NavBar back={{ label: 'Execute', onClick: () => go({ view: 'pick' }) }} title={group.name}>
+      <section className="category-hero">
+        <span className="category-letter display" aria-hidden="true">{group.name[0]}</span>
+        <p>{withPR.length ? `${withPR.length} con PR` : 'Sin PRs'} · {group.moves.length} {group.moves.length === 1 ? 'movimiento' : 'movimientos'}</p>
+        <h1 className="display">{group.name}</h1>
+      </section>
+    </NavBar>
     {withPR.length ? <List>{withPR.map(row)}</List> : <p className="empty">Aún no tienes PRs en {group.name}</p>}
     {without.length > 0 && <List header="Sin PR registrado">{without.map(row)}</List>}
-    <List>
-      <Row leading={<SymbolTile color="--gray"><Icon name="pencil" /></SymbolTile>} title="Cálculo libre" chevron
-        onClick={() => go({ view: 'run', free: true, editBase: false })} />
-    </List>
-  </>;
+    {reps
+      ? <p className="list-footer">Máximo de repeticiones sin pausa. Toca un movimiento para ver su historial o registrar uno nuevo.</p>
+      : <List>
+        <Row leading={<span className="row-icon display" aria-hidden="true">%</span>} title="Cálculo libre"
+          subtitle="Cualquier peso y porcentaje" chevron onClick={() => go(FREE_PATCH)} />
+      </List>}
+  </div>;
 }
 
 /* ---------- Working screen ---------- */
@@ -116,12 +142,11 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
   const simple = !!settings.simple;
   const load = computeLoad(ex, settings, simple);
   const adjusted = !simple && (ex.extra.length > 0 || ex.minus.length > 0);
-  const done = ex.key === load.key ? ex.done : [];
   const resetAdj = { extra: [], minus: [] };
-  const title = ex.free ? 'Cálculo libre' : ex.move;
-  const editing = !(ex.base > 0) || ex.editBase;
+  const group = ex.free ? null : moveInfo(ex.move).group;
   const diff = load.target - load.start;
   const status = !adjusted ? null : diff > 0 ? 'over' : diff < 0 ? 'under' : 'exact';
+  const panel = PANELS.includes(ex.panel) ? ex.panel : 'load';
 
   // Store a desired load as the difference against the selected option.
   const addPlate = (plate) => load.plates && setEx({ extra: [...ex.extra, plate].sort((a, b) => b - a) });
@@ -130,122 +155,104 @@ function Workbench({ ex, setEx, go, settings, records, onOpenSettings }) {
     if (item.extra) { const extra = [...ex.extra]; extra.splice(extra.indexOf(item.p), 1); setEx({ extra }); }
     else setEx({ minus: [...ex.minus, item.p] });
   };
-  const toggleStep = (index) => setEx({
-    key: load.key, done: done.includes(index) ? done.filter((i) => i !== index) : [...done, index],
-  });
 
-  return <>
-    <NavBar inline
-      back={{ label: ex.free ? 'Execute' : moveInfo(ex.move).group.name, onClick: () => go({ view: ex.free ? 'pick' : 'moves' }) }}
-      title={title}
-      trailing={<>
-        {ex.free
-          ? <button type="button" className="nav-text" onClick={() => setEx({ base: 0, ...resetAdj, sel: 0, done: [], editBase: true, pct: DEFAULT_PCT })}>Limpiar</button>
-          : <button type="button" className="nav-icon" aria-label="Cálculo libre" onClick={() => go({ view: 'run', free: true, editBase: false })}><Icon name="pencil" /></button>}
-        <button type="button" className="nav-icon" aria-label="Barra y discos" onClick={onOpenSettings}><Icon name="gear" /></button>
-      </>}
-    />
-
-    <div className="workbench">
-      <section className="card weight-card" data-tour="weight">
-        <div className="card-head">
-          <span><Icon name="number" weight={2.4} /> Peso total</span>
-          {!editing && <button type="button" className="base-chip" onClick={() => setEx({ editBase: true })} aria-label="Editar RM y porcentaje">
-            {!ex.free && <span>{ex.rm}RM · </span>}<b className="num">{num(ex.base)} lb</b> · <b className="num">{num(ex.pct)}%</b>
-            <Icon name="pencil" />
-          </button>}
-        </div>
-        {editing && <BaseEditor ex={ex} setEx={setEx} records={records} resetAdj={resetAdj} />}
+  return <div className="workbench" style={block(group ? group.color : '--ink')}>
+    {/* Navigation and the weight stay at the top while the rest scrolls. */}
+    <div className="wb-head">
+      <nav className="wb-nav">
+        <BackButton label={ex.free ? 'Execute' : group.name} onClick={() => go({ view: ex.free ? 'pick' : 'moves' })} />
+        <h1 className="wb-title">{ex.free ? 'Cálculo libre' : ex.move}</h1>
+        <span className="wb-actions">
+          {ex.free
+            ? <button type="button" className="nav-text" onClick={() => setEx({ base: 0, ...resetAdj, sel: 0, pct: DEFAULT_PCT })}>Limpiar</button>
+            : <button type="button" className="nav-icon" aria-label="Cálculo libre" onClick={() => go(FREE_PATCH)}><Icon name="pencil" /></button>}
+          <button type="button" className="nav-icon" aria-label="Barra y discos" onClick={onOpenSettings}><Icon name="gear" /></button>
+        </span>
+      </nav>
+      <section className="weight-card" data-tour="weight" aria-label="Peso total">
         {ex.base > 0
-          ? <div className="hero" data-status={status} data-editing={editing}>
-            <div className="hero-weight num rounded" key={load.target}>{load.target}<span>lb</span></div>
-            <div className="hero-sub num">{num(adjusted ? load.target / ex.base * 100 : ex.pct)}% de {num(ex.base)} lb · {toKg(load.target)} kg</div>
-            <div className="hero-foot">
-              {adjusted
-                ? <TargetStatus status={status} load={load} pct={ex.pct} onReset={() => setEx(resetAdj)} />
-                : <div className="hero-exact num">{num(ex.pct)}% exacto = {num2(load.raw)} lb · {load.target} lb es el {num2(load.target / ex.base * 100)}%</div>}
+          ? <div className="hero">
+            <div className="hero-weight display num" key={load.target}>{load.target}<small>lb</small></div>
+            <div className="hero-meta num">
+              <b>{num(adjusted ? load.target / ex.base * 100 : ex.pct)}% de {num(ex.base)}</b>
+              <span>{toKg(load.target)} kg</span>
             </div>
           </div>
-          : <p className="empty compact">{ex.free ? 'Escribe un peso y el porcentaje para empezar' : 'Sin PR para este RM'}</p>}
+          : <p className="hero-empty">{ex.free ? 'Escribe un peso y el porcentaje para empezar' : 'Sin PR para este RM'}</p>}
+        {ex.base > 0 && adjusted && <TargetStatus status={status} load={load} pct={ex.pct} onReset={() => setEx(resetAdj)} />}
+        <BaseControls ex={ex} setEx={setEx} records={records} resetAdj={resetAdj} />
       </section>
-
-      {ex.base > 0 && <div className={`workbench-panel${simple ? ' simple' : ''}`} data-tour="exec-panel">
-        {!simple && <SegmentedControl label="Vista" value={ex.panel} onChange={(panel) => setEx({ panel })}
-          options={[{ value: 'load', label: 'Barra' }, { value: 'warm', label: 'Calentamiento' }]} />}
-        {ex.panel === 'load' || simple
-          ? <LoadCard load={load} ex={ex} setEx={setEx} settings={settings} simple={simple} onAdd={addPlate} onRemove={removePlate} />
-          : <Warmup load={load} base={ex.base} done={done} onToggle={toggleStep} onReset={() => setEx({ key: load.key, done: [] })} />}
-      </div>}
     </div>
-  </>;
+
+    {ex.base > 0 && <div className={`workbench-panel${simple ? ' simple' : ''}`}>
+      {!simple && <div data-tour="exec-panel">
+        <SegmentedControl label="Vista" value={panel} onChange={(next) => setEx({ panel: next })}
+          options={[{ value: 'load', label: 'Barra' }, { value: 'pcts', label: 'Porcentajes' }]} />
+      </div>}
+      {panel === 'load' || simple
+        ? <LoadCard load={load} ex={ex} setEx={setEx} settings={settings} simple={simple} onAdd={addPlate} onRemove={removePlate} />
+        : <Percents base={ex.base} current={adjusted ? null : ex.pct} settings={settings}
+          onPick={(pct) => setEx({ pct, ...resetAdj, sel: 0 })} />}
+    </div>}
+  </div>;
 }
 
 // Where the adjusted load stands against the percentage target: short of it, over it or on it.
-// One line in the same slot as the exact-percentage line, so the card keeps its height.
 const TARGET_STATUS = {
-  under: { icon: 'arrowDown', title: (lb) => `Faltan ${lb} lb`, detail: (side, goal) => `${side} por lado · meta ${goal}` },
-  over: { icon: 'arrowUp', title: (lb) => `${lb} lb arriba`, detail: (side, goal) => `${side} por lado · meta ${goal}` },
-  exact: { icon: 'check', title: () => 'En el objetivo', detail: (_, goal) => `meta ${goal} lb` },
+  under: { icon: 'arrowDown', title: (lb) => `Faltan ${lb} lb`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
+  over: { icon: 'arrowUp', title: (lb) => `${lb} lb arriba`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
+  exact: { icon: 'check', title: () => 'En el objetivo', detail: (_, goal) => `Meta ${goal} lb` },
 };
 
 function TargetStatus({ status, load, pct, onReset }) {
   const copy = TARGET_STATUS[status];
   const diff = Math.abs(load.target - load.start);
   return <div className="target-status" data-status={status} role="status">
+    <span className="target-icon"><Icon name={copy.icon} weight={3} /></span>
     <span className="target-copy num">
-      <Icon name={copy.icon} weight={3} />
       <b>{copy.title(num(diff))}</b>
-      <span>· {copy.detail(num(diff / 2), load.start)}</span>
+      <small>{copy.detail(num(diff / 2), load.start)}</small>
     </span>
     <button type="button" className="target-reset num" onClick={onReset} aria-label={`Volver al ${num(pct)}%`}>
-      <Icon name="undo" weight={2.4} />{num(pct)}%
+      <Icon name="undo" weight={2.6} />{num(pct)}%
     </button>
   </div>;
 }
 
-// Editor for the RM (or free base weight) and the percentage.
-function BaseEditor({ ex, setEx, records, resetAdj }) {
+// RM (or the free base weight) on the left and the percentage on the right, always visible under the weight.
+function BaseControls({ ex, setEx, records, resetAdj }) {
   const [pctText, setPctText] = useState(num(ex.pct));
-  const [baseText, setBaseText] = useState(ex.base ? String(ex.base) : '');
+  const [baseText, setBaseText] = useState(ex.base ? num(ex.base) : '');
   useEffect(() => { setPctText((text) => (parseFloat(text.replace(',', '.')) === ex.pct ? text : num(ex.pct))); }, [ex.pct]);
   useEffect(() => { if (!ex.base) setBaseText(''); }, [ex.base]);
 
-  const close = () => {
-    if (!(ex.base > 0)) return;
-    document.activeElement?.blur();
-    setEx({ editBase: false });
-  };
-  const onKey = (event) => { if (event.key === 'Enter') close(); };
-
+  const onKey = (event) => { if (event.key === 'Enter') event.currentTarget.blur(); };
   const step = (delta) => setEx({ pct: Math.min(150, Math.max(5, Math.round((ex.pct + delta) * 10) / 10)), ...resetAdj });
-  return <div className="base-editor" data-tour="base-editor">
-    <div className="base-editor-row">
-      {ex.free
-        ? <label className="base-input"><input className="num" inputMode="decimal" placeholder="Peso" value={baseText} autoFocus={!ex.base}
-          aria-label="Peso base en libras" onKeyDown={onKey}
-          onChange={(event) => { setBaseText(event.target.value); setEx({ base: parseFloat(event.target.value.replace(',', '.')) || 0, ...resetAdj }); }} /><span>lb</span></label>
-        : <SegmentedControl label="Repeticiones máximas" value={ex.rm} className="compact"
-          onChange={(rm) => setEx({ rm, base: bestRecord(records, ex.move, rm)?.value || 0, ...resetAdj })}
-          options={RMS.map((rm) => ({ value: rm, label: `${rm}RM`, disabled: !bestRecord(records, ex.move, rm) }))} />}
-      <button type="button" className="round-button filled" onClick={close} disabled={!(ex.base > 0)} aria-label="Listo"><Icon name="check" weight={3} /></button>
-    </div>
+  return <div className="base-controls" data-tour="base-editor">
+    {ex.free
+      ? <label className="base-field"><span className="pct-field"><input className="display num" inputMode="decimal" placeholder="Peso" value={baseText} autoFocus={!ex.base}
+        aria-label="Peso base en libras" enterKeyHint="done" onKeyDown={onKey}
+        onChange={(event) => { setBaseText(event.target.value); setEx({ base: parseFloat(event.target.value.replace(',', '.')) || 0, ...resetAdj }); }} />lb</span></label>
+      : <div className="rm-tabs" role="group" aria-label="Repeticiones máximas">
+        {RMS.map((rm) => <button type="button" key={rm} aria-pressed={rm === ex.rm} disabled={!bestRecord(records, ex.move, rm)}
+          onClick={() => rm !== ex.rm && setEx({ rm, base: bestRecord(records, ex.move, rm)?.value || 0, ...resetAdj })}>{rm}RM</button>)}
+      </div>}
     <div className="pct-stepper">
-      <button type="button" className="num" onClick={() => step(-10)}>−10</button>
-      <button type="button" className="num" onClick={() => step(-5)}>−5</button>
-      <label className="pct-input"><input className="num" inputMode="decimal" value={pctText} aria-label="Porcentaje" onKeyDown={onKey}
-        onChange={(event) => {
+      <button type="button" onClick={() => step(-5)} aria-label="Bajar 5 %"><Icon name="minus" weight={2.8} /></button>
+      <label className="pct-field"><input className="display num" inputMode="decimal" value={pctText} aria-label="Porcentaje" enterKeyHint="done"
+        onKeyDown={onKey} onChange={(event) => {
           setPctText(event.target.value);
           const pct = parseFloat(event.target.value.replace(',', '.'));
           if (pct > 0) setEx({ pct, ...resetAdj });
-        }} /><span>%</span></label>
-      <button type="button" className="num" onClick={() => step(5)}>+5</button>
-      <button type="button" className="num" onClick={() => step(10)}>+10</button>
+        }} />%</label>
+      <button type="button" onClick={() => step(5)} aria-label="Subir 5 %"><Icon name="plus" weight={2.8} /></button>
     </div>
   </div>;
 }
 
+const plateStyle = (plate) => PLATE_STYLE[plate] || ['--ink3', 50];
 const plateVars = (plate) => {
-  const [color, height] = PLATE_STYLE[plate] || ['--label3', 50];
+  const [color, height] = plateStyle(plate);
   return { '--h': height, '--pc': `var(${color})` };
 };
 
@@ -257,7 +264,7 @@ function LoadCard({ load, ex, setEx, settings, simple, onAdd, onRemove }) {
   const small = load.plates.length > 5;
   return <section className="card load-card" data-tour="barbell">
     <div className="card-head">
-      <span><Icon name="barbell" weight={2.4} /> Por lado · <b className="num">{num(sum(load.plates))} lb</b></span>
+      <span>Por lado · <b className="num">{num(sum(load.plates))} lb</b></span>
       <span className="card-head-detail">Barra {settings.bar} lb</span>
     </div>
     <div className={`barbell${small ? ' small' : ''}`}>
@@ -291,27 +298,30 @@ function LoadCard({ load, ex, setEx, settings, simple, onAdd, onRemove }) {
 }
 
 function MiniPlates({ plates }) {
-  return <span className="mini-plates">{plates.map((plate, i) => {
-    const [color, height] = PLATE_STYLE[plate] || ['--label3', 50];
+  return <span className="mini-plates" aria-hidden="true">{plates.map((plate, i) => {
+    const [color, height] = plateStyle(plate);
     return <i key={i} style={{ height: Math.round(height * 0.26), '--pc': `var(${color})` }} />;
   })}</span>;
 }
 
-function Warmup({ load, base, done, onToggle, onReset }) {
-  const next = load.ladder.findIndex((_, i) => !done.includes(i));
-  return <>
-    <div className="list steps">
-      {load.ladder.map((step, i) => {
-        const goal = i === load.ladder.length - 1;
-        const isDone = done.includes(i);
-        return <button type="button" key={i} className={`step${isDone ? ' done' : ''}${i === next ? ' next' : ''}${goal ? ' goal' : ''}`}
-          aria-pressed={isDone} onClick={() => onToggle(i)}>
-          <span className="check-circle"><Icon name="check" weight={3.2} /></span>
-          <span className="step-weight"><b className="num rounded">{step.total}</b><small className="num">{Math.round(step.total / base * 100)}% · {goal ? 'objetivo' : `×${step.reps}`}</small></span>
-          <span className="step-note"><MiniPlates plates={step.plates} />{step.note}</span>
-        </button>;
-      })}
-    </div>
-    {done.length > 0 && <div className="center"><button type="button" className="plain-button" onClick={onReset}>Reiniciar escalera</button></div>}
-  </>;
+// Every 5% from 100 down to 40 on the current base, each loaded with the recommended option.
+// Tapping one sets that percentage in the card above without moving the scroll.
+function Percents({ base, current, settings, onPick }) {
+  const rows = [];
+  for (let pct = 100; pct >= 40; pct -= 5) {
+    const goal = Math.max(settings.bar, round5(base * pct / 100));
+    const plates = plateOptions(goal, settings)[0]?.plates ?? null;
+    rows.push({ pct, total: plates ? settings.bar + 2 * sum(plates) : goal, plates });
+  }
+  return <div className="percents">
+    {rows.map(({ pct, total, plates }) => <button type="button" key={pct} className="pct-row" aria-pressed={pct === current}
+      aria-label={`Usar ${pct}%: ${total} lb`} onClick={() => onPick(pct)}>
+      <span className="pct-value display num">{pct}<small>%</small></span>
+      <span className="pct-load">
+        <b className="num">{total} lb</b>
+        <small className="num">{!plates ? 'Sin combinación con tus discos' : plates.length ? `${plates.join(' · ')} por lado` : 'Solo la barra'}</small>
+      </span>
+      {plates?.length ? <MiniPlates plates={plates} /> : <span />}
+    </button>)}
+  </div>;
 }

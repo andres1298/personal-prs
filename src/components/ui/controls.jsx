@@ -1,10 +1,10 @@
 'use client';
 
-// iOS segmented control: a sliding thumb under equal-width segments.
+// Segmented control: an inverted thumb slides under equal-width segments.
 export function SegmentedControl({ options, value, onChange, label, className = '' }) {
   const index = Math.max(0, options.findIndex((option) => option.value === value));
   return <div
-    className={`segmented ${className}`} role="radiogroup" aria-label={label}
+    className={`segmented${options.length > 3 ? ' dense' : ''} ${className}`} role="radiogroup" aria-label={label}
     style={{ '--count': options.length, '--index': index }}
   >
     <span className="segmented-thumb" aria-hidden="true" />
@@ -22,7 +22,7 @@ export function Switch({ checked, onChange, label, disabled }) {
   />;
 }
 
-// Rounded-square symbol tile used by Settings-style rows and cards.
-export function SymbolTile({ color = '--gray', children, size = 'md' }) {
+// Square symbol tile: a color block with a black glyph, for Settings-style rows.
+export function SymbolTile({ color = '--surface2', children, size = 'md' }) {
   return <span className={`tile tile-${size}`} style={{ '--c': `var(${color})` }}>{children}</span>;
 }

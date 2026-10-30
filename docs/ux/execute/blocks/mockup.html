@@ -1,0 +1,1233 @@
+<title>Execute en bloques</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@62..125,400..900&display=swap">
+<style>
+/* Layout: one working phone centered on the page (full-bleed app on phones). Dark-first, with a light variant.
+   Color blocks carry black ink; everything else is ink on a near-black ground. */
+:root {
+  --page: #d9d6cf; --page-ink: #2a2a2a;
+  --bg: #f3f1ec; --surface: #ffffff; --surface2: #e9e6df; --ink: #0d0d0d; --ink2: #5a5852; --ink3: #8d8a83;
+  --line: rgba(13, 13, 13, .12); --inverse: #0d0d0d; --inverse-ink: #ffffff; --scrim: rgba(13, 13, 13, .35);
+  /* Blocks */
+  --b-coral: #ff6a4d; --b-blue: #6e9bff; --b-yellow: #ffc23d; --b-green: #3fd18f; --b-lilac: #b48cff; --b-cyan: #3fd0e2;
+  --b-pink: #ff86b8; --b-lime: #c2e55c; --b-paper: #f3f1ec;
+  /* Plates */
+  --p55: #ff5747; --p45: #5b8cff; --p35: #ffc23d; --p25: #3fd18f; --p15: #b48cff; --p10: #dedbd4; --p5: #3fd0e2; --p2: #ff86b8;
+  --good: #1f9d5c; --warn: #c76a00; --bad: #d63c2f;
+  --accent-mix: 74%;
+  --display: "Archivo", "Arial Black", "Helvetica Neue", Arial, sans-serif;
+  --body: "Archivo", -apple-system, BlinkMacSystemFont, "Helvetica Neue", Arial, sans-serif;
+  --ease: cubic-bezier(.22, 1, .36, 1);
+  --spring: cubic-bezier(.32, .72, 0, 1);
+  --bounce: cubic-bezier(.34, 1.56, .64, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --page: #1b1b1a; --page-ink: #cfccc4;
+    --bg: #0d0d0d; --surface: #1c1c1b; --surface2: #2a2a28; --ink: #f5f3ee; --ink2: #aaa79f; --ink3: #74716a;
+    --line: rgba(245, 243, 238, .12); --inverse: #ffffff; --inverse-ink: #0d0d0d; --scrim: rgba(0, 0, 0, .6);
+      --good: #3fd18f; --warn: #ffc23d; --bad: #ff6a4d;
+      --accent-mix: 100%;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --page: #1b1b1a; --page-ink: #cfccc4;
+  --bg: #0d0d0d; --surface: #1c1c1b; --surface2: #2a2a28; --ink: #f5f3ee; --ink2: #aaa79f; --ink3: #74716a;
+  --line: rgba(245, 243, 238, .12); --inverse: #ffffff; --inverse-ink: #0d0d0d; --scrim: rgba(0, 0, 0, .6);
+  --good: #3fd18f; --warn: #ffc23d; --bad: #ff6a4d;
+  --accent-mix: 100%;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body { background: var(--page); color: var(--page-ink); font-family: var(--body); -webkit-font-smoothing: antialiased; }
+button, input { font: inherit; color: inherit; }
+button { background: none; border: 0; padding: 0; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+button:disabled { cursor: default; }
+:focus-visible { outline: 2.5px solid var(--b-blue); outline-offset: 2px; }
+.num { font-variant-numeric: tabular-nums; }
+.display { font-family: var(--display); font-stretch: 125%; font-weight: 900; text-transform: uppercase; letter-spacing: -.01em; line-height: .92; }
+svg.i { width: 22px; height: 22px; fill: none; stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+
+/* ---------- Page ---------- */
+.stage { display: grid; justify-items: center; gap: 18px; padding: 32px 16px 48px; }
+.tag { display: flex; align-items: center; gap: 10px; font-size: 14px; }
+.tag b { padding: 3px 8px; border-radius: 7px; background: var(--surface2); color: var(--ink); font-weight: 700; }
+.notes { max-width: 430px; margin: 0; padding-left: 18px; font-size: 14px; line-height: 1.5; display: grid; gap: 4px; }
+.device {
+  position: relative; width: 390px; height: 844px; overflow: hidden; overflow: clip; isolation: isolate; border-radius: 48px;
+  background: var(--bg); color: var(--ink); box-shadow: 0 0 0 10px #050505, 0 40px 80px -30px rgba(0, 0, 0, .55);
+  user-select: none; -webkit-user-select: none;
+}
+@media (max-width: 519px) {
+  .stage { padding: 0; gap: 0; }
+  .tag, .notes { display: none; }
+  .device { width: 100%; height: 100dvh; border-radius: 0; box-shadow: none; }
+}
+.screen {
+  position: absolute; inset: 0; z-index: 1; overflow-x: hidden; overflow-y: auto; scrollbar-width: none; background: var(--bg);
+  padding: 50px max(16px, env(safe-area-inset-right, 0px)) 120px max(16px, env(safe-area-inset-left, 0px));
+  touch-action: pan-y;
+}
+/* Edge swipe back: the screen follows the finger and the previous one shows underneath, dimmed and shifted. */
+.screen.dragging { box-shadow: -12px 0 32px rgba(0, 0, 0, .35); }
+.screen.under[hidden] { display: none; }
+.screen.under { z-index: 0; overflow: hidden; pointer-events: none; box-shadow: none; }
+.screen.under::after { content: ''; position: fixed; inset: 0; background: #000; opacity: var(--dim, .25); }
+@media (max-width: 519px) { .screen { padding-top: 12px; } }
+.screen::-webkit-scrollbar { display: none; }
+.view { display: grid; grid-template-columns: minmax(0, 1fr); gap: 12px; min-width: 0; animation: view-in .35s var(--ease); }
+@keyframes view-in { from { opacity: 0; transform: translateY(8px); } }
+
+/* ---------- Shared pieces ---------- */
+.hd { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; margin: 2px 0 6px; }
+.kicker { margin: 0 0 6px; font-size: 16px; color: var(--ink2); }
+h1.display { margin: 0; font-size: clamp(34px, 11.5vw, 48px); }
+.hd > div { min-width: 0; }
+.sq-btn { width: 48px; height: 48px; display: grid; place-items: center; flex: none; border-radius: 11px; background: var(--surface); color: var(--ink); transition: transform .2s var(--ease); }
+.sq-btn:active, .pill-btn:active, .cat:active, .row-btn:active, .outline-row:active, .resume-main:active { transform: scale(.96); }
+.banner { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 12px 12px 12px 14px; border-radius: 12px; background: var(--surface); font-size: 14px; line-height: 1.35; }
+.pill-btn { flex: none; min-height: 40px; padding: 0 14px; border-radius: 12px; background: var(--inverse); color: var(--inverse-ink); font-weight: 700; font-size: 14px; transition: transform .2s var(--ease); }
+.nb { display: flex; align-items: center; justify-content: space-between; gap: 8px; min-height: 48px; margin-top: 2px; }
+.back { display: inline-flex; align-items: center; gap: 2px; min-height: 44px; padding-right: 8px; font-weight: 700; font-size: 16px; }
+.back svg { width: 20px; height: 20px; stroke-width: 2.6; }
+.nb-title { flex: 1; min-width: 0; text-align: center; font-weight: 800; font-size: 16px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.nb-trail { display: flex; gap: 6px; }
+.nb-trail .sq-btn { width: 44px; height: 44px; border-radius: 10px; }
+.nb-trail .sq-btn svg { width: 20px; height: 20px; }
+.text-btn { min-height: 44px; padding: 0 12px; border-radius: 10px; background: var(--surface); font-weight: 700; font-size: 14px; }
+.sec { margin: 8px 4px -4px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.empty { margin: 0; padding: 22px 16px; text-align: center; color: var(--ink2); }
+
+/* ---------- Picker ---------- */
+.resume { display: flex; align-items: stretch; border-radius: 16px; background: var(--inverse); color: var(--inverse-ink); animation: view-in .35s var(--ease); }
+.resume-main { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 16px 4px 16px 18px; text-align: left; transition: transform .2s var(--ease); }
+.resume-copy { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.resume-copy small { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .65; }
+.resume-copy b { font-size: 17px; font-weight: 800; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.resume-weight { font-size: 34px; }
+.resume-weight small { font-size: 13px; margin-left: 3px; letter-spacing: 0; }
+.resume-x { width: 46px; display: grid; place-items: center; opacity: .7; }
+.resume-x svg { width: 18px; height: 18px; }
+
+.cat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cat {
+  position: relative; overflow: hidden; isolation: isolate; display: flex; flex-direction: column; justify-content: space-between;
+  min-height: 140px; padding: 14px 14px 16px; border-radius: 16px; background: var(--b); color: #0d0d0d; text-align: left;
+  transition: transform .25s var(--ease);
+}
+.cat-letter { position: absolute; z-index: -1; right: -6px; top: -14px; font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 128px; line-height: 1; color: rgba(13, 13, 13, .09); transition: transform .5s var(--spring); }
+.cat:active .cat-letter { transform: translateX(-6px) scale(1.05); }
+.cat-count { display: flex; align-items: baseline; gap: 8px; }
+.cat-count b { font-size: 48px; }
+.cat-count small { font-size: 13px; font-weight: 600; }
+.cat-name { font-size: clamp(14px, 4.3vw, 19px); white-space: nowrap; }
+.outline-row { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 72px; padding: 0 18px; border-radius: 16px; box-shadow: inset 0 0 0 2px var(--ink); text-align: left; transition: transform .2s var(--ease); }
+.outline-row .pct-glyph { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 28px; }
+.outline-row span:nth-child(2) { flex: 1; display: grid; gap: 1px; }
+.outline-row b { font-size: 17px; font-weight: 800; }
+.outline-row small { font-size: 14px; color: var(--ink2); }
+
+/* ---------- Movements ---------- */
+.cat-hero { position: relative; overflow: hidden; isolation: isolate; display: grid; gap: 8px; padding: 20px 18px 18px; border-radius: 16px; background: var(--b); color: #0d0d0d; }
+.cat-hero .cat-letter { font-size: 170px; top: -26px; right: -10px; }
+.cat-hero p { margin: 0; font-size: 14px; font-weight: 700; }
+.cat-hero h2 { margin: 0; font-size: 36px; overflow-wrap: anywhere; }
+.group { display: grid; border-radius: 14px; background: var(--surface); overflow: hidden; }
+.row-btn { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 60px; padding: 0 14px 0 16px; text-align: left; box-shadow: inset 0 -1px 0 var(--line); transition: transform .2s var(--ease), background-color .2s; }
+.row-btn:last-child { box-shadow: none; }
+.row-btn:disabled { color: var(--ink3); }
+.row-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--b); flex: none; }
+.row-btn:disabled .row-dot { background: var(--line); }
+.row-main { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.row-main b { font-weight: 700; font-size: 16px; }
+.row-main small { color: var(--ink2); font-size: 13px; }
+.row-val { font-size: 22px; }
+.row-val small { font-size: 12px; margin-left: 2px; letter-spacing: 0; }
+.row-val em { font-style: normal; font-family: var(--body); font-stretch: 100%; font-size: 11px; font-weight: 800; padding: 2px 6px; margin-left: 6px; border-radius: 6px; background: var(--surface2); vertical-align: 4px; }
+.row-btn:disabled .row-val { font-family: var(--body); font-stretch: 100%; font-weight: 600; font-size: 14px; text-transform: none; }
+.row-chev { width: 18px; height: 18px; color: var(--ink3); }
+.row-quiet { min-height: 56px; }
+.row-quiet .row-main b { font-weight: 600; font-size: 15px; color: var(--ink2); }
+.row-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 11px; background: var(--b, var(--surface2)); color: #0d0d0d; flex: none; font-family: var(--display); font-stretch: 125%; font-weight: 900; }
+.row-icon svg { width: 18px; height: 18px; stroke-width: 2.6; }
+
+/* ---------- Working screen ---------- */
+.wcard {
+  --accent: color-mix(in oklab, var(--b) var(--accent-mix), black);
+  position: relative; overflow: hidden; isolation: isolate; padding: 12px 12px 10px 16px; border-radius: 16px; color: var(--ink);
+  background: color-mix(in srgb, var(--b) 7%, var(--bg)); box-shadow: inset 0 0 0 2.5px var(--accent);
+}
+/* Navigation and weight card stay together at the top while the working screen scrolls, so going back and
+   the current weight are always in reach. The band above covers the screen's top padding. */
+.wb-head {
+  position: sticky; top: 0; z-index: 3; display: grid; grid-template-columns: minmax(0, 1fr); gap: 8px;
+  padding-bottom: 10px; margin-bottom: -10px; background: var(--bg); box-shadow: 0 -70px 0 0 var(--bg);
+}
+.wc-head { display: flex; justify-content: space-between; align-items: center; gap: 8px; min-height: 36px; }
+.wc-label { font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--accent); }
+/* Weight and its context on one line: the number on the left, percentage and kilos on the right. */
+.hero { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; padding-right: 4px; }
+.hero-w { font-size: clamp(52px, 16vw, 64px); white-space: nowrap; letter-spacing: -.03em; color: var(--accent); animation: pop .45s var(--bounce); }
+.hero-w small { font-size: 18px; letter-spacing: 0; margin-left: 4px; color: var(--ink); }
+.hero-meta { display: grid; justify-items: end; gap: 2px; padding-bottom: 6px; text-align: right; white-space: nowrap; }
+.hero-meta b { font-size: 15px; font-weight: 800; }
+.hero-meta span { font-size: 13px; color: var(--ink2); }
+@keyframes pop { from { transform: scale(.94); opacity: .5; } }
+.hero-empty { margin: 10px 0 6px; font-size: 15px; font-weight: 700; color: var(--ink2); }
+/* Secondary controls: one quiet row under the weight. */
+.wc-ctl { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 8px; padding-top: 8px; box-shadow: inset 0 1.5px 0 var(--line); }
+.rm-tabs { display: flex; gap: 2px; }
+.rm-tabs button { min-height: 44px; padding: 0 10px; border-radius: 10px; font-weight: 800; font-size: 14px; opacity: .5; transition: opacity .2s, background-color .2s; }
+.rm-tabs button[aria-pressed="true"] { opacity: 1; background: var(--surface); }
+.rm-tabs button:disabled { opacity: .2; }
+.stepper { display: flex; align-items: center; gap: 2px; padding: 3px; border-radius: 12px; background: var(--surface); }
+.stepper button { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 10px; transition: background-color .15s, transform .15s; }
+.stepper button:active { background: var(--surface2); transform: scale(.92); }
+.stepper svg { width: 18px; height: 18px; stroke-width: 2.8; }
+.field { display: flex; align-items: baseline; gap: 2px; font-weight: 900; font-size: 14px; }
+.field input { width: 50px; padding: 0; border: 0; background: transparent; outline: none; color: var(--ink); text-align: right; font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 20px; }
+.base-field { min-height: 46px; padding: 0 14px; border-radius: 12px; background: var(--surface); }
+.base-field input { width: 78px; text-align: left; }
+.base-field input::placeholder { color: var(--ink3); }
+.target { display: flex; align-items: center; gap: 10px; margin-top: 8px; padding: 6px 6px 6px 8px; border-radius: 12px; background: var(--surface); color: var(--ink); animation: view-in .25s var(--ease); }
+.target-ic { width: 32px; height: 32px; display: grid; place-items: center; flex: none; border-radius: 50%; background: var(--sc); color: #0d0d0d; }
+.target-ic svg { width: 17px; height: 17px; stroke-width: 3; }
+.target[data-s="under"] { --sc: #ffc23d; } .target[data-s="over"] { --sc: #ff6a4d; } .target[data-s="exact"] { --sc: #3fd18f; }
+.target-copy { flex: 1; min-width: 0; display: grid; gap: 1px; }
+.target-copy b { font-weight: 800; font-size: 16px; }
+.target-copy small { font-size: 12px; opacity: .75; }
+.target-reset { display: inline-flex; align-items: center; gap: 4px; min-height: 36px; padding: 0 12px; border-radius: 11px; background: var(--inverse); color: var(--inverse-ink); font-weight: 800; font-size: 14px; }
+.target-reset svg { width: 15px; height: 15px; stroke-width: 2.6; }
+
+.seg { display: grid; grid-auto-flow: column; grid-auto-columns: 1fr; gap: 4px; padding: 4px; border-radius: 12px; background: var(--surface); }
+.seg button { min-height: 42px; border-radius: 10px; font-weight: 800; font-size: 14px; color: var(--ink2); transition: background-color .2s, color .2s; }
+.seg button[aria-pressed="true"] { background: var(--inverse); color: var(--inverse-ink); }
+.lcard { display: grid; gap: 12px; padding: 14px 16px 16px; border-radius: 16px; background: var(--surface); }
+.lc-head { display: flex; justify-content: space-between; align-items: center; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); }
+.lc-head b { color: var(--ink); }
+.lc-head span:last-child { letter-spacing: 0; text-transform: none; font-size: 14px; font-weight: 600; }
+
+/* Barbell: as in the current app, with the block palette */
+.barbell { position: relative; display: flex; align-items: center; gap: 3px; height: 156px; container-type: size; }
+.barbell::before { content: ''; position: absolute; left: 0; right: 0; top: 50%; height: 12px; margin-top: -6px; border-radius: 6px; background: color-mix(in srgb, var(--ink) 22%, transparent); }
+.collar, .plate { --u: min(1cqh, 1.5px); }
+.collar { position: relative; z-index: 1; flex: none; width: calc(20 * var(--u)); height: calc(44 * var(--u)); margin-right: 4px; border-radius: calc(5 * var(--u)); background: var(--surface2); color: var(--ink); font-size: max(10px, calc(9.5 * var(--u))); font-weight: 800; display: grid; place-items: center; writing-mode: vertical-rl; transform: rotate(180deg); }
+.plate {
+  position: relative; z-index: 1; flex: none; width: calc(26.5 * var(--u)); height: calc(var(--h) * var(--u)); display: flex; align-items: center; justify-content: center;
+  border-radius: calc(5.5 * var(--u)); background: var(--pc); color: #111; font-size: max(10px, calc(11.5 * var(--u))); font-weight: 800;
+  writing-mode: vertical-rl; transform: rotate(180deg); box-shadow: inset 0 0 0 .5px rgba(0, 0, 0, .15);
+  animation: plate-in .4s var(--bounce) backwards; transition: filter .15s;
+}
+.plate:not(:disabled):active { filter: brightness(.85); }
+.plate.extra { background-image: repeating-linear-gradient(135deg, rgba(255, 255, 255, .4) 0 3px, transparent 3px 8px); box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .6); }
+.barbell.small .plate { width: calc(19 * var(--u)); font-size: max(9px, calc(9.5 * var(--u))); }
+@keyframes plate-in { from { transform: rotate(180deg) scaleY(.4); opacity: 0; } }
+.barbell-empty { position: relative; z-index: 1; margin-left: 8px; padding: 0 8px; background: var(--surface); color: var(--ink2); }
+.opt-nav { display: grid; grid-template-columns: 44px 1fr 44px; align-items: center; padding-top: 8px; box-shadow: inset 0 1px 0 var(--line); }
+.opt-nav button { height: 44px; display: grid; place-items: center; }
+.opt-nav button:disabled { color: var(--ink3); }
+.opt-mid { text-align: center; }
+.opt-mid b { display: block; font-weight: 800; font-size: 15px; }
+.dots { display: flex; justify-content: center; gap: 6px; margin-top: 6px; }
+.dots i { width: 7px; height: 7px; border-radius: 50%; background: var(--line); transition: background-color .25s, transform .25s; }
+.dots i.on { background: var(--ink); transform: scale(1.15); }
+.chips { display: flex; align-items: center; min-height: 60px; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 2px 16px; }
+.chips::-webkit-scrollbar { display: none; }
+.disc { flex: none; position: relative; display: grid; place-items: center; width: var(--sz); height: var(--sz); border-radius: 50%; transition: transform .15s var(--ease); }
+.disc svg { position: absolute; inset: 0; width: 100%; height: 100%; }
+.disc circle { fill: none; stroke: var(--pc); transition: stroke .25s, opacity .25s; }
+.disc .rim { stroke-width: 3; }
+.disc .lip { stroke-width: 1.2; opacity: .55; }
+.disc span { position: relative; font-size: 13px; font-weight: 800; color: var(--ink); }
+.disc:active { transform: scale(.9); }
+.disc[data-on="false"] circle { stroke: var(--ink3); }
+.disc[data-on="false"] .rim { stroke-dasharray: 3 4; }
+.disc[data-on="false"] span { color: var(--ink3); }
+.hint { margin: 0; text-align: center; font-size: 13px; color: var(--ink2); }
+
+/* Percentage preview: every 5% from 100 down, each row sets the weight card above. */
+.pcts { display: grid; border-radius: 16px; background: var(--surface); overflow: hidden; }
+.pct-row {
+  --accent: color-mix(in oklab, var(--b) var(--accent-mix), black);
+  display: grid; grid-template-columns: 72px 1fr auto; align-items: center; gap: 12px; width: 100%; min-height: 58px; padding: 6px 16px;
+  text-align: left; box-shadow: inset 0 -1px 0 var(--line); transition: background-color .2s;
+}
+.pct-row:last-child { box-shadow: none; }
+.pct-row:active { background: var(--surface2); }
+.pct-v { font-size: 22px; }
+.pct-v small { font-size: 13px; margin-left: 1px; }
+.pct-w { display: grid; gap: 1px; min-width: 0; }
+.pct-w b { font-size: 16px; font-weight: 800; }
+.pct-w small { font-size: 12px; color: var(--ink2); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.pct-row.on { background: color-mix(in srgb, var(--b) 18%, var(--surface)); box-shadow: inset 4px 0 0 var(--accent), inset 0 -1px 0 var(--line); }
+.pct-row.on .pct-v { color: var(--accent); }
+.mini { display: flex; gap: 2px; align-items: center; height: 26px; }
+.mini i { width: 8px; border-radius: 3px; background: var(--pc); }
+
+/* ---------- PRs and Timer (static) ---------- */
+.chip-row { display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; margin: 0 -16px; padding: 0 16px; }
+.chip-row::-webkit-scrollbar { display: none; }
+.chip { flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 40px; padding: 0 14px; border-radius: 10px; background: var(--surface); font-weight: 800; font-size: 14px; }
+.chip i { width: 10px; height: 10px; border-radius: 50%; background: var(--b); }
+.chip small { color: var(--ink2); font-weight: 700; }
+.chip[aria-pressed="true"] { background: var(--b); color: #0d0d0d; }
+.chip[aria-pressed="true"] i { background: #0d0d0d; }
+.chip[aria-pressed="true"] small { color: #0d0d0d; opacity: .7; }
+.grp-hd { display: flex; align-items: center; gap: 8px; margin: 8px 4px -4px; font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; color: var(--ink2); }
+.grp-hd i { width: 10px; height: 10px; border-radius: 50%; background: var(--b); }
+.row-val.muted { color: var(--ink3); }
+.tm-list { display: grid; gap: 10px; }
+.tm-row { display: flex; align-items: center; gap: 14px; width: 100%; min-height: 84px; padding: 12px 14px 12px 12px; border-radius: 14px; background: var(--surface); text-align: left; transition: transform .2s var(--ease); }
+.tm-row:active { transform: scale(.97); }
+.tm-badge { width: 60px; height: 60px; flex: none; display: grid; place-items: center; border-radius: 12px; background: var(--b); color: #0d0d0d; }
+.tm-badge svg { width: 30px; height: 30px; stroke-width: 2.4; }
+.tm-copy { flex: 1; min-width: 0; display: grid; gap: 3px; }
+.tm-copy b { font-size: 20px; }
+.tm-copy small { font-size: 13px; color: var(--ink2); line-height: 1.3; }
+.tm-time { flex: none; font-size: 15px; color: var(--ink2); }
+.pill-btn svg { width: 16px; height: 16px; vertical-align: -3px; margin-right: 4px; }
+
+/* ---------- Timer demo ---------- */
+.live { display: flex; align-items: center; gap: 12px; width: 100%; min-height: 72px; padding: 0 18px; border-radius: 16px; background: var(--b); color: #0d0d0d; text-align: left; }
+.live-dot { width: 10px; height: 10px; flex: none; border-radius: 50%; background: #0d0d0d; animation: blink 1.2s ease-in-out infinite; }
+@keyframes blink { 50% { opacity: .25; } }
+.live span:nth-child(2) { flex: 1; display: grid; gap: 1px; }
+.live small { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
+.live b { font-weight: 800; font-size: 17px; }
+.live .display { font-size: 30px; }
+.tpl-hd { display: flex; align-items: center; gap: 14px; padding: 14px; border-radius: 16px; background: var(--surface); }
+.tpl-hd p { margin: 0; font-weight: 600; font-size: 15px; line-height: 1.35; }
+.presets { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.preset { min-height: 46px; border-radius: 12px; background: var(--surface); font-family: var(--display); font-stretch: 112%; font-weight: 800; font-size: 15px; }
+.preset[aria-pressed="true"] { background: var(--b); color: #0d0d0d; }
+.fields { display: grid; border-radius: 16px; background: var(--surface); overflow: hidden; }
+.field-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 64px; padding: 0 10px 0 16px; box-shadow: inset 0 -1px 0 var(--line); font-weight: 700; }
+.field-row:last-child { box-shadow: none; }
+.field-row .stepper { background: var(--bg); }
+.field-row output { min-width: 64px; text-align: center; font-size: 20px; }
+.big-act { display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; min-height: 60px; border-radius: 16px; background: var(--b); color: #0d0d0d; font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 18px; text-transform: uppercase; transition: transform .15s var(--ease); }
+.big-act:active { transform: scale(.97); }
+.big-act svg { width: 20px; height: 20px; fill: currentColor; stroke: none; }
+.big-act.flag svg { fill: none; stroke: currentColor; }
+.run { position: absolute; inset: 0; z-index: 7; display: flex; flex-direction: column; gap: 14px; padding: 54px max(16px, env(safe-area-inset-right, 0px)) max(24px, env(safe-area-inset-bottom, 0px)) max(16px, env(safe-area-inset-left, 0px)); background: var(--bg); transform: translateY(100%); transition: transform .45s var(--spring); }
+@media (max-width: 519px) { .run { padding-top: 16px; } }
+.run.on { transform: none; }
+.run-hd { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.run-hd b { font-size: 22px; }
+.speed { min-height: 40px; padding: 0 12px; border-radius: 12px; background: var(--surface); font-weight: 800; font-size: 13px; }
+.speed[aria-pressed="true"] { background: var(--b); color: #0d0d0d; }
+.run-stage { flex: 1; min-height: 0; display: grid; place-items: center; align-content: center; gap: 10px; --rc: var(--b); }
+.run-stage[data-kind="prep"] { --rc: var(--ink2); }
+.run-stage[data-kind="rest"] { --rc: var(--ink3); }
+.run-stage[data-kind="paused"] { --rc: var(--ink3); }
+.ring { position: relative; width: min(300px, 76vw, 100%); aspect-ratio: 1; max-width: 100%; animation: pop .45s var(--bounce); }
+.ring svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+.ring circle { fill: none; stroke-width: 16; }
+.ring .track { stroke: var(--surface); }
+.ring .value { stroke: var(--rc); stroke-linecap: round; transition: stroke .3s; }
+.ring-in { position: absolute; inset: 0; display: grid; place-items: center; align-content: center; gap: 6px; text-align: center; }
+.run-phase { margin: 0; font-size: 13px; font-weight: 800; letter-spacing: .12em; text-transform: uppercase; color: var(--rc); }
+.run-stage[data-kind="paused"] .run-phase { color: var(--ink2); }
+.run-clock { font-size: clamp(52px, 17vw, 68px); letter-spacing: -.03em; }
+.run-sub { margin: 0; font-size: 15px; font-weight: 600; color: var(--ink2); }
+.run-meta { margin: 0; font-size: 14px; font-weight: 600; color: var(--ink2); }
+.run-panel { display: grid; gap: 10px; }
+.rounds-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; min-height: 52px; padding: 0 8px 0 16px; border-radius: 16px; background: var(--surface); }
+.rounds-row b { font-size: 30px; margin-right: 6px; }
+.rounds-row span { font-weight: 700; }
+.controls { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.ctl { min-height: 56px; border-radius: 16px; background: var(--surface); font-weight: 800; font-size: 16px; }
+.ctl.go { background: var(--b-green); color: #0d0d0d; }
+.ctl.hold { background: var(--inverse); color: var(--inverse-ink); }
+.run-sum { flex: 1; display: grid; place-items: center; align-content: center; gap: 10px; text-align: center; animation: view-in .4s var(--ease); }
+.sum-badge { width: 72px; height: 72px; display: grid; place-items: center; border-radius: 22px; background: var(--b); color: #0d0d0d; }
+.sum-badge svg { width: 34px; height: 34px; stroke-width: 3; }
+.run-sum .run-clock { font-size: clamp(64px, 22vw, 96px); }
+.run-sum .run-phase { color: var(--ink); }
+.ghost { min-height: 52px; border-radius: 16px; background: var(--surface); font-weight: 800; display: inline-flex; align-items: center; justify-content: center; gap: 8px; width: 100%; }
+.ghost svg { width: 18px; height: 18px; }
+.confirm { position: absolute; inset: 0; z-index: 11; display: grid; place-items: center; padding: 24px; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .2s; }
+.confirm.on { opacity: 1; pointer-events: auto; }
+.confirm-card { width: min(300px, 100%); display: grid; gap: 8px; padding: 20px 18px 16px; border-radius: 16px; background: var(--surface); text-align: center; }
+.confirm-card b { font-size: 18px; font-weight: 800; }
+.confirm-card p { margin: 0 0 8px; color: var(--ink2); font-size: 14px; }
+.confirm-card div { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.confirm-card button { min-height: 48px; border-radius: 12px; background: var(--surface2); font-weight: 800; }
+.confirm-card .danger { background: var(--b-coral); color: #0d0d0d; }
+
+/* Compact timer on every screen while it runs, like the app's capsule. */
+.tpill {
+  position: absolute; z-index: 6; top: 12px; left: 50%; transform: translateX(-50%); display: flex; align-items: center; gap: 8px;
+  height: 40px; padding: 0 16px 0 12px; border-radius: 999px; background: #0d0d0d; color: #fff; white-space: nowrap;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .1); animation: island-in .45s var(--bounce);
+}
+.tpill[hidden] { display: none; }
+.tpill:active { transform: translateX(-50%) scale(.95); }
+.tpill i { width: 9px; height: 9px; border-radius: 50%; background: var(--b); animation: blink 1.2s ease-in-out infinite; }
+.tpill i[data-paused="true"] { animation: none; opacity: .4; }
+.tpill b { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 17px; color: var(--b); }
+.tpill span { font-size: 13px; font-weight: 700; color: rgba(255, 255, 255, .65); }
+@keyframes island-in { from { transform: translateX(-50%) scale(.6); opacity: 0; } }
+.device.has-timer .screen { padding-top: 64px; }
+@media (max-width: 519px) { .tpill { top: max(10px, env(safe-area-inset-top, 0px)); } .device.has-timer .screen { padding-top: 58px; } }
+
+
+/* ---------- Tab bar, sheet, toast ---------- */
+.tabbar { position: absolute; z-index: 6; left: 14px; right: 14px; bottom: max(14px, env(safe-area-inset-bottom, 0px)); display: flex; gap: 10px; }
+.tabs { flex: 1; display: flex; align-items: center; gap: 4px; height: 62px; padding: 6px; border-radius: 14px; background: var(--surface); box-shadow: 0 10px 30px -10px rgba(0, 0, 0, .35); }
+.tab { flex: 1; height: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 8px; border-radius: 12px; color: var(--ink2); font-weight: 800; font-size: 15px; transition: flex-grow .35s var(--spring), background-color .25s, color .25s; }
+.tab span { display: none; }
+.tab.on { flex: 1.9; background: var(--inverse); color: var(--inverse-ink); }
+.tab.on span { display: inline; }
+.tab svg { width: 21px; height: 21px; }
+.fab { width: 62px; height: 62px; display: grid; place-items: center; border-radius: 14px; background: var(--b-coral); color: #0d0d0d; box-shadow: 0 10px 24px -10px var(--b-coral); }
+.fab svg { width: 26px; height: 26px; stroke-width: 2.6; }
+.scrim { position: absolute; inset: 0; z-index: 8; background: var(--scrim); opacity: 0; pointer-events: none; transition: opacity .3s; }
+.scrim.on { opacity: 1; pointer-events: auto; }
+.sheet { position: absolute; z-index: 9; left: 0; right: 0; bottom: 0; max-height: 88%; overflow-y: auto; scrollbar-width: none; display: grid; gap: 12px; padding: 8px 16px 32px; border-radius: 20px 20px 0 0; background: var(--bg); transform: translateY(105%); transition: transform .45s var(--spring); }
+.sheet.on { transform: none; }
+.grab { width: 40px; height: 5px; margin: 0 auto; border-radius: 3px; background: var(--line); }
+.sheet-hd { display: flex; justify-content: space-between; align-items: center; }
+.sheet-hd h2 { margin: 0; font-size: 30px; }
+.toggles { display: flex; flex-wrap: wrap; gap: 10px; padding: 14px; border-radius: 14px; background: var(--surface); }
+.toggles .disc { min-width: 44px; min-height: 44px; }
+.foot { margin: -4px 6px 0; font-size: 13px; color: var(--ink2); }
+.switch-row { display: flex; align-items: center; gap: 12px; padding: 14px 16px; border-radius: 14px; background: var(--surface); text-align: left; width: 100%; }
+.switch-row span:first-child { flex: 1; display: grid; gap: 2px; }
+.switch-row b { font-weight: 800; }
+.switch-row small { color: var(--ink2); font-size: 13px; }
+.sw { position: relative; width: 52px; height: 32px; flex: none; border-radius: 11px; background: var(--line); transition: background-color .25s; }
+.sw::after { content: ''; position: absolute; top: 3px; left: 3px; width: 26px; height: 26px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .3); transition: transform .3s var(--spring); }
+.sw[data-on="true"] { background: var(--b-green); }
+.sw[data-on="true"]::after { transform: translateX(20px); }
+.toast { position: absolute; z-index: 10; left: 50%; top: 64px; transform: translate(-50%, -20px); opacity: 0; pointer-events: none; padding: 10px 16px; border-radius: 10px; background: var(--inverse); color: var(--inverse-ink); font-size: 14px; font-weight: 700; white-space: nowrap; transition: opacity .25s, transform .35s var(--spring); }
+.toast.on { opacity: 1; transform: translate(-50%, 0); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+
+<main class="stage">
+  <p class="tag"><b>1c</b>Bloques de color · tipografía expandida</p>
+  <div class="device" id="app">
+    <div class="screen under" id="under" aria-hidden="true" hidden></div>
+    <div class="screen" id="screen"></div>
+    <button type="button" class="tpill" id="tpill" data-a="t-open" hidden><i></i><b class="num"></b><span></span></button>
+    <nav class="tabbar" aria-label="Navegación principal">
+      <div class="tabs" id="tabs"></div>
+      <button type="button" class="fab" data-a="soon" aria-label="Registrar"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+    </nav>
+    <div class="scrim" id="scrim" data-a="close-sheet"></div>
+    <section class="sheet" id="sheet" role="dialog" aria-label="Ajustes"></section>
+    <section class="run" id="run" role="dialog" aria-label="Timer en curso"></section>
+    <div class="confirm" id="confirm" role="alertdialog" aria-labelledby="confirm-title">
+      <div class="confirm-card"><b id="confirm-title">¿Terminar el workout?</b><p>Verás el resumen con el tiempo hasta ahora.</p>
+        <div><button type="button" data-a="t-keep">Seguir</button><button type="button" class="danger" data-a="t-stop">Terminar</button></div></div>
+    </div>
+    <div class="toast" id="toast" role="status"></div>
+  </div>
+  <ul class="notes">
+    <li>Misma navegación de hoy: categorías → movimientos → pantalla de trabajo.</li>
+    <li>Funcionan RM y %, cálculo libre, tocar discos para quitar o agregar, opciones de carga, porcentajes (tocar uno ajusta el peso), «Continuar» y Ajustes (barra, discos y modo simple).</li>
+    <li>Para regresar, desliza desde el borde izquierdo de la pantalla, como en iPhone. En computadora, arrastra con el mouse desde el borde; Escape hace de botón atrás de Android.</li>
+    <li>Timer funciona como demo: configuración, 10 s de preparación, anillo, rondas, pausa, terminar y resumen. «Demo ×10» lo acelera. PRs no tiene funcionalidad.</li>
+    <li>Datos de ejemplo de la app (<code>?demo=1</code>). «+», «Nuevo movimiento» e Iniciar sesión no forman parte de la maqueta.</li>
+  </ul>
+</main>
+
+<script>
+/* ---------- Plate logic: same as src/lib/plates.js ---------- */
+const ALL_PLATES = [55, 45, 35, 25, 15, 10, 5, 2.5];
+const BARS = [45, 35, 15];
+const DEFAULT_PCT = 70;
+const PREFERRED_TOP = 45;
+const MAX_PLATES_SIDE = 8;
+const PLATE_STYLE = { 55: ['--p55', 100], 45: ['--p45', 100], 35: ['--p35', 92], 25: ['--p25', 84], 15: ['--p15', 74], 10: ['--p10', 64], 5: ['--p5', 48], 2.5: ['--p2', 38] };
+const sum = (list) => list.reduce((total, plate) => total + plate, 0);
+const round5 = (x) => Math.round(x / 5) * 5;
+function subtractPlates(a, b) {
+  const rest = [...a];
+  for (const plate of b) { const index = rest.indexOf(plate); if (index >= 0) rest.splice(index, 1); }
+  return rest;
+}
+function plateCombos(perSide, available) {
+  const plates = [...available].sort((a, b) => b - a);
+  const out = [];
+  (function dfs(remaining, start, current) {
+    if (out.length > 4000) return;
+    if (Math.abs(remaining) < 1e-6) { out.push([...current]); return; }
+    if (current.length >= MAX_PLATES_SIDE) return;
+    for (let i = start; i < plates.length; i++) {
+      if (plates[i] <= remaining + 1e-6) { current.push(plates[i]); dfs(remaining - plates[i], i, current); current.pop(); }
+    }
+  })(perSide, 0, []);
+  return out;
+}
+function plateOptions(target, { bar, plates }) {
+  const perSide = (target - bar) / 2;
+  if (perSide <= 0) return [{ label: 'Solo la barra', plates: [] }];
+  const byTop = new Map();
+  for (const combo of plateCombos(perSide, plates)) {
+    const current = byTop.get(combo[0]);
+    if (!current || combo.length < current.length) byTop.set(combo[0], combo);
+  }
+  const all = [...byTop.values()];
+  if (!all.length) return [];
+  const preference = (combo) => (combo[0] === PREFERRED_TOP ? 0 : 1);
+  const recommended = [...all].sort((a, b) => a.length - b.length || preference(a) - preference(b) || b[0] - a[0])[0];
+  const rest = all.filter((combo) => combo !== recommended).sort((a, b) => b[0] - a[0]);
+  return [recommended, ...rest].slice(0, 4).map((combo, i) => ({ label: i === 0 ? 'Recomendado' : `Con ${combo[0]}s`, plates: combo }));
+}
+const WARMUP_SCHEME = [[40, 5], [55, 5], [70, 3], [80, 2], [90, 1]];
+const BAR_REPS = 10, WARMUP_STEP = 5, MAX_CANDIDATES = 300;
+function stepNote(previous, plates) {
+  const removed = subtractPlates(previous, plates);
+  const added = subtractPlates(plates, previous);
+  const list = (items) => items.join(' + ');
+  if (!plates.length) return 'Barra sola';
+  if (!previous.length) return `Pon ${list(added)}`;
+  if (!removed.length) return `Agrega ${list(added)}`;
+  if (!added.length) return `Quita ${list(removed)}`;
+  return `Quita ${list(removed)} · pon ${list(added)}`;
+}
+const changeCost = (from, to) => 2 * subtractPlates(from, to).length + subtractPlates(to, from).length;
+function buildLadder(final, { bar, plates }) {
+  const goal = bar + 2 * sum(final);
+  if (!final.length) return [{ total: bar, reps: BAR_REPS, plates: [], note: 'Barra sola' }];
+  const minGap = Math.max(10, goal * 0.06);
+  const sets = [];
+  let previous = bar;
+  for (const [pct, reps] of WARMUP_SCHEME) {
+    const perSide = Math.round((goal * pct / 100 - bar) / 2 / WARMUP_STEP) * WARMUP_STEP;
+    const total = bar + 2 * perSide;
+    if (perSide > 0 && total - previous >= minGap && goal - total >= minGap) { sets.push({ perSide, reps }); previous = total; }
+  }
+  const clean = plates.filter((plate) => plate >= WARMUP_STEP);
+  const levels = [[{ plates: [], total: bar, cost: 0 }]];
+  for (const { perSide } of sets) {
+    const options = [];
+    for (const shift of [0, -WARMUP_STEP, WARMUP_STEP]) {
+      const side = perSide + shift;
+      if (side <= 0) continue;
+      const combos = plateCombos(side, clean);
+      for (const combo of combos.length ? combos : plateCombos(side, plates)) {
+        options.push({ plates: combo, total: bar + 2 * side, cost: (shift ? 2.5 : 0) + combo.length * 0.1 });
+      }
+    }
+    options.sort((a, b) => a.cost - b.cost);
+    if (options.length) levels.push(options.slice(0, MAX_CANDIDATES));
+  }
+  levels.push([{ plates: [...final], total: goal, cost: 0 }]);
+  let paths = levels[0].map((node) => ({ cost: node.cost, nodes: [node] }));
+  for (const level of levels.slice(1)) {
+    paths = level.map((node) => {
+      let best = null;
+      for (const path of paths) {
+        const last = path.nodes.at(-1);
+        if (node.total - last.total < Math.max(10, minGap * 0.75)) continue;
+        const cost = path.cost + node.cost + changeCost(last.plates, node.plates);
+        if (!best || cost < best.cost) best = { cost, nodes: [...path.nodes, node] };
+      }
+      return best;
+    }).filter(Boolean);
+  }
+  const nodes = paths[0].nodes;
+  const reps = [BAR_REPS, ...sets.map((set) => set.reps)];
+  return nodes.map((node, i) => ({
+    total: node.total, plates: node.plates, reps: i === nodes.length - 1 ? null : reps[i],
+    note: stepNote(i ? nodes[i - 1].plates : [], node.plates),
+  }));
+}
+function computeLoad({ base, pct, sel = 0, extra = [], minus = [] }, settings, simple = false) {
+  const raw = base * pct / 100;
+  const start = Math.max(settings.bar, round5(raw));
+  const options = plateOptions(start, settings);
+  const selected = simple || sel >= options.length ? 0 : sel;
+  if (!options.length) return { raw, start, target: start, options, selected, plates: null, items: [], ladder: [], key: '' };
+  const kept = simple ? options[0].plates : subtractPlates(options[selected].plates, minus);
+  const added = simple ? [] : extra;
+  const items = [...kept.map((p) => ({ p, extra: false })), ...added.map((p) => ({ p, extra: true }))]
+    .sort((a, b) => b.p - a.p || a.extra - b.extra);
+  const loaded = items.map((item) => item.p);
+  const target = settings.bar + 2 * sum(loaded);
+  return { raw, start, target, options, selected, items, plates: loaded, ladder: buildLadder(loaded, settings), key: `${target}|${loaded.join(',')}|${settings.bar}` };
+}
+
+/* ---------- Catalog and demo records: same as src/lib/catalog.js ---------- */
+const RMS = [1, 3, 5];
+const GROUPS = [
+  { name: 'Squats', block: '--b-pink', moves: ['Back Squat', 'Front Squat', 'Overhead Squat'] },
+  { name: 'Cleans', block: '--b-blue', moves: ['Clean', 'Hang Power Clean', 'Hang Squat Clean', 'Muscle Clean', 'Power Clean', 'Squat Clean'] },
+  { name: 'Presses', block: '--b-yellow', moves: ['Strict Press', 'Push Press', 'Bench Press'] },
+  { name: 'Jerks', block: '--b-green', moves: ['Push Jerk', 'Split Jerk', 'Clean & Jerk'] },
+  { name: 'Snatches', block: '--b-lilac', moves: ['Snatch', 'Power Snatch', 'Hang Power Snatch', 'Squat Snatch'] },
+  { name: 'Deadlifts', block: '--b-cyan', moves: ['Deadlift', 'Sumo Deadlift'] },
+];
+const RECORDS = [
+  { move: 'Back Squat', value: 225, rm: 1 }, { move: 'Back Squat', value: 240, rm: 1 }, { move: 'Back Squat', value: 250, rm: 1 },
+  { move: 'Back Squat', value: 260, rm: 1 }, { move: 'Back Squat', value: 225, rm: 3 }, { move: 'Back Squat', value: 235, rm: 3 },
+  { move: 'Back Squat', value: 215, rm: 5 }, { move: 'Front Squat', value: 215, rm: 1 }, { move: 'Squat Clean', value: 165, rm: 1 },
+  { move: 'Bench Press', value: 140, rm: 1 },
+];
+const best = (move, rm = 1) => RECORDS.filter((r) => r.move === move && r.rm === rm).reduce((a, b) => (!a || b.value > a.value ? b : a), null);
+const firstRm = (move) => RMS.find((rm) => best(move, rm));
+const groupOf = (move) => GROUPS.find((g) => g.moves.includes(move));
+const num = (x) => (Math.round(x * 10) / 10).toLocaleString('es-CR');
+const num2 = (x) => (Math.round(x * 100) / 100).toLocaleString('es-CR');
+const toKg = (lb) => num(lb * 0.45359237);
+const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/"/g, '&quot;').replace(/</g, '&lt;');
+
+/* ---------- Icons ---------- */
+const ICONS = {
+  gear: '<path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>',
+  plus: '<path d="M12 5v14M5 12h14"/>',
+  x: '<path d="M6 6l12 12M18 6 6 18"/>',
+  arrow: '<path d="M5 12h14M13 6l6 6-6 6"/>',
+  back: '<path d="m15 5-7 7 7 7"/>',
+  left: '<path d="m15 6-6 6 6 6"/>',
+  right: '<path d="m9 6 6 6-6 6"/>',
+  pencil: '<path d="M4 20h4L19 9a2.8 2.8 0 0 0-4-4L4 16v4z"/><path d="m13.5 6.5 4 4"/>',
+  check: '<path d="m5 12.5 4.5 4.5L19 7.5"/>',
+  down: '<path d="M12 5v14M6 13l6 6 6-6"/>',
+  up: '<path d="M12 19V5M6 11l6-6 6 6"/>',
+  undo: '<path d="M9 7 5 11l4 4"/><path d="M5 11h9a5 5 0 0 1 0 10h-2"/>',
+  minus: '<path d="M5 12h14"/>',
+  chevDown: '<path d="m6 9 6 6 6-6"/>',
+  flag: '<path d="M5 21V4M5 4h11l-2 4 2 4H5"/>',
+  bolt: '<path d="M13 2 4.5 13.5H11L10 22l8.5-11.5H12L13 2z"/>',
+  trophy: '<path d="M8 4h8v5a4 4 0 0 1-8 0V4zM8 6H5v1a3 3 0 0 0 3 3M16 6h3v1a3 3 0 0 1-3 3M12 13v4M8.5 20h7M10 17h4"/>',
+  timer: '<circle cx="12" cy="13.5" r="7.5"/><path d="M12 9.5v4l2.5 2M10 2.5h4"/>',
+};
+const icon = (name) => `<svg class="i" viewBox="0 0 24 24" aria-hidden="true">${ICONS[name]}</svg>`;
+
+/* ---------- State ---------- */
+const DEFAULTS = { view: 'pick', cat: null, move: null, free: false, rm: 1, base: 0, pct: 80, extra: [], minus: [], sel: 0, panel: 'load', done: [], key: '' };
+let ex = { ...DEFAULTS };
+let settings = { bar: 45, plates: [...ALL_PLATES], simple: false };
+const screen = document.getElementById('screen');
+const sheet = document.getElementById('sheet');
+const scrim = document.getElementById('scrim');
+let lastView = null;
+let tab = 'exec';
+let prsTab = 'Lift';
+let prsGroup = null;
+
+const selectMovePatch = (move) => {
+  const rm = firstRm(move) || 1;
+  return { view: 'run', move, free: false, cat: groupOf(move).name, extra: [], minus: [], sel: 0, panel: 'load', done: [], rm, base: best(move, rm)?.value || 0, pct: DEFAULT_PCT };
+};
+function go(patch) { ex = { ...ex, ...patch }; render(); }
+function set(patch) { ex = { ...ex, ...patch }; render(); }
+
+/* ---------- Views ---------- */
+function pickerView() {
+  const canResume = ex.base > 0 && (ex.move || ex.free);
+  const resume = canResume ? computeLoad(ex, settings, settings.simple) : null;
+  return `<div class="view">
+    <header class="hd">
+      <div><p class="kicker">¿Qué vas a levantar?</p><h1 class="display">Execute</h1></div>
+      <button type="button" class="sq-btn" data-a="settings" aria-label="Ajustes">${icon('gear')}</button>
+    </header>
+    <div class="banner"><span>Datos de ejemplo · cambios solo en esta sesión</span><button type="button" class="pill-btn" data-a="soon">Iniciar sesión</button></div>
+    ${canResume ? `<div class="resume">
+      <button type="button" class="resume-main" data-a="resume">
+        <span class="resume-copy"><small>Continuar</small><b>${ex.free ? 'Cálculo libre' : esc(ex.move)} · ${num(ex.pct)}%</b></span>
+        <span class="resume-weight display num">${resume.target}<small>lb</small></span>
+      </button>
+      <button type="button" class="resume-x" data-a="dismiss" aria-label="Quitar cálculo anterior">${icon('x')}</button>
+    </div>` : ''}
+    <div class="cat-grid">
+      ${GROUPS.map((g) => {
+        const count = g.moves.filter(firstRm).length;
+        return `<button type="button" class="cat" style="--b:var(${g.block})" data-cat="${esc(g.name)}">
+          <span class="cat-letter" aria-hidden="true">${g.name[0]}</span>
+          <span class="cat-count"><b class="display num">${count}</b><small>${count ? 'con PR' : 'Sin PRs'}</small></span>
+          <span class="cat-name display">${esc(g.name)}</span>
+        </button>`;
+      }).join('')}
+    </div>
+    <button type="button" class="outline-row" data-a="free"><span class="pct-glyph" aria-hidden="true">%</span><span><b>Cálculo libre</b><small>Cualquier peso y porcentaje</small></span>${icon('arrow')}</button>
+  </div>`;
+}
+
+function movesView() {
+  const g = GROUPS.find((x) => x.name === ex.cat) || GROUPS[0];
+  const withPR = g.moves.filter(firstRm);
+  const without = g.moves.filter((m) => !firstRm(m));
+  const row = (move) => {
+    const rm = firstRm(move);
+    return `<button type="button" class="row-btn" data-move="${esc(move)}" ${rm ? '' : 'disabled'}>
+      <i class="row-dot"></i>
+      <span class="row-main"><b>${esc(move)}</b></span>
+      <span class="row-val ${rm ? 'display num' : ''}">${rm ? `${best(move, rm).value}<small>lb</small>${rm > 1 ? `<em>${rm}RM</em>` : ''}` : 'Sin PR'}</span>
+      ${rm ? `<svg class="i row-chev" viewBox="0 0 24 24">${ICONS.right}</svg>` : ''}
+    </button>`;
+  };
+  return `<div class="view" style="--b:var(${g.block})">
+    <nav class="nb"><button type="button" class="back" data-a="to-pick">${icon('back')}Execute</button></nav>
+    <section class="cat-hero"><span class="cat-letter" aria-hidden="true">${g.name[0]}</span><p>${withPR.length ? `${withPR.length} con PR` : 'Sin PRs'} · ${g.moves.length} movimientos</p><h2 class="display">${esc(g.name)}</h2></section>
+    ${withPR.length ? `<div class="group">${withPR.map(row).join('')}</div>` : `<p class="empty">Aún no tienes PRs en ${esc(g.name)}</p>`}
+    ${without.length ? `<p class="sec">Sin PR registrado</p><div class="group">${without.map(row).join('')}</div>` : ''}
+    <div class="group">
+      <button type="button" class="row-btn" data-a="free"><span class="row-icon">%</span><span class="row-main"><b>Cálculo libre</b><small>Cualquier peso y porcentaje</small></span><svg class="i row-chev" viewBox="0 0 24 24">${ICONS.right}</svg></button>
+      <button type="button" class="row-btn row-quiet" data-a="soon" style="--b:var(--surface2)"><span class="row-icon" style="color:var(--ink2)">${icon('plus')}</span><span class="row-main"><b>Nuevo movimiento</b><small>En ${esc(g.name)}</small></span><svg class="i row-chev" viewBox="0 0 24 24">${ICONS.right}</svg></button>
+    </div>
+  </div>`;
+}
+
+const TARGET_STATUS = {
+  under: { icon: 'down', title: (lb) => `Faltan ${lb} lb`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
+  over: { icon: 'up', title: (lb) => `${lb} lb arriba`, detail: (side, goal) => `${side} lb por lado · meta ${goal} lb` },
+  exact: { icon: 'check', title: () => 'En el objetivo', detail: (_, goal, pct) => `Meta ${goal} lb · ${pct}%` },
+};
+
+function workbenchParts() {
+  const simple = settings.simple;
+  const load = computeLoad(ex, settings, simple);
+  const adjusted = !simple && (ex.extra.length > 0 || ex.minus.length > 0);
+  const diff = load.target - load.start;
+  const status = !adjusted ? null : diff > 0 ? 'over' : diff < 0 ? 'under' : 'exact';
+  const hero = ex.base > 0
+    ? `<div class="hero"><div class="hero-w display num">${load.target}<small>lb</small></div>
+        <div class="hero-meta num"><b>${num(adjusted ? load.target / ex.base * 100 : ex.pct)}% de ${num(ex.base)}</b><span>${toKg(load.target)} kg</span></div></div>`
+    : `<p class="hero-empty">${ex.free ? 'Escribe un peso y el porcentaje para empezar' : 'Sin PR para este RM'}</p>`;
+  let target = '';
+  if (ex.base > 0 && adjusted) {
+    const copy = TARGET_STATUS[status];
+    const d = Math.abs(load.target - load.start);
+    target = `<div class="target" data-s="${status}" role="status"><span class="target-ic">${icon(copy.icon)}</span>
+      <span class="target-copy"><b class="num">${copy.title(num(d))}</b><small class="num">${copy.detail(num(d / 2), load.start, num(ex.pct))}</small></span>
+      <button type="button" class="target-reset num" data-a="reset-adj" aria-label="Volver al ${num(ex.pct)}%">${icon('undo')}${num(ex.pct)}%</button></div>`;
+  }
+  let panel = '';
+  if (ex.base > 0) {
+    const seg = simple ? '' : `<div class="seg" role="group" aria-label="Vista">
+      <button type="button" data-panel="load" aria-pressed="${ex.panel === 'load'}">Barra</button>
+      <button type="button" data-panel="pcts" aria-pressed="${ex.panel === 'pcts'}">Porcentajes</button></div>`;
+    panel = seg + (ex.panel === 'load' || simple ? loadCard(load, simple) : percents(adjusted));
+  }
+  return { hero, target, panel, load };
+}
+
+function workbenchView() {
+  const g = ex.free ? null : groupOf(ex.move);
+  const block = g ? g.block : '--ink';
+  const { hero, target, panel } = workbenchParts();
+  return `<div class="view" style="--b:var(${block})">
+    <div class="wb-head">
+    <nav class="nb">
+      <button type="button" class="back" data-a="back-run">${icon('back')}${ex.free ? 'Execute' : esc(g.name)}</button>
+      <span class="nb-title">${ex.free ? 'Cálculo libre' : esc(ex.move)}</span>
+      <span class="nb-trail">
+        ${ex.free ? '<button type="button" class="text-btn" data-a="clear">Limpiar</button>'
+          : `<button type="button" class="sq-btn" data-a="free" aria-label="Cálculo libre">${icon('pencil')}</button>`}
+        <button type="button" class="sq-btn" data-a="settings" aria-label="Barra y discos">${icon('gear')}</button>
+      </span>
+    </nav>
+    <section class="wcard" aria-label="Peso total">
+      <div data-r="hero">${hero}</div>
+      <div data-r="target">${target}</div>
+      ${controls()}
+    </section>
+    </div>
+    <div class="view" data-r="panel" style="animation:none">${panel}</div>
+  </div>`;
+}
+
+// RM (or the free base weight) on the left, the percentage on the right: one quiet row under the weight.
+function controls() {
+  const first = ex.free
+    ? `<label class="field base-field"><input class="num" id="base-in" inputmode="decimal" placeholder="Peso" value="${ex.base ? String(ex.base).replace('.', ',') : ''}" aria-label="Peso base en libras">lb</label>`
+    : `<div class="rm-tabs" role="group" aria-label="Repeticiones máximas">${RMS.map((rm) => `<button type="button" data-rm="${rm}" aria-pressed="${rm === ex.rm}" ${best(ex.move, rm) ? '' : 'disabled'}>${rm}RM</button>`).join('')}</div>`;
+  return `<div class="wc-ctl">${first}
+    <div class="stepper">
+      <button type="button" data-step="-5" aria-label="Bajar 5 %">${icon('minus')}</button>
+      <label class="field"><input class="num" id="pct-in" inputmode="decimal" value="${num(ex.pct)}" aria-label="Porcentaje">%</label>
+      <button type="button" data-step="5" aria-label="Subir 5 %">${icon('plus')}</button>
+    </div>
+  </div>`;
+}
+
+const discSize = (p) => Math.round(34 + PLATE_STYLE[p][1] / 100 * 20);
+const disc = (p, attrs, on = true) => `<button type="button" class="disc" ${attrs} data-on="${on}" style="--pc:var(${PLATE_STYLE[p][0]});--sz:${discSize(p)}px">
+  <svg viewBox="0 0 40 40" aria-hidden="true"><circle class="rim" cx="20" cy="20" r="18"/><circle class="lip" cx="20" cy="20" r="13"/></svg><span class="num">${p}</span></button>`;
+const plateVars = (p) => `--h:${PLATE_STYLE[p][1]};--pc:var(${PLATE_STYLE[p][0]})`;
+const mini = (plates) => `<span class="mini" aria-hidden="true">${plates.map((p) => `<i style="height:${Math.round(PLATE_STYLE[p][1] * 0.26)}px;--pc:var(${PLATE_STYLE[p][0]})"></i>`).join('')}</span>`;
+
+function loadCard(load, simple) {
+  if (!load.plates) return `<p class="empty">No se puede armar ${load.target} lb con tus discos.<br>Revisa Barra y discos en Ajustes.</p>`;
+  const option = load.options[load.selected];
+  return `<section class="lcard">
+    <div class="lc-head"><span>Por lado · <b class="num">${num(sum(load.plates))} lb</b></span><span>Barra ${settings.bar} lb</span></div>
+    <div class="barbell${load.plates.length > 5 ? ' small' : ''}">
+      <span class="collar num">${settings.bar}</span>
+      ${load.plates.length ? load.items.map((item, i) => `<button type="button" class="plate${item.extra ? ' extra' : ''}" style="${plateVars(item.p)};animation-delay:${i * 35}ms"
+        data-plate="${i}" ${simple ? 'disabled' : ''} aria-label="${simple ? `Disco de ${item.p}` : `Quitar disco de ${item.p}`}">${item.p}</button>`).join('')
+        : '<span class="barbell-empty">Solo la barra</span>'}
+    </div>
+    ${!simple && load.options.length > 1 ? `<div class="opt-nav">
+      <button type="button" data-a="opt-prev" aria-label="Opción anterior" ${load.selected === 0 ? 'disabled' : ''}>${icon('left')}</button>
+      <div class="opt-mid"><b>${option.label}${ex.extra.length ? ' + extra' : ''}</b><div class="dots">${load.options.map((_, i) => `<i class="${i === load.selected ? 'on' : ''}"></i>`).join('')}</div></div>
+      <button type="button" data-a="opt-next" aria-label="Opción siguiente" ${load.selected === load.options.length - 1 ? 'disabled' : ''}>${icon('right')}</button>
+    </div>` : ''}
+    ${!simple ? `<div class="chips">${[...settings.plates].sort((a, b) => a - b).map((p) => disc(p, `data-add="${p}" aria-label="Agregar disco de ${p}"`)).join('')}</div>
+      <p class="hint">Toca un disco para agregarlo · tócalo en la barra para quitarlo</p>` : ''}
+  </section>`;
+}
+
+function percents(adjusted) {
+  const rows = [];
+  for (let pct = 100; pct >= 40; pct -= 5) {
+    const target = Math.max(settings.bar, round5(ex.base * pct / 100));
+    const plates = plateOptions(target, settings)[0]?.plates ?? null;
+    rows.push({ pct, load: { target: plates ? settings.bar + 2 * sum(plates) : target, plates } });
+  }
+  const current = adjusted ? null : ex.pct;
+  return `<div class="pcts">${rows.map(({ pct, load }) => `<button type="button" class="pct-row${pct === current ? ' on' : ''}" data-pct="${pct}" aria-pressed="${pct === current}" aria-label="Usar ${pct}%: ${load.target} lb">
+      <span class="pct-v display num">${pct}<small>%</small></span>
+      <span class="pct-w"><b class="num">${load.target} lb</b><small class="num">${!load.plates ? 'Sin combinación con tus discos' : load.plates.length ? `${load.plates.join(' · ')} por lado` : 'Solo la barra'}</small></span>
+      ${load.plates?.length ? mini(load.plates) : '<span></span>'}
+    </button>`).join('')}</div>`;
+}
+
+function renderSheet() {
+  sheet.innerHTML = `<div class="grab"></div>
+    <div class="sheet-hd"><h2 class="display">Ajustes</h2><button type="button" class="pill-btn" data-a="close-sheet">Listo</button></div>
+    <p class="sec">Barra</p>
+    <div class="seg" role="group" aria-label="Peso de la barra">${BARS.map((b) => `<button type="button" data-bar="${b}" aria-pressed="${settings.bar === b}">${b} lb</button>`).join('')}</div>
+    <p class="sec">Discos que tienes</p>
+    <div class="toggles">${ALL_PLATES.map((p) => disc(p, `data-toggle="${p}" aria-pressed="${settings.plates.includes(p)}" aria-label="Disco de ${p}"`, settings.plates.includes(p))).join('')}</div>
+    <p class="foot">Las combinaciones solo usan los discos activos.</p>
+    <button type="button" class="switch-row" data-a="simple" role="switch" aria-checked="${settings.simple}">
+      <span><b>Modo simple</b><small>Solo ejercicio, peso, % y la barra final</small></span><span class="sw" data-on="${settings.simple}"></span>
+    </button>`;
+}
+
+/* ---------- PRs and Timer: static screens in the same style ---------- */
+const OTHER_TABS = {
+  Cardio: [
+    { name: 'Run', block: '--b-lime', moves: ['400 m', '1 mile', '5 km'] },
+    { name: 'Row', block: '--b-cyan', moves: ['500 m Row', '2 km Row'] },
+    { name: 'Bike', block: '--b-yellow', moves: ['50 cal Bike'] },
+  ],
+  Benchmarks: [
+    { name: 'Girls', block: '--b-lilac', moves: ['Fran', 'Grace', 'Isabel', 'Helen', 'Diane'] },
+    { name: 'Heroes', block: '--b-pink', moves: ['Murph', 'DT'] },
+  ],
+};
+const TIMES = { Fran: 285 };
+const clock = (s) => `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
+function prsView() {
+  const groups = prsTab === 'Lift' ? GROUPS : OTHER_TABS[prsTab];
+  const has = (move) => (prsTab === 'Lift' ? !!firstRm(move) : move in TIMES);
+  const value = (move) => {
+    if (prsTab !== 'Lift') return move in TIMES ? `<span class="row-val display num">${clock(TIMES[move])}</span>` : '<span class="row-val muted">—</span>';
+    const rm = firstRm(move);
+    return rm ? `<span class="row-val display num">${best(move, rm).value}<small>lb</small>${rm > 1 ? `<em>${rm}RM</em>` : ''}</span>` : '<span class="row-val muted">—</span>';
+  };
+  const visible = prsGroup ? groups.filter((g) => g.name === prsGroup) : groups;
+  return `<div class="view">
+    <header class="hd"><div><p class="kicker">Tus mejores marcas</p><h1 class="display">PRs</h1></div>
+      <button type="button" class="pill-btn" data-a="soon">${icon('bolt')}Carga rápida</button></header>
+    <div class="seg" role="group" aria-label="Categoría">${['Lift', 'Cardio', 'Benchmarks'].map((t) => `<button type="button" data-prs-tab="${t}" aria-pressed="${t === prsTab}">${t}</button>`).join('')}</div>
+    <div class="chip-row">${groups.map((g) => `<button type="button" class="chip" style="--b:var(${g.block})" data-prs-group="${esc(g.name)}" aria-pressed="${g.name === prsGroup}"><i></i>${esc(g.name)}<small class="num">${g.moves.filter(has).length}/${g.moves.length}</small></button>`).join('')}</div>
+    ${visible.map((g) => `<p class="grp-hd" style="--b:var(${g.block})"><i></i>${esc(g.name)}</p>
+      <div class="group">${g.moves.map((m) => `<button type="button" class="row-btn" data-a="soon"><span class="row-main"><b>${esc(m)}</b></span>${value(m)}<svg class="i row-chev" viewBox="0 0 24 24">${ICONS.right}</svg></button>`).join('')}</div>`).join('')}
+  </div>`;
+}
+const PREP_MS = 10_000;
+const T_DEFAULTS = { amrap: { duration: 720_000 }, emom: { interval: 60_000, rounds: 10 }, tabata: { work: 20_000, rest: 10_000, rounds: 8 }, fortime: { cap: 720_000 } };
+const T_PRESETS = {
+  amrap: [{ duration: 600_000 }, { duration: 720_000 }, { duration: 900_000 }, { duration: 1_200_000 }],
+  emom: [{ interval: 60_000, rounds: 10 }, { interval: 60_000, rounds: 20 }, { interval: 90_000, rounds: 10 }, { interval: 120_000, rounds: 8 }],
+  tabata: [{ work: 20_000, rest: 10_000, rounds: 8 }, { work: 30_000, rest: 15_000, rounds: 8 }, { work: 40_000, rest: 20_000, rounds: 8 }, { work: 45_000, rest: 15_000, rounds: 6 }],
+  fortime: [{ cap: 600_000 }, { cap: 900_000 }, { cap: 1_200_000 }, { cap: 1_800_000 }],
+};
+const T_FIELDS = { amrap: [['duration', 'Duración']], emom: [['interval', 'Intervalo'], ['rounds', 'Rondas']], tabata: [['work', 'Trabajo'], ['rest', 'Descanso'], ['rounds', 'Rondas']], fortime: [['cap', 'Límite de tiempo']] };
+const T_TEMPLATES = {
+  amrap: { name: 'AMRAP', block: '--b-green', glyph: 'M6 5v14M10 5v14M14 5v14M18 5v14M3.5 15.5l17-7' },
+  emom: { name: 'EMOM', block: '--b-cyan', glyph: 'M2.5 12h3M8 12h3M13.5 12h3M19 12h2.5' },
+  tabata: { name: 'Tabata', block: '--b-lilac', glyph: 'M5 6v12M9.5 9v6M14 6v12M18.5 9v6' },
+  fortime: { name: 'For time', block: '--b-yellow', glyph: 'M4 9h7M4 13h16M13 17h7' },
+};
+const formatClock = (ms, ceil = false) => { const sec = Math.max(0, ceil ? Math.ceil(ms / 1000) : Math.floor(ms / 1000)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; };
+const span = (ms) => (ms < 60_000 ? `${ms / 1000} s` : formatClock(ms));
+const minutes = (ms) => (ms % 60_000 ? formatClock(ms) : `${ms / 60_000} min`);
+const describe = (c) => ({
+  amrap: () => `Máximas rondas en ${formatClock(c.duration)}`,
+  emom: () => `Cada ${span(c.interval)} por ${c.rounds} rondas`,
+  tabata: () => `${span(c.work)} de trabajo y ${span(c.rest)} de descanso por ${c.rounds} rondas`,
+  fortime: () => `Lo más rápido posible · límite ${formatClock(c.cap)}`,
+})[c.type]();
+const presetLabel = (type, p) => ({
+  amrap: () => minutes(p.duration), emom: () => `${p.rounds} × ${span(p.interval)}`,
+  tabata: () => `${p.work / 1000}/${p.rest / 1000} × ${p.rounds}`, fortime: () => minutes(p.cap),
+})[type]();
+const clampN = (v, lo, hi) => Math.min(hi, Math.max(lo, v));
+function normalizeConfig(config) {
+  const out = { type: config.type };
+  for (const key of Object.keys(T_DEFAULTS[config.type])) out[key] = key === 'rounds' ? clampN(Math.round(config[key]), 1, 50) : clampN(Math.round(config[key] / 1000) * 1000, 5_000, 3_600_000);
+  return out;
+}
+function stepValue(key, value, direction) {
+  if (key === 'rounds') return value + direction;
+  const reference = direction > 0 ? value : value - 1;
+  const step = reference < 60_000 ? 5_000 : reference < 600_000 ? 15_000 : 60_000;
+  return value + direction * step;
+}
+function buildPlan(config) {
+  const c = normalizeConfig(config);
+  const segments = []; let cursor = 0;
+  const add = (kind, duration, round) => { segments.push({ kind, start: cursor, duration, round }); cursor += duration; };
+  add('prep', PREP_MS, 0);
+  let totalRounds = 1;
+  if (c.type === 'amrap') add('work', c.duration, 1);
+  if (c.type === 'fortime') add('work', c.cap, 1);
+  if (c.type === 'emom') { totalRounds = c.rounds; for (let r = 1; r <= totalRounds; r++) add('work', c.interval, r); }
+  if (c.type === 'tabata') { totalRounds = c.rounds; for (let r = 1; r <= totalRounds; r++) { add('work', c.work, r); if (r < totalRounds) add('rest', c.rest, r); } }
+  return { config: c, segments, workStart: PREP_MS, total: cursor, totalRounds };
+}
+const workTotalOf = (c) => ({ amrap: c.duration, fortime: c.cap, emom: c.interval * c.rounds, tabata: c.work * c.rounds + c.rest * (c.rounds - 1) })[c.type];
+
+let configs = Object.fromEntries(Object.entries(T_DEFAULTS).map(([type, d]) => [type, { type, ...d }]));
+let editing = null;
+let trun = null;
+let speed = 1;
+let vnow = 0;
+let runSig = '';
+const elapsedOf = (r) => (r.finalElapsed !== null ? r.finalElapsed : Math.max(0, (r.pausedAt ?? vnow) - r.startedAt - r.pausedTotal));
+function tsnap(r) {
+  const plan = buildPlan(r.config);
+  const elapsed = Math.min(elapsedOf(r), plan.total);
+  const done = r.finalElapsed !== null || elapsed >= plan.total;
+  let index = plan.segments.findIndex((sg) => elapsed < sg.start + sg.duration);
+  if (index === -1) index = plan.segments.length - 1;
+  const segment = plan.segments[index];
+  return { plan, elapsed, done, paused: r.pausedAt !== null && !done, segment, index,
+    segmentElapsed: elapsed - segment.start, segmentRemaining: segment.start + segment.duration - elapsed,
+    workElapsed: Math.max(0, elapsed - plan.workStart), workRemaining: plan.total - Math.max(elapsed, plan.workStart) };
+}
+const tclock = (r, v) => (r.config.type === 'fortime' && v.segment.kind !== 'prep' ? formatClock(v.workElapsed) : formatClock(v.segmentRemaining, true));
+const phaseOf = (v) => (v.paused ? 'En pausa' : v.segment.kind === 'prep' ? 'Prepárate' : v.segment.kind === 'rest' ? 'Descanso' : 'Trabajo');
+
+function timerView() {
+  const live = trun ? (() => { const v = tsnap(trun); const t = T_TEMPLATES[trun.config.type];
+    return `<button type="button" class="live" style="--b:var(${t.block})" data-a="t-open"><i class="live-dot"></i><span><small>${v.done ? 'Timer terminado' : 'Timer en curso'}</small><b>${t.name}</b></span><span class="display num" data-r="live">${tclock(trun, v)}</span></button>`; })() : '';
+  return `<div class="view">
+    <header class="hd"><div><p class="kicker">Elige una plantilla para tu workout.</p><h1 class="display">Timer</h1></div></header>
+    ${live}
+    <div class="tm-list">${Object.entries(T_TEMPLATES).map(([type, t]) => `<button type="button" class="tm-row" style="--b:var(${t.block})" data-tpl="${type}">
+      <span class="tm-badge"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${t.glyph}"/></svg></span>
+      <span class="tm-copy"><b class="display">${t.name}</b><small>${describe(configs[type])}</small></span>
+      <svg class="i row-chev" viewBox="0 0 24 24" aria-hidden="true">${ICONS.right}</svg>
+    </button>`).join('')}</div>
+  </div>`;
+}
+function renderConfig() {
+  const c = normalizeConfig(editing);
+  const t = T_TEMPLATES[c.type];
+  sheet.style.setProperty('--b', `var(${t.block})`);
+  sheet.innerHTML = `<div class="grab"></div>
+    <div class="sheet-hd"><h2 class="display">${t.name}</h2><button type="button" class="pill-btn" data-a="close-sheet">Cancelar</button></div>
+    <div class="tpl-hd"><span class="tm-badge"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="${t.glyph}"/></svg></span><p>${describe(c)}</p></div>
+    <div class="presets" role="group" aria-label="Presets recomendados">${T_PRESETS[c.type].map((p, i) => `<button type="button" class="preset num" data-preset="${i}" aria-pressed="${Object.entries(p).every(([k, v]) => c[k] === v)}">${presetLabel(c.type, p)}</button>`).join('')}</div>
+    <div class="fields">${T_FIELDS[c.type].map(([key, label]) => `<div class="field-row"><span>${label}</span><span class="stepper">
+      <button type="button" data-field="${key}" data-dir="-1" aria-label="Menos ${label.toLowerCase()}">${icon('minus')}</button>
+      <output class="display num">${key === 'rounds' ? c[key] : formatClock(c[key])}</output>
+      <button type="button" data-field="${key}" data-dir="1" aria-label="Más ${label.toLowerCase()}">${icon('plus')}</button></span></div>`).join('')}</div>
+    <p class="foot">Duración total ${formatClock(workTotalOf(c))} · empieza con 10 s para prepararte${trun && !tsnap(trun).done ? '. Reemplaza el timer en curso.' : '.'}</p>
+    <button type="button" class="big-act" data-a="t-start"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4.5v15l12.5-7.5z"/></svg>Iniciar</button>`;
+}
+function runView() {
+  const runEl = document.getElementById('run');
+  if (!trun) { runEl.innerHTML = ''; return; }
+  const v = tsnap(trun);
+  const t = T_TEMPLATES[trun.config.type];
+  const type = trun.config.type;
+  runEl.style.setProperty('--b', `var(${t.block})`);
+  const head = `<header class="run-hd"><button type="button" class="sq-btn" data-a="t-min" aria-label="Minimizar">${icon('chevDown')}</button><b class="display">${t.name}</b>
+    <button type="button" class="speed" data-a="t-speed" aria-pressed="${speed > 1}">Demo ×${speed}</button></header>`;
+  if (v.done) {
+    const reason = trun.finishReason;
+    let title = 'Completado', big = formatClock(v.workElapsed), detail = '';
+    if (reason === 'stopped') { title = 'Terminado antes'; detail = `Tiempo de trabajo ${formatClock(v.workElapsed)}`; }
+    if (type === 'amrap') { big = `${trun.rounds}`; detail = `${trun.rounds === 1 ? 'ronda' : 'rondas'} en ${formatClock(v.workElapsed)}`; }
+    if (type === 'fortime' && reason === 'done') { title = 'Tu tiempo'; detail = `Límite ${formatClock(trun.config.cap)}`; }
+    if (type === 'fortime' && reason === 'cap') { title = 'Llegaste al límite'; detail = 'Se acabó el tiempo'; }
+    if ((type === 'emom' || type === 'tabata') && reason !== 'stopped') detail = `${v.plan.totalRounds} rondas`;
+    runEl.innerHTML = `${head}<div class="run-sum"><span class="sum-badge">${icon(reason === 'stopped' ? 'flag' : 'check')}</span>
+      <p class="run-phase">${title}</p><div class="run-clock display num">${big}</div><p class="run-sub">${detail}</p></div>
+      <div class="run-panel"><button type="button" class="big-act" data-a="t-clear">Listo</button><button type="button" class="ghost" data-a="t-repeat">${icon('undo')}Repetir</button></div>`;
+    return;
+  }
+  const kind = v.paused ? 'paused' : v.segment.kind;
+  const rounds = type === 'emom' || type === 'tabata';
+  const R = 128, L = 2 * Math.PI * R;
+  runEl.innerHTML = `${head}
+    <div class="run-stage" data-kind="${kind}">
+      <div class="ring"><svg viewBox="0 0 280 280" aria-hidden="true"><circle class="track" cx="140" cy="140" r="${R}"/><circle class="value" data-r="ring" cx="140" cy="140" r="${R}" stroke-dasharray="${L}" stroke-dashoffset="${L}"/></svg>
+        <div class="ring-in"><p class="run-phase">${phaseOf(v)}</p><div class="run-clock display num" data-r="clock"></div><p class="run-sub num" data-r="sub"></p></div></div>
+      <p class="run-meta num" data-r="meta"></p>
+    </div>
+    <div class="run-panel">
+      ${type === 'amrap' ? `<div class="rounds-row"><span><b class="display num">${trun.rounds}</b>${trun.rounds === 1 ? 'ronda' : 'rondas'}</span><button type="button" class="text-btn" data-a="t-undo" ${trun.rounds ? '' : 'disabled'}>Deshacer</button></div>
+        <button type="button" class="big-act" data-a="t-round">+1 ronda</button>` : ''}
+      ${type === 'fortime' ? `<button type="button" class="big-act flag" data-a="t-finish">${icon('flag')}Terminé</button>` : ''}
+      <div class="controls"><button type="button" class="ctl" data-a="t-end">Terminar</button>
+        <button type="button" class="ctl ${v.paused ? 'go' : 'hold'}" data-a="t-pause">${v.paused ? 'Reanudar' : 'Pausa'}</button></div>
+    </div>`;
+  runTick(true);
+}
+// Every frame only the clock, ring and texts change; the screen is rebuilt when the phase changes.
+function runTick(force = false) {
+  if (!trun) return;
+  const v = tsnap(trun);
+  if (v.done && trun.finalElapsed === null) { trun = { ...trun, finalElapsed: v.plan.total, finishReason: trun.config.type === 'fortime' ? 'cap' : 'done' }; }
+  const sig = `${v.done}|${v.paused}|${v.index}|${trun.rounds}|${speed}`;
+  if (!force && sig !== runSig) { runSig = sig; return runView(); }
+  runSig = sig;
+  const live = screen.querySelector('[data-r="live"]');
+  if (live) live.textContent = tclock(trun, v);
+  const runEl = document.getElementById('run');
+  const q = (r) => runEl.querySelector(`[data-r="${r}"]`);
+  if (!q('clock')) return;
+  const type = trun.config.type;
+  const remaining = formatClock(v.workRemaining, true);
+  const rounds = type === 'emom' || type === 'tabata';
+  let sub = `Quedan ${remaining}`;
+  if (v.segment.kind === 'prep') sub = `Empieza ${T_TEMPLATES[type].name}`;
+  else if (rounds) sub = `Ronda ${v.segment.round} de ${v.plan.totalRounds}`;
+  else if (type === 'fortime') sub = `Límite ${formatClock(trun.config.cap)}`;
+  q('clock').textContent = tclock(trun, v);
+  q('sub').textContent = sub;
+  q('meta').textContent = rounds && v.segment.kind !== 'prep' ? `Quedan ${remaining} en total` : '';
+  const L = 2 * Math.PI * 128;
+  q('ring').setAttribute('stroke-dashoffset', String(L * (1 - Math.min(1, v.segmentElapsed / v.segment.duration))));
+}
+let runIsOpen = false;
+function openRun(open) { runIsOpen = open; document.getElementById('run').classList.toggle('on', open); updatePill(); }
+function updatePill() {
+  const pill = document.getElementById('tpill');
+  const v = trun && tsnap(trun);
+  const show = !!v && !v.done && !runIsOpen;
+  document.getElementById('app').classList.toggle('has-timer', show);
+  if (pill.hidden === show) pill.hidden = !show;
+  if (!show) return;
+  const type = trun.config.type;
+  let label = T_TEMPLATES[type].name;
+  if (v.paused) label = 'En pausa';
+  else if (v.segment.kind === 'prep') label = 'Prepárate';
+  else if (type === 'emom' || type === 'tabata') label = `R${v.segment.round}/${v.plan.totalRounds}`;
+  const clockText = tclock(trun, v);
+  pill.style.setProperty('--b', `var(${T_TEMPLATES[type].block})`);
+  pill.querySelector('i').dataset.paused = v.paused;
+  pill.querySelector('b').textContent = clockText;
+  pill.querySelector('span').textContent = label;
+  pill.setAttribute('aria-label', `Timer ${T_TEMPLATES[type].name}: ${clockText}, ${label}. Abrir timer`);
+}
+function startRun(config) {
+  trun = { config: normalizeConfig(config), startedAt: vnow, pausedAt: null, pausedTotal: 0, rounds: 0, finalElapsed: null, finishReason: null };
+  runSig = ''; runView(); openRun(true);
+}
+let lastFrame = performance.now();
+(function frame(time) {
+  vnow += (time - lastFrame) * speed; lastFrame = time;
+  runTick();
+  updatePill();
+  requestAnimationFrame(frame);
+})(performance.now());
+
+function renderTabs() {
+  const tabs = [['exec', 'bolt', 'Execute'], ['prs', 'trophy', 'PRs'], ['timer', 'timer', 'Timer']];
+  document.getElementById('tabs').innerHTML = tabs.map(([key, ic, label]) => `<button type="button" class="tab${key === tab ? ' on' : ''}" data-tab="${key}" aria-label="${label}" ${key === tab ? 'aria-current="page"' : ''}>${icon(ic)}<span>${label}</span></button>`).join('');
+}
+
+function render() {
+  const html = tab === 'prs' ? prsView() : tab === 'timer' ? timerView()
+    : ex.view === 'pick' ? pickerView() : ex.view === 'moves' ? movesView() : workbenchView();
+  screen.innerHTML = html;
+  const where = `${tab}:${ex.view}`;
+  if (lastView !== where) screen.scrollTop = 0;
+  lastView = where;
+  renderTabs();
+}
+// Only the result changes while typing, so the field keeps its focus.
+function renderResult() {
+  const { hero, target, panel } = workbenchParts();
+  const q = (r) => screen.querySelector(`[data-r="${r}"]`);
+  if (!q('hero')) return render();
+  q('hero').innerHTML = hero; q('target').innerHTML = target; q('panel').innerHTML = panel;
+}
+
+let toastTimer;
+function toast(text) {
+  const el = document.getElementById('toast');
+  el.textContent = text; el.classList.add('on');
+  clearTimeout(toastTimer); toastTimer = setTimeout(() => el.classList.remove('on'), 1800);
+}
+function openSheet(open, draw = renderSheet) {
+  if (open) { sheet.style.removeProperty('--b'); draw(); }
+  sheet.classList.toggle('on', open); scrim.classList.toggle('on', open);
+}
+
+/* ---------- Events ---------- */
+const resetAdj = { extra: [], minus: [] };
+document.getElementById('app').addEventListener('click', (event) => {
+  const el = event.target.closest('button, [data-a]');
+  if (!el || el.disabled) return;
+  const d = el.dataset;
+  const simple = settings.simple;
+  const load = () => computeLoad(ex, settings, simple);
+  if (d.tab) { tab = d.tab; return render(); }
+  if (d.tpl) { editing = { ...configs[d.tpl] }; return openSheet(true, renderConfig); }
+  if (d.preset) { editing = { ...editing, ...T_PRESETS[editing.type][Number(d.preset)] }; return renderConfig(); }
+  if (d.field) { editing = normalizeConfig({ ...editing, [d.field]: stepValue(d.field, editing[d.field], Number(d.dir)) }); return renderConfig(); }
+  if (d.prsTab) { prsTab = d.prsTab; prsGroup = null; return render(); }
+  if (d.prsGroup) { prsGroup = prsGroup === d.prsGroup ? null : d.prsGroup; return render(); }
+  if (d.cat) return go({ cat: d.cat, view: 'moves' });
+  if (d.move) return go(selectMovePatch(d.move));
+  if (d.rm) { const rm = Number(d.rm); return set({ rm, base: best(ex.move, rm)?.value || 0, ...resetAdj }); }
+  if (d.step) return set({ pct: Math.min(150, Math.max(5, Math.round((ex.pct + Number(d.step)) * 10) / 10)), ...resetAdj });
+  if (d.panel) return set({ panel: d.panel });
+  if (d.plate) {
+    const item = load().items[Number(d.plate)];
+    if (item.extra) { const extra = [...ex.extra]; extra.splice(extra.indexOf(item.p), 1); return set({ extra }); }
+    return set({ minus: [...ex.minus, item.p] });
+  }
+  if (d.add) return load().plates && set({ extra: [...ex.extra, Number(d.add)].sort((a, b) => b - a) });
+  if (d.pct) return set({ pct: Number(d.pct), ...resetAdj, sel: 0 });
+  if (d.bar) { settings = { ...settings, bar: Number(d.bar) }; renderSheet(); return render(); }
+  if (d.toggle) {
+    const p = Number(d.toggle);
+    settings = { ...settings, plates: settings.plates.includes(p) ? settings.plates.filter((x) => x !== p) : [...settings.plates, p] };
+    renderSheet(); return render();
+  }
+  switch (d.a) {
+    case 'settings': return openSheet(true);
+    case 't-start': configs = { ...configs, [editing.type]: normalizeConfig(editing) }; openSheet(false); startRun(editing); return render();
+    case 't-open': runSig = ''; runView(); return openRun(true);
+    case 't-min': openRun(false); return render();
+    case 't-speed': speed = speed === 1 ? 10 : 1; return runView();
+    case 't-pause': {
+      if (trun.pausedAt !== null) trun = { ...trun, pausedTotal: trun.pausedTotal + vnow - trun.pausedAt, pausedAt: null };
+      else trun = { ...trun, pausedAt: vnow };
+      return runTick();
+    }
+    case 't-round': trun = { ...trun, rounds: trun.rounds + 1 }; return runTick();
+    case 't-undo': trun = { ...trun, rounds: Math.max(0, trun.rounds - 1) }; return runTick();
+    case 't-finish': { const v = tsnap(trun); if (v.segment.kind === 'prep') return; trun = { ...trun, finalElapsed: v.elapsed, finishReason: 'done' }; return runTick(); }
+    case 't-end': return document.getElementById('confirm').classList.add('on');
+    case 't-keep': return document.getElementById('confirm').classList.remove('on');
+    case 't-stop': document.getElementById('confirm').classList.remove('on'); trun = { ...trun, finalElapsed: elapsedOf(trun), finishReason: 'stopped' }; return runTick();
+    case 't-clear': trun = null; openRun(false); return render();
+    case 't-repeat': return startRun(trun.config);
+    case 'close-sheet': return openSheet(false);
+    case 'simple': settings = { ...settings, simple: !settings.simple }; renderSheet(); return render();
+    case 'soon': return toast('Fuera de esta maqueta');
+    case 'resume': return go({ view: 'run' });
+    case 'dismiss': return go({ move: null, free: false, base: 0, extra: [], minus: [], done: [] });
+    case 'free': return go({ view: 'run', free: true });
+    case 'to-pick': return go({ view: 'pick' });
+    case 'back-run': return go({ view: ex.free ? 'pick' : 'moves' });
+    case 'clear': return set({ base: 0, ...resetAdj, sel: 0, done: [], pct: DEFAULT_PCT });
+    case 'reset-adj': return set(resetAdj);
+    case 'opt-prev': return set({ sel: load().selected - 1, minus: [] });
+    case 'opt-next': return set({ sel: load().selected + 1, minus: [] });
+  }
+});
+screen.addEventListener('input', (event) => {
+  const t = event.target;
+  if (t.id === 'base-in') { ex = { ...ex, base: parseFloat(t.value.replace(',', '.')) || 0, ...resetAdj }; renderResult(); }
+  if (t.id === 'pct-in') { const pct = parseFloat(t.value.replace(',', '.')); if (pct > 0) { ex = { ...ex, pct, ...resetAdj }; renderResult(); } }
+});
+screen.addEventListener('keydown', (event) => {
+  if (event.key === 'Enter' && (event.target.id === 'base-in' || event.target.id === 'pct-in')) { event.target.blur(); render(); }
+});
+/* ---------- Back: Android back (Escape here) and iPhone edge swipe ---------- */
+const confirmOpen = () => document.getElementById('confirm').classList.contains('on');
+// The main Execute screen is the root; panels close before any screen goes back.
+const canNavigateBack = () => tab !== 'exec' || ex.view !== 'pick';
+function goBack() {
+  if (confirmOpen()) return document.getElementById('confirm').classList.remove('on');
+  if (sheet.classList.contains('on')) return openSheet(false);
+  if (runIsOpen) { openRun(false); return render(); }
+  if (tab !== 'exec') { tab = 'exec'; return render(); }
+  if (ex.view === 'run') return go({ view: ex.free ? 'pick' : 'moves' });
+  if (ex.view === 'moves') return go({ view: 'pick' });
+}
+// The screen that going back would show, rendered with the state it would have.
+function previousHtml() {
+  const saved = [tab, ex];
+  if (tab !== 'exec') tab = 'exec';
+  else ex = { ...ex, view: ex.view === 'run' && !ex.free ? 'moves' : 'pick' };
+  const html = ex.view === 'pick' ? pickerView() : ex.view === 'moves' ? movesView() : workbenchView();
+  [tab, ex] = saved;
+  return html;
+}
+document.addEventListener('keydown', (event) => {
+  if (event.key !== 'Escape') return;
+  if (confirmOpen() || sheet.classList.contains('on') || runIsOpen || canNavigateBack()) { event.preventDefault(); goBack(); }
+});
+
+const under = document.getElementById('under');
+const EDGE = 28;
+let swipe = null;
+let suppressClick = false;
+screen.addEventListener('pointerdown', (event) => {
+  if (event.button > 0 || swipe || !canNavigateBack() || sheet.classList.contains('on') || runIsOpen) return;
+  if (event.clientX - screen.getBoundingClientRect().left > EDGE) return;
+  swipe = { id: event.pointerId, x: event.clientX, y: event.clientY, t: performance.now(), dx: 0, vx: 0, active: false };
+});
+screen.addEventListener('pointermove', (event) => {
+  if (!swipe || event.pointerId !== swipe.id) return;
+  const dx = event.clientX - swipe.x, dy = event.clientY - swipe.y;
+  if (!swipe.active) {
+    if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { swipe = null; return; }
+    if (dx < 10) return;
+    swipe.active = true;
+    screen.setPointerCapture(event.pointerId);
+    under.innerHTML = previousHtml(); under.hidden = false;
+    screen.classList.add('dragging');
+    screen.style.transition = under.style.transition = 'none';
+  }
+  const now = performance.now();
+  const next = Math.max(0, dx);
+  swipe.vx = (next - swipe.dx) / Math.max(1, now - swipe.t); swipe.t = now; swipe.dx = next;
+  const progress = Math.min(1, next / screen.clientWidth);
+  screen.style.transform = `translateX(${next}px)`;
+  under.style.transform = `translateX(${-30 * (1 - progress)}%)`;
+  under.style.setProperty('--dim', String(.25 * (1 - progress)));
+});
+function endSwipe(event) {
+  if (!swipe || event.pointerId !== swipe.id) return;
+  const { active, dx, vx } = swipe;
+  swipe = null;
+  if (!active) return;
+  suppressClick = true;
+  setTimeout(() => { suppressClick = false; }, 400);
+  const width = screen.clientWidth;
+  const commit = dx > width / 3 || vx > 0.6;
+  screen.style.transition = under.style.transition = 'transform .28s cubic-bezier(.22, 1, .36, 1)';
+  screen.style.transform = commit ? `translateX(${width}px)` : 'translateX(0)';
+  under.style.transform = commit ? 'translateX(0)' : 'translateX(-30%)';
+  under.style.setProperty('--dim', commit ? '0' : '.25');
+  setTimeout(() => {
+    if (commit) goBack();
+    screen.style.transition = 'none'; screen.style.transform = '';
+    screen.classList.remove('dragging');
+    under.hidden = true; under.innerHTML = ''; under.style.transform = '';
+  }, 290);
+}
+screen.addEventListener('pointerup', endSwipe);
+screen.addEventListener('pointercancel', endSwipe);
+// A finished swipe must not also tap whatever was under the finger.
+document.getElementById('app').addEventListener('click', (event) => {
+  if (suppressClick) { suppressClick = false; event.stopPropagation(); event.preventDefault(); }
+}, true);
+
+render();
+</script>

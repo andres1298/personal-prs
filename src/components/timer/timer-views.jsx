@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { PRESETS, TIMER_TYPES, formatClock, matchesPreset, normalizeConfig, parseDigits } from '../../lib/timer-engine';
+import { PRESETS, RESUME_MS, TIMER_TYPES, formatClock, matchesPreset, normalizeConfig, parseDigits } from '../../lib/timer-engine';
 import Icon from '../ui/icon';
 import Sheet from '../ui/sheet';
 import { useAlert } from '../ui/alert';
@@ -11,10 +11,10 @@ import { useTimer } from './timer-provider';
 
 const glyph = (d) => <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d={d} /></svg>;
 export const TEMPLATES = {
-  amrap: { name: 'AMRAP', color: '--green', icon: glyph('M6 5v14M10 5v14M14 5v14M18 5v14M3.5 15.5l17-7') },
-  emom: { name: 'EMOM', color: '--cyan', icon: glyph('M2.5 12h3M8 12h3M13.5 12h3M19 12h2.5') },
-  tabata: { name: 'TABATA', color: '--indigo', icon: glyph('M5 6v12M9.5 9v6M14 6v12M18.5 9v6') },
-  fortime: { name: 'FOR TIME', color: '--amber', icon: glyph('M4 9h7M4 13h16M13 17h7') },
+  amrap: { name: 'AMRAP', color: '--b-green', icon: glyph('M6 5v14M10 5v14M14 5v14M18 5v14M3.5 15.5l17-7') },
+  emom: { name: 'EMOM', color: '--b-cyan', icon: glyph('M2.5 12h3M8 12h3M13.5 12h3M19 12h2.5') },
+  tabata: { name: 'TABATA', color: '--b-lilac', icon: glyph('M5 6v12M9.5 9v6M14 6v12M18.5 9v6') },
+  fortime: { name: 'FOR TIME', color: '--b-yellow', icon: glyph('M4 9h7M4 13h16M13 17h7') },
 };
 const FIELDS = {
   amrap: [['duration', 'Duración']],
@@ -48,20 +48,22 @@ function stepValue(key, value, direction) {
 }
 
 function clockOf(run, view) {
+  if (view.resuming) return formatClock(view.resumeRemaining, { ceil: true });
   if (run.config.type === 'fortime' && view.segment.kind !== 'prep') return formatClock(view.workElapsed);
   return formatClock(view.segmentRemaining, { ceil: true });
 }
 
 function phaseOf(view) {
   if (view.paused) return 'En pausa';
+  if (view.resuming) return 'Reanudando';
   if (view.segment.kind === 'prep') return 'Prepárate';
   return view.segment.kind === 'rest' ? 'Descanso' : 'Trabajo';
 }
 
-function TemplateTile({ type, size = 'md' }) {
-  const t = TEMPLATES[type];
-  return <span className={`tile tile-${size}`} style={{ '--c': `var(${t.color})` }}>{t.icon}</span>;
+function TemplateTile({ type }) {
+  return <span className="template-badge">{TEMPLATES[type].icon}</span>;
 }
+const block = (type) => ({ '--b': `var(${TEMPLATES[type].color})` });
 
 /* ---------- Tab ---------- */
 export function TimerView() {
@@ -70,16 +72,19 @@ export function TimerView() {
   const current = timer.active ? TEMPLATES[timer.run.config.type] : null;
   return <>
     <LargeTitle title="Timer" subtitle="Elige una plantilla para tu workout." />
-    {current && <button type="button" className="live-card" style={{ '--c': `var(${current.color})` }} onClick={timer.openRun}>
-      <span className="live-dot" aria-hidden="true" />
+    {current && <button type="button" className="live-card" style={block(timer.run.config.type)} onClick={timer.openRun}>
+      <span className="live-dot" aria-hidden="true" data-paused={timer.view.paused} />
       <span className="live-copy"><small>Timer en curso</small><b>{current.name}</b></span>
-      <span className="live-clock num rounded">{clockOf(timer.run, timer.view)}</span>
+      <span className="live-clock display num">{clockOf(timer.run, timer.view)}</span>
     </button>}
-    <List header="Plantillas" data-tour="timer-templates">
-      {TIMER_TYPES.map((type) => <Row key={type} className="template-row" leading={<TemplateTile type={type} size="lg" />}
-        title={TEMPLATES[type].name} subtitle={describe(timer.configs[type])} chevron
-        onClick={() => { timer.unlock(); setEditing({ ...timer.configs[type] }); }} />)}
-    </List>
+    <div className="template-list" role="list" aria-label="Plantillas" data-tour="timer-templates">
+      {TIMER_TYPES.map((type) => <button type="button" role="listitem" key={type} className="template-row" style={block(type)}
+        onClick={() => { timer.unlock(); setEditing({ ...timer.configs[type] }); }}>
+        <TemplateTile type={type} />
+        <span className="template-copy"><b className="display">{TEMPLATES[type].name}</b><small>{describe(timer.configs[type])}</small></span>
+        <Icon name="chevronRight" className="row-chevron" weight={2.4} />
+      </button>)}
+    </div>
     <TimerConfigSheet editing={editing} setEditing={setEditing} />
   </>;
 }
@@ -98,32 +103,32 @@ function TimerConfigSheet({ editing, setEditing }) {
   }[config.type];
 
   return <Sheet open={!!editing} onClose={close} title={config && TEMPLATES[config.type].name}
-    leading={<button type="button" className="nav-text" onClick={close}>Cancelar</button>}>
-    {config && <>
+    trailing={<button type="button" className="nav-text strong" onClick={close}>Cancelar</button>}>
+    {config && <div className="timer-config" style={block(config.type)}>
       <div className="template-head">
-        <TemplateTile type={config.type} size="xl" />
+        <TemplateTile type={config.type} />
         <p>{describe(config)}</p>
       </div>
-      <div className="chips preset-chips" role="group" aria-label="Presets recomendados">
-        {PRESETS[config.type].map((preset) => <button key={presetLabel(config.type, preset)} type="button" className="chip"
-          style={{ '--c': `var(${TEMPLATES[config.type].color})` }} aria-pressed={matchesPreset(config, preset)}
+      <div className="presets" role="group" aria-label="Presets recomendados">
+        {PRESETS[config.type].map((preset) => <button key={presetLabel(config.type, preset)} type="button" className="preset num"
+          aria-pressed={matchesPreset(config, preset)}
           onClick={() => setEditing({ ...config, ...preset })}>{presetLabel(config.type, preset)}</button>)}
       </div>
-      <List footer={`Duración total ${formatClock(workTotal)} · empieza con 10 s para prepararte${timer.active ? '. Reemplaza el timer en curso.' : '.'}`}>
+      <List className="timer-fields" footer={`Duración total ${formatClock(workTotal)} · empieza con 10 s para prepararte${timer.active ? '. Reemplaza el timer en curso.' : '.'}`}>
         {FIELDS[config.type].map(([key, label]) => <Row key={key} title={label}>
           <span className="stepper">
             <button type="button" aria-label={`Menos ${label.toLowerCase()}`}
-              onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], -1) }))}>−</button>
+              onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], -1) }))}><Icon name="minus" weight={2.8} /></button>
             <ValueInput field={key} label={label} value={config[key]}
               onCommit={(value) => setEditing(normalizeConfig({ ...config, [key]: value }))} />
             <button type="button" aria-label={`Más ${label.toLowerCase()}`}
-              onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], 1) }))}>+</button>
+              onClick={() => setEditing(normalizeConfig({ ...config, [key]: stepValue(key, config[key], 1) }))}><Icon name="plus" weight={2.8} /></button>
           </span>
         </Row>)}
       </List>
-      <button type="button" className="filled-button" style={{ '--tint': `var(${TEMPLATES[config.type].color})` }}
+      <button type="button" className="big-action"
         onClick={() => { setEditing(null); timer.saveConfig(config); }}><Icon name="play" fill /> Iniciar</button>
-    </>}
+    </div>}
   </Sheet>;
 }
 
@@ -145,7 +150,7 @@ function ValueInput({ field, label, value, onCommit }) {
     onCommit(rounds ? Number(digits) : parseDigits(digits));
   }
 
-  return <input className="num" type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="done" autoComplete="off"
+  return <input className="display num" type="text" inputMode="numeric" pattern="[0-9]*" enterKeyHint="done" autoComplete="off"
     aria-label={rounds ? label : `${label}, minutos y segundos`}
     placeholder={display} value={draft === null ? display : rounds ? draft : digitClock(draft)}
     onFocus={() => { cancelled.current = false; setDraft(''); }}
@@ -175,7 +180,7 @@ function Wave({ at, elapsed, beat }) {
 
 // Waves ripple out from the ring once per second; each lives a few seconds.
 function Waves({ view }) {
-  if (view.paused) return null;
+  if (view.paused || view.resuming) return null;
   const second = Math.floor(view.elapsed / 1000);
   const beats = [];
   for (let s = Math.max(0, second - 2); s <= second; s++) beats.push(s * 1000);
@@ -209,7 +214,7 @@ function Summary({ run, view }) {
   return <div className="timer-stage summary">
     <span className="summary-badge"><Icon name={reason === 'stopped' ? 'flag' : 'check'} weight={3} /></span>
     <p className="timer-phase">{title}</p>
-    <div className="timer-clock num rounded">{big}</div>
+    <div className="timer-clock display num">{big}</div>
     <p className="timer-sub">{detail}</p>
   </div>;
 }
@@ -243,19 +248,21 @@ export function TimerRunSheet() {
     else if (rounds) sub = `Ronda ${view.segment.round} de ${view.plan.totalRounds}`;
     else if (type === 'fortime') sub = `Límite ${formatClock(run.config.cap)}`;
     const meta = rounds && view.segment.kind !== 'prep' ? `Quedan ${remaining} en total` : null;
-    const kind = view.paused ? 'paused' : view.segment.kind;
+    const kind = view.paused ? 'paused' : view.resuming ? 'resuming' : view.segment.kind;
+    // During the resume countdown the ring fills with the countdown instead of the segment.
+    const progress = view.resuming ? 1 - view.resumeRemaining / RESUME_MS : Math.min(1, view.segmentElapsed / view.segment.duration);
 
     body = view.done ? <>
       <Summary run={run} view={view} />
       <div className="timer-footer">
-        <button type="button" className="filled-button" onClick={timer.clear}>Listo</button>
-        <button type="button" className="plain-button wide" onClick={() => timer.begin(run.config)}><Icon name="undo" /> Repetir</button>
+        <button type="button" className="big-action" onClick={timer.clear}>Listo</button>
+        <button type="button" className="ghost-action" onClick={() => timer.begin(run.config)}><Icon name="undo" weight={2.4} /> Repetir</button>
       </div>
     </> : <>
       <div className="timer-stage" data-kind={kind}>
-        <ProgressRing value={Math.min(1, view.segmentElapsed / view.segment.duration)} waves={<Waves view={view} />}>
+        <ProgressRing value={progress} waves={<Waves view={view} />}>
           <p className="timer-phase">{phaseOf(view)}</p>
-          <div className="timer-clock num rounded">{clockOf(run, view)}</div>
+          <div className="timer-clock display num">{clockOf(run, view)}</div>
           <p className="timer-sub">{sub}</p>
         </ProgressRing>
         {meta && <p className="timer-meta num">{meta}</p>}
@@ -263,16 +270,16 @@ export function TimerRunSheet() {
       <div className="timer-panel">
         {type === 'amrap' && <div className="round-counter">
           <div className="round-count">
-            <span><b className="num rounded" key={run.rounds}>{run.rounds}</b> {run.rounds === 1 ? 'ronda' : 'rondas'}</span>
-            <button type="button" className="plain-button" onClick={timer.undoRound} disabled={!run.rounds}><Icon name="undo" /> Deshacer</button>
+            <span><b className="display num" key={run.rounds}>{run.rounds}</b> {run.rounds === 1 ? 'ronda' : 'rondas'}</span>
+            <button type="button" className="nav-text" onClick={timer.undoRound} disabled={!run.rounds}><Icon name="undo" weight={2.4} /> Deshacer</button>
           </div>
           <button type="button" className="big-action" onClick={timer.addRound}>+1 ronda</button>
         </div>}
-        {type === 'fortime' && <button type="button" className="big-action" onClick={timer.finishNow}><Icon name="flag" /> Terminé</button>}
+        {type === 'fortime' && <button type="button" className="big-action" onClick={timer.finishNow}><Icon name="flag" weight={2.4} /> Terminé</button>}
         <div className="timer-controls">
-          <button type="button" className="circle-button" onClick={confirmEnd}><span>Terminar</span></button>
-          <button type="button" className={`circle-button ${view.paused ? 'go' : 'hold'}`} onClick={timer.togglePause}>
-            <span>{view.paused ? 'Reanudar' : 'Pausa'}</span>
+          <button type="button" className="control" onClick={confirmEnd}>Terminar</button>
+          <button type="button" className={`control ${view.paused ? 'go' : 'hold'}`} onClick={timer.togglePause}>
+            {view.paused ? 'Reanudar' : 'Pausa'}
           </button>
         </div>
       </div>
@@ -280,8 +287,8 @@ export function TimerRunSheet() {
   }
 
   return <Sheet open={open} onClose={timer.minimize} title={t?.name} className="timer-sheet" layer={3}
-    leading={<button type="button" className="nav-icon" aria-label="Minimizar" onClick={timer.minimize}><Icon name="chevronDown" weight={2.6} /></button>}>
-    <div className="timer-body" data-done={!!view?.done} style={{ '--c': t ? `var(${t.color})` : undefined }}>{body}</div>
+    leading={<button type="button" className="sq-btn" aria-label="Minimizar" onClick={timer.minimize}><Icon name="chevronDown" weight={2.6} /></button>}>
+    <div className="timer-body" data-done={!!view?.done} style={run ? block(run.config.type) : undefined}>{body}</div>
   </Sheet>;
 }
 
@@ -293,13 +300,14 @@ export function TimerPill() {
   const { type } = run.config;
   let label = TEMPLATES[type].name;
   if (view.paused) label = 'En pausa';
+  else if (view.resuming) label = 'Reanudando';
   else if (view.segment.kind === 'prep') label = 'Prepárate';
   else if (type === 'emom' || type === 'tabata') label = `R${view.segment.round}/${view.plan.totalRounds}`;
   const clock = clockOf(run, view);
-  return <button type="button" className="timer-pill" style={{ '--c': `var(${TEMPLATES[type].color})` }} onClick={timer.openRun}
+  return <button type="button" className="timer-pill" style={block(type)} onClick={timer.openRun}
     aria-label={`Timer ${TEMPLATES[type].name}: ${clock}, ${label}. Abrir timer`}>
     <i className="live-dot" data-paused={view.paused} />
-    <b className="num rounded">{clock}</b>
+    <b className="display num">{clock}</b>
     <span>{label}</span>
   </button>;
 }

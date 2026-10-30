@@ -16,7 +16,7 @@ export default function AdminPanel() {
 
   return <>
     <List header="Administración">
-      <Row leading={<SymbolTile color="--green"><Icon name="people" /></SymbolTile>} title="Usuarios e invitaciones"
+      <Row leading={<SymbolTile color="--b-green"><Icon name="people" /></SymbolTile>} title="Usuarios e invitaciones"
         subtitle="Gestiona quién tiene acceso a la app" chevron onClick={() => setOpen(true)} />
     </List>
     <Sheet open={open} onClose={() => setOpen(false)} title="Administración" layer={2}

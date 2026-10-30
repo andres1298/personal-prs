@@ -17,8 +17,10 @@ function useBarState() {
       const title = titleRef.current;
       if (!bar || !title) return;
       const edge = bar.getBoundingClientRect().bottom;
+      // A bar that overlaps the title block (negative bottom margin) only turns solid once the title moves.
+      const overlap = Math.max(0, -parseFloat(getComputedStyle(bar).marginBottom) || 0);
       const box = title.getBoundingClientRect();
-      const scrolled = box.top < edge - 0.5;
+      const scrolled = box.top < edge - overlap - 0.5;
       const collapsed = box.bottom <= edge;
       setState((prev) => (prev.scrolled === scrolled && prev.collapsed === collapsed ? prev : { scrolled, collapsed }));
     };
@@ -37,29 +39,29 @@ function useBarState() {
 
 export function BackButton({ label, onClick }) {
   return <button type="button" className="nav-back" onClick={onClick}>
-    <Icon name="chevronLeft" weight={2.6} /><span>{label}</span>
+    <Icon name="chevronLeft" weight={2.8} /><span>{label}</span>
   </button>;
 }
 
-/** Large title that collapses into the inline title of a translucent bar on scroll. */
-export function LargeTitle({ title, subtitle, trailing }) {
+/** Large title under a kicker; the bar keeps the screen's action and shows the title once the large one scrolls away. */
+export function LargeTitle({ title, subtitle, trailing, wideAction = false }) {
   const [barRef, titleRef, { scrolled, collapsed }] = useBarState();
   return <>
-    <div className="navbar" ref={barRef} data-scrolled={scrolled} data-collapsed={collapsed}>
+    <div className="navbar over" ref={barRef} data-scrolled={scrolled} data-collapsed={collapsed}>
       <span />
       <span className="navbar-title" aria-hidden={!collapsed}>{title}</span>
       <span className="navbar-side end">{trailing}</span>
     </div>
-    <header className="large-title" ref={titleRef}>
-      <h1>{title}</h1>
+    <header className={`large-title${wideAction ? ' wide-action' : ''}`} ref={titleRef}>
       {subtitle && <p>{subtitle}</p>}
+      <h1 className="display">{title}</h1>
     </header>
   </>;
 }
 
-/** Bar with a back button for pushed screens; the large title collapses into it.
+/** Bar with a back button for pushed screens; the large title (or `children`) collapses into it.
  *  `inline` keeps the title in the bar and skips the large title, for screens that must fit the viewport. */
-export function NavBar({ back, title, trailing, inline = false }) {
+export function NavBar({ back, title, trailing, inline = false, children }) {
   const [barRef, titleRef, { scrolled, collapsed }] = useBarState();
   const showInline = inline || collapsed;
   return <>
@@ -68,6 +70,6 @@ export function NavBar({ back, title, trailing, inline = false }) {
       <span className="navbar-title" aria-hidden={!showInline} role={inline ? 'heading' : undefined} aria-level={inline ? 1 : undefined}>{title}</span>
       <span className="navbar-side end">{trailing}</span>
     </div>
-    {!inline && <h1 className="page-title" ref={titleRef}>{title}</h1>}
+    {!inline && <div ref={titleRef}>{children ?? <h1 className="page-title display">{title}</h1>}</div>}
   </>;
 }

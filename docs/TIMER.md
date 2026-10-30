@@ -30,6 +30,7 @@ Sound effects are synthesized with Web Audio; there are no voices or audio files
 - 3-2-1 ticks before every segment change (round, work or rest), then a short beep.
 - A two-tone cue at half of the total work time (preparation excluded).
 - 3-2-1 ticks before the workout ends, then an end sound.
+- After a pause, **Reanudar** starts a 5 second countdown ("Reanudando") with 3-2-1 ticks and a start sound; the workout clock stays still until it ends. Pausing during the countdown starts it over on the next resume.
 
 When cues share an instant only the most important plays: end, tick, half, start, round.
 
@@ -41,7 +42,7 @@ When cues share an instant only the most important plays: end, tick, half, start
 
 ## Running state
 
-- `src/lib/timer-engine.js` is pure: the run stores timestamps (start, pauses), and time, segment and round are derived from the clock. It is covered by `scripts/test-timer-engine.mjs`.
+- `src/lib/timer-engine.js` is pure: the run stores timestamps (start, pauses and the end of the resume countdown), and time, segment and round are derived from the clock. The countdown counts as paused time. It is covered by `scripts/test-timer-engine.mjs`.
 - The run is saved in `localStorage` per account, so switching tabs or reloading keeps it. A compact capsule at the top of every tab shows time and round and reopens the full control.
 - The screen Wake Lock is held while a timer is running or paused, independently of the lift view setting, and released when it ends.
 

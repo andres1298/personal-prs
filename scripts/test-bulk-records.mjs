@@ -10,6 +10,7 @@ const movements = [
   { id: 'snatch', name: 'Snatch', measurementType: 'WEIGHT' },
   { id: 'back-squat', name: 'Back Squat', measurementType: 'WEIGHT' },
   { id: 'fran', name: 'Fran', measurementType: 'TIME' },
+  { id: 'pull-ups', name: 'Pull-ups', measurementType: 'REPS' },
   { id: 'my-thruster', name: 'Thruster', measurementType: 'WEIGHT', ownerId: ownerId },
   { id: 'their-clean', name: 'Their Clean', measurementType: 'WEIGHT', ownerId: otherId },
 ];
@@ -102,6 +103,20 @@ test('rejects empty, oversized, time-based, repeated and invalid batches before 
     await assert.rejects(api.createRecords(ownerId, batch), api.RecordInputError);
   }
   assert.deepEqual(db.records, []);
+});
+
+test('gymnastics records are whole repetitions without a repetition maximum and fill gaps once', async () => {
+  const pullUps = { movementId: 'pull-ups', value: 18, performedOn: '2026-10-17' };
+  const { api, db } = await service();
+  const created = await api.createRecords(ownerId, [snatch, pullUps]);
+  assert.deepEqual(created.map((record) => [record.movementId, record.measurementType, record.repetitionMax, record.value]), [
+    ['snatch', 'WEIGHT', 1, '135.000'], ['pull-ups', 'REPS', null, '18.000'],
+  ]);
+  for (const batch of [[{ ...pullUps, value: 12.5 }], [{ ...pullUps, repetitionMax: 1 }], [{ ...pullUps, value: 0 }], [pullUps, pullUps]]) {
+    await assert.rejects(api.createRecords(ownerId, batch), api.RecordInputError);
+  }
+  await assert.rejects(api.createRecords(ownerId, [pullUps]), api.RecordConflictError);
+  assert.equal(db.records.length, 2);
 });
 
 test('an existing record for the same movement and repetitions rejects the whole batch', async () => {

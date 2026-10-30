@@ -11,7 +11,7 @@ Prisma owns the application schema and server persistence. Supabase Auth owns id
 | `HiddenMovement` | A shared movement a profile turned off for itself. Records are kept. |
 | `PersonalRecord` | UUIDv7, required profile/movement, decimal measurement, practice date, repetition maximum, notes. Legacy `videoUrl`/`videoId` columns remain but are unused. |
 
-Weights use pounds; times use seconds. `value` is `Decimal(12,3)` (up to nine integer digits and three fractional digits). Server input validation rejects extra precision rather than silently rounding. Database constraints reject nonpositive measurements, NaN, invalid repetition maxima and out-of-range dates. Weight records require 1, 3 or 5 repetitions; time records require null. A composite movement foreign key enforces measurement type consistency.
+Weights use pounds; times use seconds; gymnastics uses whole repetitions (`REPS`, higher is better). `value` is `Decimal(12,3)` (up to nine integer digits and three fractional digits). Server input validation rejects extra precision rather than silently rounding. Database constraints reject nonpositive measurements, NaN, invalid repetition maxima and out-of-range dates. Weight records require 1, 3 or 5 repetitions; time and repetition records require null, and repetition records must be whole numbers. A composite movement foreign key enforces measurement type consistency.
 
 ## Custom and hidden movements
 

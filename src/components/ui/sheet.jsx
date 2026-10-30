@@ -2,6 +2,7 @@
 
 import { useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { useBackLayer } from '../back-navigation';
 
 const EXIT_MS = 420;
 const DISMISS_DISTANCE = 110;
@@ -46,8 +47,8 @@ export function usePresence(open, exitMs = EXIT_MS) {
 }
 
 /**
- * iOS page sheet: grabber, rounded top corners, dimmed backdrop and
- * swipe-down to dismiss from the header.
+ * Bottom sheet: grabber, rounded top corners, dimmed backdrop and swipe-down to dismiss
+ * from the header. The title sits on the left and the actions on the right.
  */
 export default function Sheet({ open, onClose, title, leading, trailing, children, className = '', tone, layer = 0 }) {
   const { mounted, shown } = usePresence(open);
@@ -56,6 +57,7 @@ export default function Sheet({ open, onClose, title, leading, trailing, childre
   const drag = useRef(null);
   const titleId = useId();
   useModalLayer(mounted && open, root);
+  useBackLayer(open, onClose);
 
   useEffect(() => {
     if (!open) return undefined;
@@ -102,9 +104,9 @@ export default function Sheet({ open, onClose, title, leading, trailing, childre
       >
         <span className="grabber" aria-hidden="true" />
         <div className="sheet-bar">
-          <div className="sheet-bar-side">{leading}</div>
-          <h2 className="sheet-title" id={titleId}>{title}</h2>
-          <div className="sheet-bar-side end">{trailing}</div>
+          {leading && <div className="sheet-bar-side">{leading}</div>}
+          <h2 className="sheet-title display" id={titleId}>{title}</h2>
+          {trailing && <div className="sheet-bar-side end">{trailing}</div>}
         </div>
       </header>
       <div className="sheet-body">{children}</div>

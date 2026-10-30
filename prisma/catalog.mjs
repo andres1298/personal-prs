@@ -10,6 +10,10 @@ const groups = [
   ['CARDIO', 'Bike', 'TIME', ['50 cal Bike']],
   ['BENCHMARK', 'Girls', 'TIME', ['Fran', 'Grace', 'Isabel', 'Helen', 'Diane']],
   ['BENCHMARK', 'Heroes', 'TIME', ['Murph', 'DT']],
+  ['GYMNASTICS', 'Gymnastics', 'REPS', [
+    'Pull-ups', 'Strict Pull-ups', 'Chest-to-Bar', 'Bar Muscle-Ups', 'Toes-to-Bar', 'Ring Muscle-Ups', 'Ring Dips',
+    'Strict HSPU', 'Kipping HSPU', 'Double-Unders', 'Pistols',
+  ]],
 ];
 
 export const movementCatalog = groups.flatMap(([category, groupName, measurementType, names]) =>

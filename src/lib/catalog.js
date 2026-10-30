@@ -1,26 +1,33 @@
 // Movement catalog, units and formatting shared by the client views. Pure: no DOM.
 // type: 'weight' (lb, higher is better, with 1RM/3RM/5RM) | 'time' (seconds, lower is better)
+//       | 'reps' (maximum unbroken repetitions, higher is better)
 
 export const LB_TO_KG = 0.45359237;
 export const RMS = [1, 3, 5];
 
 const BASE_CATALOG = {
   Lift: { type: 'weight', groups: [
-    { name: 'Squats', color: '--red', moves: ['Back Squat', 'Front Squat', 'Overhead Squat'] },
-    { name: 'Cleans', color: '--blue', moves: ['Clean', 'Hang Power Clean', 'Hang Squat Clean', 'Muscle Clean', 'Power Clean', 'Squat Clean'] },
-    { name: 'Presses', color: '--amber', moves: ['Strict Press', 'Push Press', 'Bench Press'] },
-    { name: 'Jerks', color: '--green', moves: ['Push Jerk', 'Split Jerk', 'Clean & Jerk'] },
-    { name: 'Snatches', color: '--purple', moves: ['Snatch', 'Power Snatch', 'Hang Power Snatch', 'Squat Snatch'] },
-    { name: 'Deadlifts', color: '--teal', moves: ['Deadlift', 'Sumo Deadlift'] },
+    { name: 'Squats', color: '--b-pink', moves: ['Back Squat', 'Front Squat', 'Overhead Squat'] },
+    { name: 'Cleans', color: '--b-blue', moves: ['Clean', 'Hang Power Clean', 'Hang Squat Clean', 'Muscle Clean', 'Power Clean', 'Squat Clean'] },
+    { name: 'Presses', color: '--b-yellow', moves: ['Strict Press', 'Push Press', 'Bench Press'] },
+    { name: 'Jerks', color: '--b-green', moves: ['Push Jerk', 'Split Jerk', 'Clean & Jerk'] },
+    { name: 'Snatches', color: '--b-lilac', moves: ['Snatch', 'Power Snatch', 'Hang Power Snatch', 'Squat Snatch'] },
+    { name: 'Deadlifts', color: '--b-cyan', moves: ['Deadlift', 'Sumo Deadlift'] },
   ] },
   Cardio: { type: 'time', groups: [
-    { name: 'Run', color: '--red', moves: ['400 m', '1 mile', '5 km'] },
-    { name: 'Row', color: '--teal', moves: ['500 m Row', '2 km Row'] },
-    { name: 'Bike', color: '--amber', moves: ['50 cal Bike'] },
+    { name: 'Run', color: '--b-lime', moves: ['400 m', '1 mile', '5 km'] },
+    { name: 'Row', color: '--b-cyan', moves: ['500 m Row', '2 km Row'] },
+    { name: 'Bike', color: '--b-yellow', moves: ['50 cal Bike'] },
   ] },
   Benchmarks: { type: 'time', groups: [
-    { name: 'Girls', color: '--purple', moves: ['Fran', 'Grace', 'Isabel', 'Helen', 'Diane'] },
-    { name: 'Heroes', color: '--red', moves: ['Murph', 'DT'] },
+    { name: 'Girls', color: '--b-lilac', moves: ['Fran', 'Grace', 'Isabel', 'Helen', 'Diane'] },
+    { name: 'Heroes', color: '--b-pink', moves: ['Murph', 'DT'] },
+  ] },
+  Gymnastics: { type: 'reps', groups: [
+    { name: 'Gymnastics', color: '--b-lime', moves: [
+      'Pull-ups', 'Strict Pull-ups', 'Chest-to-Bar', 'Bar Muscle-Ups', 'Toes-to-Bar', 'Ring Muscle-Ups', 'Ring Dips',
+      'Strict HSPU', 'Kipping HSPU', 'Double-Unders', 'Pistols',
+    ] },
   ] },
 };
 
@@ -37,21 +44,26 @@ export const DEMO_RECORDS = [
   { move: 'Bench Press', value: 140, rm: 1, date: '2026-04-22' },
   { move: 'Fran', value: 312, date: '2026-03-15' },
   { move: 'Fran', value: 285, date: '2026-08-10' },
+  { move: 'Pull-ups', value: 15, date: '2026-05-02' },
+  { move: 'Pull-ups', value: 18, date: '2026-09-12' },
+  { move: 'Bar Muscle-Ups', value: 6, date: '2026-08-21' },
+  { move: 'Double-Unders', value: 75, date: '2026-07-30' },
 ];
 
-const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--muted', moves: [] } };
+const OTHER = { tab: null, type: 'weight', group: { name: 'Otros', color: '--b-gray', moves: [] } };
 
 /* ---------- Active catalog ---------- */
 // The catalog depends on the member (own movements, shared ones turned off), but the
 // query helpers below are called from many views. The app sets the member's catalog
 // once per render with setCatalog; until then the shared base catalog applies.
 // `info` also knows turned-off movements, so their history keeps its unit and group.
-const TABS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks' };
+const TABS = { LIFT: 'Lift', CARDIO: 'Cardio', BENCHMARK: 'Benchmarks', GYMNASTICS: 'Gymnastics' };
 export const TAB_CATEGORIES = Object.fromEntries(Object.entries(TABS).map(([category, tab]) => [tab, category]));
-export const CUSTOM_GROUP = { name: 'Mis movimientos', color: '--indigo' };
+export const CUSTOM_GROUP = { name: 'Mis movimientos', color: '--b-lilac' };
 // Own movements created before categories existed are stored under this group.
 const LEGACY_CUSTOM_GROUP = 'Custom';
-const CUSTOM_COLORS = ['--teal', '--pink', '--green', '--amber', '--blue', '--purple', '--mint', '--cyan'];
+// Eight slots so each existing group keeps its hue: teal→cyan, pink, green, amber→yellow, blue, purple→lilac, mint→lime, cyan.
+const CUSTOM_COLORS = ['--b-cyan', '--b-pink', '--b-green', '--b-yellow', '--b-blue', '--b-lilac', '--b-lime', '--b-cyan'];
 
 // A member's own group keeps the same color wherever it shows and whatever groups are added later.
 function customColor(name) {
@@ -78,7 +90,7 @@ let active = indexCatalog(BASE_CATALOG);
  * may be a shared group or one of the member's own; older ones share "Mis movimientos".
  */
 export function buildCatalog(movements) {
-  const full = { Lift: { type: 'weight', groups: [] }, Cardio: { type: 'time', groups: [] }, Benchmarks: { type: 'time', groups: [] } };
+  const full = Object.fromEntries(Object.entries(BASE_CATALOG).map(([tab, { type }]) => [tab, { type, groups: [] }]));
   const ordered = [...movements].sort((a, b) =>
     (BASE_ORDER.get(a.name) ?? Infinity) - (BASE_ORDER.get(b.name) ?? Infinity) || a.name.localeCompare(b.name));
   // Own movements go last so the shared groups keep their place.
@@ -89,7 +101,7 @@ export function buildCatalog(movements) {
     let group = tab.groups.find((g) => g.name === label);
     if (!group) {
       const color = label === CUSTOM_GROUP.name ? CUSTOM_GROUP.color
-        : BASE_GROUPS.get(label)?.color ?? (movement.custom ? customColor(label) : '--muted');
+        : BASE_GROUPS.get(label)?.color ?? (movement.custom ? customColor(label) : '--b-gray');
       group = { name: label, color, moves: [], hidden: new Set() };
       tab.groups.push(group);
     }
@@ -117,7 +129,9 @@ export function moveInfo(move) {
   return active.info.get(move) ?? OTHER;
 }
 
-export const weightGroups = () => Object.values(active.catalog).filter((c) => c.type === 'weight').flatMap((c) => c.groups);
+const groupsOfType = (type) => Object.values(active.catalog).filter((c) => c.type === type).flatMap((c) => c.groups);
+export const weightGroups = () => groupsOfType('weight');
+export const repsGroups = () => groupsOfType('reps');
 
 /* ---------- Formatting ---------- */
 export const num = (x) => (Math.round(x * 10) / 10).toLocaleString('es-CR');
@@ -131,12 +145,14 @@ export function formatValue(value, type) {
     const seconds = String(Math.round(value % 60)).padStart(2, '0');
     return `${minutes}:${seconds}`;
   }
+  if (type === 'reps') return `${value} reps`;
   return `${value} lb`;
 }
 
-// 'm:ss' for times, decimal with comma or dot for weights. NaN when unreadable.
+// 'm:ss' for times, whole repetitions, decimal with comma or dot for weights. NaN when unreadable.
 export function parseValue(text, type) {
   const value = String(text).trim();
+  if (type === 'reps') return /^\d{1,4}$/.test(value) ? Number(value) : NaN;
   if (type === 'time') {
     if (!/^\d+(:\d{1,2})?$/.test(value)) return NaN;
     const [minutes, seconds] = value.split(':').map(Number);
@@ -171,6 +187,9 @@ export const firstRm = (records, move) => RMS.find((rm) => bestRecord(records, m
 
 export const latestRecord = (records, move, rm) =>
   recordsOf(records, move, rm).reduce((a, b) => (!a || b.date > a.date ? b : a), null);
+
+// Repetitions are whole numbers from 1 to 9999.
+export const isValidReps = (text) => parseValue(text, 'reps') > 0;
 
 // Quick upload accepts up to 4 digits with 2 decimals, strictly positive.
 export const isValidQuickWeight = (text) =>
