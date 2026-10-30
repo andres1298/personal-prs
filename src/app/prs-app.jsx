@@ -146,7 +146,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     const name = movements.movements.find((movement) => movement.id === id)?.name;
     if (result.deletedRecords) reloadRecords();
     if (detail?.move === name) setDetail(null);
-    if (ex.move === name) setEx({ view: 'pick', move: null, free: false, base: 0, extra: [], minus: [], done: [] });
+    if (ex.move === name) setEx({ view: 'pick', move: null, free: false, base: 0, extra: [], minus: [] });
     return result;
   }
   async function saveQuick(list) {

@@ -1,6 +1,6 @@
 import Icon from './icon';
 
-// Inset grouped list, as in iOS Settings.
+// Grouped rows on a surface card.
 export function List({ header, footer, children, className = '', ...rest }) {
   return <section className={`list-section ${className}`} {...rest}>
     {header && <h3 className="list-header">{header}</h3>}
@@ -10,7 +10,8 @@ export function List({ header, footer, children, className = '', ...rest }) {
 }
 
 // A row is a button when it has onClick, otherwise a plain container.
-export function Row({ as: Tag = 'div', leading, title, subtitle, detail, chevron, onClick, disabled, className = '', children, ...rest }) {
+// `value` shows the detail as an expanded number (with a small unit and an optional RM tag).
+export function Row({ as: Tag = 'div', leading, title, subtitle, detail, value = false, chevron, onClick, disabled, className = '', children, ...rest }) {
   const content = <>
     {leading && <span className="row-leading">{leading}</span>}
     <span className="row-body">
@@ -18,7 +19,7 @@ export function Row({ as: Tag = 'div', leading, title, subtitle, detail, chevron
         <span className="row-title">{title}</span>
         {subtitle && <span className="row-subtitle">{subtitle}</span>}
       </span>
-      {detail != null && <span className="row-detail">{detail}</span>}
+      {detail != null && <span className={`row-detail${value ? ' value num' : ''}`}>{detail}</span>}
       {children}
       {chevron && <Icon name="chevronRight" className="row-chevron" weight={2.4} />}
     </span>
