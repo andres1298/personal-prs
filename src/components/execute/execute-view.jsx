@@ -84,7 +84,7 @@ function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
           onClick={() => go({ cat: group.name, view: 'moves' })}>
           <span className="category-letter display" aria-hidden="true">{group.name[0]}</span>
           <span className="category-count"><b className="display num">{count}</b><small>{count ? 'con PR' : 'Sin PRs'}</small></span>
-          <span className="category-name display">{group.name}</span>
+          <span className="category-name display" style={{ '--chars': group.name.length }}>{group.name}</span>
         </button>;
       })}
     </div>
