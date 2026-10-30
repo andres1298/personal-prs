@@ -37,16 +37,16 @@ test('valid credentials sign in with a normalized email', async () => {
   const { POST, calls } = await login();
   const response = await POST(form({ email: ' Ana@Example.TEST ', password: 'long-password' }));
   assert.equal(response.status, 303);
-  assert.equal(response.headers.get('Location'), `${origin}/`);
+  assert.equal(response.headers.get('Location'), `${origin}/app`);
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
   assert.deepEqual(calls, [{ email: 'ana@example.test', password: 'long-password' }]);
 });
 
 test('wrong or missing credentials return to the login form', async () => {
   const failed = await login({ error: { message: 'Private auth diagnostic' } });
-  assert.equal((await failed.POST(form({ email: 'ana@example.test', password: 'wrong-password' }))).headers.get('Location'), `${origin}/?authError=credentials`);
+  assert.equal((await failed.POST(form({ email: 'ana@example.test', password: 'wrong-password' }))).headers.get('Location'), `${origin}/app?authError=credentials`);
   const missing = await login();
-  assert.equal((await missing.POST(form({ email: 'ana@example.test' }))).headers.get('Location'), `${origin}/?authError=credentials`);
+  assert.equal((await missing.POST(form({ email: 'ana@example.test' }))).headers.get('Location'), `${origin}/app?authError=credentials`);
   assert.deepEqual(missing.calls, []);
 });
 
@@ -54,7 +54,7 @@ test('cross-origin and unconfigured logins never reach Auth', async () => {
   const crossOrigin = await login();
   assert.equal((await crossOrigin.POST(form({ email: 'a@b.co', password: 'long-password' }, 'https://other.example.test'))).status, 403);
   const unconfigured = await login({ configured: false });
-  assert.equal((await unconfigured.POST(form({ email: 'a@b.co', password: 'long-password' }))).headers.get('Location'), `${origin}/?authError=configuration`);
+  assert.equal((await unconfigured.POST(form({ email: 'a@b.co', password: 'long-password' }))).headers.get('Location'), `${origin}/app?authError=configuration`);
   assert.deepEqual([...crossOrigin.calls, ...unconfigured.calls], []);
 });
 

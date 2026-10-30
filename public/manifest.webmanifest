@@ -4,7 +4,7 @@
   "short_name": "PRs",
   "description": "Registra tus marcas personales y calcula pesos para entrenar.",
   "lang": "es",
-  "start_url": "./",
+  "start_url": "/app",
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",

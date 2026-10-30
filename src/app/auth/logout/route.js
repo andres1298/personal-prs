@@ -8,7 +8,7 @@ export async function POST(request) {
     const { error } = await client.auth.signOut({ scope: 'local' });
     if (error) return new Response('Unable to sign out.', { status: 503, headers: { 'Cache-Control': 'private, no-store' } });
   }
-  const response = NextResponse.redirect(new URL('/', request.url), 303);
+  const response = NextResponse.redirect(new URL('/app', request.url), 303);
   response.headers.set('Cache-Control', 'private, no-store');
   return response;
 }

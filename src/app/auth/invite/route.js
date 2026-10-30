@@ -26,5 +26,5 @@ export async function POST(request) {
   }
   const client = await createAuthClient();
   await client.auth.signInWithPassword({ email, password });
-  return redirect('/', request);
+  return redirect('/app', request);
 }

@@ -14,9 +14,13 @@ npm run dev
 
 Configure the project URL, publishable key, secret key, database connection and administrator IDs in `.env.local`. Follow [Auth setup](docs/AUTH.md) for the first administrator and invitations, and [database setup](docs/SUPABASE.md) for connections and TLS trust.
 
-The home page requests sign-in. `/?demo=1` explicitly opens sample data; demo records stay in memory and are never written to Supabase. Authorized sessions read and create personal records through `/api/records`. The server derives ownership from verified Auth. Failed live requests show an error rather than replacing real records with samples. Settings stay on the device, separately for each account and demo mode.
+The root `/` is the public landing page: static, indexed, with live demos of the plate calculator, warm-up ladder, progress chart and timer built on the same `src/lib` logic (`src/app/page.jsx`, `src/components/landing`). The app itself lives at `/app`, which requests sign-in; installed phones that still open `/` are sent there. `/app?demo=1` explicitly opens sample data (older `/?demo=1` and `/?authError=` links redirect to `/app`); demo records stay in memory and are never written to Supabase. Authorized sessions read and create personal records through `/api/records`. The server derives ownership from verified Auth. Failed live requests show an error rather than replacing real records with samples. Settings stay on the device, separately for each account and demo mode.
 
 Apps Script is no longer used by Next.js. The original `index.html` remains as a historical reference. Historical records have not been imported automatically. Videos are no longer part of the app; legacy video columns remain in the database but are neither read nor written.
+
+## Search and sharing
+
+`SITE_URL` (or Vercel's production domain) sets the absolute URLs for the canonical link, Open Graph, `robots.txt` and `sitemap.xml`, so set it before publishing on a custom domain. The landing page carries structured data (`WebApplication` and `FAQPage`) and the share image `public/og-image.png` (1200×630). `/app` and invitation pages ask search engines not to index them; the API, auth routes and invitations are disallowed in `robots.txt`.
 
 ## Database and verification
 

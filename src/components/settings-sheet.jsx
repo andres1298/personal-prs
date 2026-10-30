@@ -49,7 +49,7 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
       <Row leading={<SymbolTile color="--b-blue"><Icon name="person" /></SymbolTile>} title="Datos"
         subtitle={demo ? 'Datos de ejemplo · cambios solo en esta sesión' : 'Conectado a tu cuenta'} />
       {demo
-        ? <Link className="row row-button tint-row" href="/">Iniciar sesión</Link>
+        ? <Link className="row row-button tint-row" href="/app">Iniciar sesión</Link>
         : <form action="/auth/logout" method="post" onSubmit={clearCaches}><button className="row row-button danger-row">Cerrar sesión</button></form>}
     </List>
     {isAdmin && <AdminPanel />}
