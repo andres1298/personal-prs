@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useState } from 'react';
-import { PRESETS, TIMER_TYPES, formatClock, matchesPreset, normalizeConfig, parseDigits } from '../../lib/timer-engine';
+import { PRESETS, RESUME_MS, TIMER_TYPES, formatClock, matchesPreset, normalizeConfig, parseDigits } from '../../lib/timer-engine';
 import Icon from '../ui/icon';
 import Sheet from '../ui/sheet';
 import { useAlert } from '../ui/alert';
@@ -48,12 +48,14 @@ function stepValue(key, value, direction) {
 }
 
 function clockOf(run, view) {
+  if (view.resuming) return formatClock(view.resumeRemaining, { ceil: true });
   if (run.config.type === 'fortime' && view.segment.kind !== 'prep') return formatClock(view.workElapsed);
   return formatClock(view.segmentRemaining, { ceil: true });
 }
 
 function phaseOf(view) {
   if (view.paused) return 'En pausa';
+  if (view.resuming) return 'Reanudando';
   if (view.segment.kind === 'prep') return 'Prepárate';
   return view.segment.kind === 'rest' ? 'Descanso' : 'Trabajo';
 }
@@ -178,7 +180,7 @@ function Wave({ at, elapsed, beat }) {
 
 // Waves ripple out from the ring once per second; each lives a few seconds.
 function Waves({ view }) {
-  if (view.paused) return null;
+  if (view.paused || view.resuming) return null;
   const second = Math.floor(view.elapsed / 1000);
   const beats = [];
   for (let s = Math.max(0, second - 2); s <= second; s++) beats.push(s * 1000);
@@ -246,7 +248,9 @@ export function TimerRunSheet() {
     else if (rounds) sub = `Ronda ${view.segment.round} de ${view.plan.totalRounds}`;
     else if (type === 'fortime') sub = `Límite ${formatClock(run.config.cap)}`;
     const meta = rounds && view.segment.kind !== 'prep' ? `Quedan ${remaining} en total` : null;
-    const kind = view.paused ? 'paused' : view.segment.kind;
+    const kind = view.paused ? 'paused' : view.resuming ? 'resuming' : view.segment.kind;
+    // During the resume countdown the ring fills with the countdown instead of the segment.
+    const progress = view.resuming ? 1 - view.resumeRemaining / RESUME_MS : Math.min(1, view.segmentElapsed / view.segment.duration);
 
     body = view.done ? <>
       <Summary run={run} view={view} />
@@ -256,7 +260,7 @@ export function TimerRunSheet() {
       </div>
     </> : <>
       <div className="timer-stage" data-kind={kind}>
-        <ProgressRing value={Math.min(1, view.segmentElapsed / view.segment.duration)} waves={<Waves view={view} />}>
+        <ProgressRing value={progress} waves={<Waves view={view} />}>
           <p className="timer-phase">{phaseOf(view)}</p>
           <div className="timer-clock display num">{clockOf(run, view)}</div>
           <p className="timer-sub">{sub}</p>
@@ -296,6 +300,7 @@ export function TimerPill() {
   const { type } = run.config;
   let label = TEMPLATES[type].name;
   if (view.paused) label = 'En pausa';
+  else if (view.resuming) label = 'Reanudando';
   else if (view.segment.kind === 'prep') label = 'Prepárate';
   else if (type === 'emom' || type === 'tabata') label = `R${view.segment.round}/${view.plan.totalRounds}`;
   const clock = clockOf(run, view);

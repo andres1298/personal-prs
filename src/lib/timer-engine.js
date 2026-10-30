@@ -2,6 +2,8 @@
 // timestamps so a suspended or reloaded page resumes with the exact time.
 
 export const PREP_MS = 10_000;
+// After a pause the workout clock waits this long before it moves again.
+export const RESUME_MS = 5_000;
 const MIN_SEGMENT = 5_000;
 const MAX_SEGMENT = 3_600_000;
 const MAX_ROUNDS = 50;
@@ -96,14 +98,19 @@ export function cuesBetween(plan, from, to) {
 }
 
 export function start(config, now) {
-  return { config: normalizeConfig(config), startedAt: now, pausedAt: null, pausedTotal: 0, rounds: 0, finalElapsed: null, finishReason: null };
+  return {
+    config: normalizeConfig(config), startedAt: now, pausedAt: null, pausedTotal: 0, resumeUntil: null, rounds: 0, finalElapsed: null, finishReason: null,
+  };
 }
 
 const isFinished = (run) => run.finalElapsed !== null;
 
+const isResuming = (run, now) => !isFinished(run) && run.pausedAt === null && run.resumeUntil != null && now < run.resumeUntil;
+
+// The resume countdown is counted as paused time, so the clock stays where it stopped until it ends.
 function elapsedAt(run, now) {
   if (isFinished(run)) return run.finalElapsed;
-  const reference = run.pausedAt ?? now;
+  const reference = run.pausedAt ?? (isResuming(run, now) ? run.resumeUntil : now);
   return Math.max(0, reference - run.startedAt - run.pausedTotal);
 }
 
@@ -117,6 +124,8 @@ export function snapshot(run, now) {
   return {
     plan, elapsed, done,
     paused: run.pausedAt !== null && !done,
+    resuming: !done && isResuming(run, now),
+    resumeRemaining: !done && isResuming(run, now) ? run.resumeUntil - now : 0,
     segment, segmentIndex,
     segmentElapsed: elapsed - segment.start,
     segmentRemaining: segment.start + segment.duration - elapsed,
@@ -127,14 +136,27 @@ export function snapshot(run, now) {
   };
 }
 
+// Pausing during the resume countdown drops the part of it that had not run yet.
 export function pause(run, now) {
   if (isFinished(run) || run.pausedAt !== null) return run;
-  return { ...run, pausedAt: now };
+  const unused = isResuming(run, now) ? run.resumeUntil - now : 0;
+  return { ...run, pausedAt: now, pausedTotal: run.pausedTotal - unused, resumeUntil: null };
 }
 
+// The clock continues after a RESUME_MS countdown, which starts over on every resume.
 export function resume(run, now) {
   if (isFinished(run) || run.pausedAt === null) return run;
-  return { ...run, pausedAt: null, pausedTotal: run.pausedTotal + Math.max(0, now - run.pausedAt) };
+  return {
+    ...run, pausedAt: null, pausedTotal: run.pausedTotal + Math.max(0, now - run.pausedAt) + RESUME_MS, resumeUntil: now + RESUME_MS,
+  };
+}
+
+// Cues of the resume countdown crossed between two clock times: 3-2-1 and the start when it ends.
+export function resumeCuesBetween(run, from, to) {
+  if (isFinished(run) || run.pausedAt !== null || run.resumeUntil == null) return [];
+  const end = run.resumeUntil;
+  return [[end - 3000, 'tick'], [end - 2000, 'tick'], [end - 1000, 'tick'], [end, 'start']]
+    .filter(([at]) => at > from && at <= to).map(([at, cue]) => ({ at, cue }));
 }
 
 export function addRound(run) {
@@ -148,18 +170,20 @@ export function undoRound(run) {
 export function finish(run, now, reason) {
   if (isFinished(run)) return run;
   const finalElapsed = Math.min(elapsedAt(run, now), buildPlan(run.config).total);
-  return { ...run, pausedAt: null, finalElapsed, finishReason: reason };
+  return { ...run, pausedAt: null, resumeUntil: null, finalElapsed, finishReason: reason };
 }
 
 export function restoreRun(value) {
   if (!value || typeof value !== 'object') return null;
   const { startedAt, pausedAt, pausedTotal, rounds, finalElapsed, finishReason } = value;
+  // Runs stored before the resume countdown have no resumeUntil.
+  const resumeUntil = value.resumeUntil ?? null;
   const isTime = (n) => Number.isFinite(n) && n >= 0;
-  if (!isTime(startedAt) || !isTime(pausedTotal) || !(pausedAt === null || isTime(pausedAt)) ||
+  if (!isTime(startedAt) || !isTime(pausedTotal) || !(pausedAt === null || isTime(pausedAt)) || !(resumeUntil === null || isTime(resumeUntil)) ||
       !Number.isInteger(rounds) || rounds < 0 || !(finalElapsed === null || isTime(finalElapsed)) ||
       !(finishReason === null || typeof finishReason === 'string')) return null;
   try {
-    return { config: normalizeConfig(value.config), startedAt, pausedAt, pausedTotal, rounds, finalElapsed, finishReason };
+    return { config: normalizeConfig(value.config), startedAt, pausedAt, pausedTotal, resumeUntil, rounds, finalElapsed, finishReason };
   } catch {
     return null;
   }

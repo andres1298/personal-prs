@@ -2,7 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
   PREP_MS, PRESETS, TIMER_TYPES, addRound, buildPlan, cuesBetween, finish, formatClock, matchesPreset, normalizeConfig, parseDigits, pause,
-  restoreRun, resume, snapshot, start, toDigits, undoRound,
+  RESUME_MS, restoreRun, resume, resumeCuesBetween, snapshot, start, toDigits, undoRound,
 } from '../src/lib/timer-engine.js';
 
 const s = (seconds) => seconds * 1000;
@@ -73,13 +73,43 @@ test('snapshots derive phase, round and remaining time from timestamps, includin
   assert.equal(snapshot(run, t0 + s(500)).elapsed, s(31.5));
   assert.equal(snapshot(run, t0 + s(500)).paused, true);
   run = resume(run, t0 + s(500));
-  view = snapshot(run, t0 + s(510));
+  // The clock waits for the resume countdown, then continues.
+  view = snapshot(run, t0 + s(515));
   assert.equal(view.elapsed, s(41.5));
   assert.equal(view.segment.round, 2);
   assert.equal(view.done, false);
   view = snapshot(run, t0 + s(9999));
   assert.equal(view.done, true);
   assert.equal(view.elapsed, view.plan.total);
+});
+
+test('resuming holds the clock for a 5 second countdown with its own cues', () => {
+  const t0 = 1_000_000;
+  const paused = pause(start({ type: 'amrap', duration: s(600) }, t0), t0 + s(100));
+  let run = resume(paused, t0 + s(200));
+  assert.equal(RESUME_MS, s(5));
+  let view = snapshot(run, t0 + s(201));
+  assert.deepEqual([view.elapsed, view.resuming, view.paused, view.resumeRemaining], [s(100), true, false, s(4)]);
+  assert.equal(snapshot(run, t0 + s(204.9)).elapsed, s(100));
+  view = snapshot(run, t0 + s(206));
+  assert.deepEqual([view.elapsed, view.resuming, view.resumeRemaining], [s(101), false, 0]);
+  assert.deepEqual(resumeCuesBetween(run, t0 + s(200), t0 + s(205)).map(({ at, cue }) => `${(at - t0) / 1000}:${cue}`),
+    ['202:tick', '203:tick', '204:tick', '205:start']);
+  assert.deepEqual(resumeCuesBetween(run, t0 + s(205), t0 + s(300)), []);
+  // No cues while the main clock is frozen.
+  assert.deepEqual(cuesBetween(view.plan, s(100), snapshot(run, t0 + s(204)).elapsed), []);
+
+  // Pausing during the countdown keeps the clock and starts the countdown over on the next resume.
+  run = pause(run, t0 + s(202));
+  assert.deepEqual([snapshot(run, t0 + s(250)).elapsed, snapshot(run, t0 + s(250)).paused, snapshot(run, t0 + s(250)).resuming], [s(100), true, false]);
+  run = resume(run, t0 + s(300));
+  assert.equal(snapshot(run, t0 + s(304)).elapsed, s(100));
+  assert.equal(snapshot(run, t0 + s(310)).elapsed, s(105));
+
+  // Ending during the countdown keeps the time reached before the pause.
+  const ended = finish(resume(paused, t0 + s(200)), t0 + s(202), 'stopped');
+  assert.deepEqual([ended.finalElapsed, ended.resumeUntil, snapshot(ended, t0 + s(202)).resuming], [s(100), null, false]);
+  assert.deepEqual(resumeCuesBetween(ended, t0, t0 + s(300)), []);
 });
 
 test('actions are immutable and finishing freezes the result', () => {
@@ -106,7 +136,12 @@ test('actions are immutable and finishing freezes the result', () => {
 test('stored runs are restored only when well formed', () => {
   const run = start({ type: 'emom', interval: s(30), rounds: 5 }, 42);
   assert.deepEqual(restoreRun(JSON.parse(JSON.stringify(run))), run);
-  for (const value of [null, 'x', {}, { ...run, startedAt: 'x' }, { ...run, config: { type: 'nope' } }, { ...run, rounds: -1 }]) {
+  // Runs saved before the resume countdown existed restore without it.
+  const { resumeUntil, ...legacy } = run;
+  assert.deepEqual(restoreRun(legacy), run);
+  const resuming = resume(pause(run, 1000), 2000);
+  assert.deepEqual(restoreRun(JSON.parse(JSON.stringify(resuming))), resuming);
+  for (const value of [null, 'x', {}, { ...run, startedAt: 'x' }, { ...run, config: { type: 'nope' } }, { ...run, rounds: -1 }, { ...run, resumeUntil: 'x' }]) {
     assert.equal(restoreRun(value), null);
   }
 });

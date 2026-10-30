@@ -743,7 +743,7 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
   --reserve: 0px; --rc: var(--b); flex: 1; min-height: 0; container-type: size; display: grid; place-items: center; align-content: center;
   gap: 10px; text-align: center; padding: 4px 0 14px;
 }
-.timer-stage[data-kind="prep"] { --rc: var(--ink2); }
+.timer-stage:is([data-kind="prep"], [data-kind="resuming"]) { --rc: var(--ink2); }
 .timer-stage[data-kind="rest"], .timer-stage[data-kind="paused"] { --rc: var(--ink3); }
 .timer-stage:has(.timer-meta) { --reserve: 34px; }
 .ring { position: relative; width: min(100cqw, calc(100cqh - var(--reserve)), 460px); aspect-ratio: 1; container-type: inline-size; }
