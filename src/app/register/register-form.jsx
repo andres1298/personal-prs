@@ -1,61 +1,23 @@
 'use client';
 
-import { useEffect, useRef, useState } from 'react';
+import { useRef, useState } from 'react';
 import Icon from '../../components/ui/icon';
-
-const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
+import TurnstileWidget from '../../components/turnstile-widget';
 
 const messages = {
   invalid_name: 'Escribe tu nombre (máximo 80 caracteres).',
   invalid_email: 'Escribe un correo válido.',
-  invalid_password: 'La contraseña debe tener entre 8 y 72 caracteres.',
   captcha_failed: 'No pudimos verificar que eres una persona. Inténtalo de nuevo.',
   rate_limited: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
   unavailable: 'El registro todavía no está disponible.',
 };
 
-function loadTurnstile() {
-  if (window.turnstile) return Promise.resolve(window.turnstile);
-  return new Promise((resolve, reject) => {
-    let script = document.querySelector(`script[src="${SCRIPT_SRC}"]`);
-    if (!script) {
-      script = document.createElement('script');
-      script.src = SCRIPT_SRC;
-      script.async = true;
-      document.head.append(script);
-    }
-    script.addEventListener('load', () => resolve(window.turnstile), { once: true });
-    script.addEventListener('error', reject, { once: true });
-  });
-}
-
 export default function RegisterForm({ siteKey }) {
-  const widget = useRef(null);
-  const widgetId = useRef(null);
+  const turnstile = useRef(null);
   const [token, setToken] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState('');
-
-  useEffect(() => {
-    if (!siteKey || !widget.current) return undefined;
-    let cancelled = false;
-    loadTurnstile().then((turnstile) => {
-      if (cancelled) return;
-      widgetId.current = turnstile.render(widget.current, {
-        sitekey: siteKey,
-        callback: setToken,
-        'expired-callback': () => setToken(''),
-        'error-callback': () => setToken(''),
-      });
-    }).catch(() => setError('No se pudo cargar la verificación. Recarga la página.'));
-    return () => {
-      cancelled = true;
-      if (widgetId.current != null) window.turnstile?.remove(widgetId.current);
-      widgetId.current = null;
-    };
-  }, [siteKey]);
 
   async function submit(event) {
     event.preventDefault();
@@ -74,14 +36,14 @@ export default function RegisterForm({ siteKey }) {
       setBusy(false);
       // A Turnstile token is single-use, so every attempt needs a fresh one.
       setToken('');
-      if (widgetId.current != null) window.turnstile?.reset(widgetId.current);
+      turnstile.current?.reset();
     }
   }
 
   if (sentTo) return <div className="check-email" role="status">
     <span className="check-email-icon"><Icon name="mail" size={34} /></span>
     <h2>Revisa tu correo</h2>
-    <p>Te enviamos un enlace de confirmación a <strong>{sentTo}</strong>. Ábrelo para activar tu cuenta y entrar.</p>
+    <p>Te enviamos un enlace de confirmación a <strong>{sentTo}</strong>. Ábrelo para elegir tu contraseña y activar tu cuenta.</p>
     <p className="check-email-hint">Si no lo ves en unos minutos, mira en spam. Si ya tenías una cuenta, inicia sesión con tu contraseña.</p>
   </div>;
 
@@ -89,14 +51,11 @@ export default function RegisterForm({ siteKey }) {
     {error && <p className="auth-message error" role="alert">{error}</p>}
     <div className="list form-group">
       <label className="field"><span>Nombre</span><input name="name" autoComplete="name" maxLength={80} placeholder="Tu nombre" required /></label>
-      <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="username" placeholder="correo@ejemplo.com" required /></label>
-      <label className="field">
-        <span>Contraseña</span>
-        <input name="password" type={showPassword ? 'text' : 'password'} minLength={8} maxLength={72} autoComplete="new-password" placeholder="Mínimo 8 caracteres" required />
-        <button type="button" className="reveal-button" aria-pressed={showPassword} onClick={() => setShowPassword((shown) => !shown)}>{showPassword ? 'Ocultar' : 'Mostrar'}</button>
-      </label>
+      <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="email" placeholder="correo@ejemplo.com" required /></label>
     </div>
-    <div ref={widget} className="turnstile-box" />
+    <p className="auth-footnote">Elegirás tu contraseña al abrir el enlace que te enviaremos por correo.</p>
+    <TurnstileWidget ref={turnstile} siteKey={siteKey} onToken={setToken}
+      onLoadError={() => setError('No se pudo cargar la verificación. Recarga la página.')} />
     <button className="filled-button" disabled={busy || !token}>{busy ? 'Creando…' : 'Crear cuenta'}</button>
   </form>;
 }

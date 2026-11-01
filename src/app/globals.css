@@ -867,6 +867,10 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .reveal-button { flex: none; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ink); font-size: 14px; font-weight: 800; }
 .turnstile-box { display: flex; justify-content: center; min-height: 65px; margin-bottom: 14px; }
 .auth-footnote { color: var(--ink2); font-size: 13px; }
+.auth-form .auth-footnote { margin: -6px 6px 14px; }
+.auth-session { display: grid; gap: 10px; margin-bottom: 14px; overflow-wrap: anywhere; }
+.auth-check { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; font-weight: 700; }
+.auth-check input { flex: none; width: 20px; height: 20px; margin-top: 1px; accent-color: var(--inverse); }
 
 /* ---------- Guided tour ---------- */
 :root { --tour-dim: rgba(13, 13, 13, .55); }

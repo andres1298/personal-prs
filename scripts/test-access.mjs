@@ -88,18 +88,17 @@ function signedUp(overrides = {}) {
   return { id: otherId, email: memberEmail, email_confirmed_at: '2026-10-20T10:00:00Z', user_metadata: { full_name: 'Ana' }, ...overrides };
 }
 
-test('a confirmed sign-up gets a profile on first access', async () => {
-  const { access, calls } = await accessFor(signedUp());
-  assert.deepEqual([access.authorized, access.isAdmin], [true, false]);
-  assert.deepEqual(calls, [['find', otherId], ['ensureMember', otherId], ['find', otherId]]);
-});
-
-test('no profile is created before the email is confirmed', async () => {
-  for (const email_confirmed_at of [null, undefined]) {
+test('a confirmed email alone never creates a profile or grants access', async () => {
+  for (const email_confirmed_at of ['2026-10-20T10:00:00Z', null, undefined]) {
     const { access, calls } = await accessFor(signedUp({ email_confirmed_at }));
     assert.equal(access.authorized, false);
     assert.deepEqual(calls, [['find', otherId]]);
   }
+});
+
+test('getAccess no longer depends on member profile creation', async () => {
+  const source = await readFile(new URL('../src/lib/server/auth.js', import.meta.url), 'utf8');
+  assert.doesNotMatch(source, /ensureMemberProfile/);
 });
 
 test('anonymous users and signed-out visitors never get a profile', async () => {
@@ -111,7 +110,7 @@ test('anonymous users and signed-out visitors never get a profile', async () => 
   assert.equal(signedOut.calls.length, 0);
 });
 
-test('a disabled member is not recreated or re-enabled by confirming their email', async () => {
+test('a disabled member stays without access after confirming their email', async () => {
   const { access, calls } = await accessFor(signedUp(), { profile: { id: otherId, disabledAt: new Date() } });
   assert.equal(access.authorized, false);
   assert.equal(calls.some(([name]) => name === 'ensureMember'), false);

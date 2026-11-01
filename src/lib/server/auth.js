@@ -2,7 +2,7 @@ import 'server-only';
 import { createServerClient } from '@supabase/ssr';
 import { cookies } from 'next/headers';
 import { isAdminUser } from './access-policy.js';
-import { ensureAdminProfile, ensureMemberProfile, findProfile } from './records.js';
+import { ensureAdminProfile, findProfile } from './records.js';
 
 export { hasSameOrigin } from './access-policy.js';
 
@@ -42,13 +42,9 @@ export async function getAccess() {
     return { user, authorized: true, isAdmin: true };
   }
   // Members gain access only through a profile and lose it as soon as an admin disables it.
-  // Profiles come from accepting an invitation or, on first access, from a confirmed email
-  // (self-service sign-up). A disabled member keeps their profile, so it is never recreated.
-  let profile = user && !user.is_anonymous ? await findProfile(user.id) : null;
-  if (!profile && user && !user.is_anonymous && user.email_confirmed_at) {
-    await ensureMemberProfile(user);
-    profile = await findProfile(user.id);
-  }
+  // Profiles come from accepting an invitation or from the confirmation step of a self-service
+  // sign-up (POST /auth/callback), never from here: a confirmed email alone is not enough.
+  const profile = user && !user.is_anonymous ? await findProfile(user.id) : null;
   const authorized = Boolean(profile && !profile.disabledAt);
   return { user, authorized, isAdmin: false };
 }
