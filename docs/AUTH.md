@@ -13,10 +13,11 @@ Accounts use Supabase email/password sessions stored in cookies. There are two w
 | `SITE_URL` | Public origin placed in confirmation links, canonical URLs, Open Graph, robots and sitemap. Optional: falls back to Vercel's production domain, then to the request origin | Server only |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key rendered in the sign-up form | Public configuration |
 | `TURNSTILE_SECRET_KEY` | Turnstile secret used to verify the CAPTCHA on the server; empty closes the form | Server secret |
+| `RATE_LIMIT_SECRET` | Random value (for example `openssl rand -hex 32`) that turns rate-limit keys into HMACs. Optional: without it keys are plain SHA-256 hashes. Changing it only restarts the current windows | Server secret |
 | `DATABASE_URL` | Prisma runtime connection; falls back to `POSTGRES_PRISMA_URL` | Server secret |
 | `DIRECT_DATABASE_URL` | Prisma migration connection; falls back to `POSTGRES_URL_NON_POOLING` | Private migration environment; unnecessary for runtime/build |
 
-Vercel's Supabase integration installs the public Supabase variables, `SUPABASE_SECRET_KEY` and the `POSTGRES_*` fallbacks. Only `SUPABASE_ADMIN_USER_IDS` must be added manually. Configure local values in ignored `.env.local`. Redeploy after changing variables.
+Vercel's Supabase integration installs the public Supabase variables, `SUPABASE_SECRET_KEY` and the `POSTGRES_*` fallbacks. Only `SUPABASE_ADMIN_USER_IDS` must be added manually; add `RATE_LIMIT_SECRET` too to harden the rate-limit keys. Configure local values in ignored `.env.local`. Redeploy after changing variables.
 
 ## Configure Supabase
 
@@ -72,7 +73,7 @@ In the Cloudflare dashboard open **Turnstile → Add widget**, add the productio
 
 ### Rate limiting
 
-The app limits requests itself (`src/lib/server/rate-limit.js`). Vercel instances share no memory, so the counters live in Postgres (`RateLimitBucket`, migration `20261101120000_rate_limits`): one atomic upsert per request in a fixed window. Each row's key is a SHA-256 hash of the policy and the subject, so client IPs and user ids are never stored. About 1% of checks also delete expired rows.
+The app limits requests itself (`src/lib/server/rate-limit.js`). Vercel instances share no memory, so the counters live in Postgres (`RateLimitBucket`, migration `20261101120000_rate_limits`): one atomic upsert per request in a fixed window. Raw client IPs and user ids are never stored: each row's key is a hash of the policy and the subject, and the row expires with its window. The keys are pseudonymous, not anonymous: a plain SHA-256 of a known IP or user id can be recomputed, so set `RATE_LIMIT_SECRET` to make them HMACs that cannot be matched without that secret. About 1% of checks also delete expired rows.
 
 | Policy | Applies to | Subject | Limit |
 | --- | --- | --- | --- |
@@ -83,11 +84,11 @@ The app limits requests itself (`src/lib/server/rate-limit.js`). Vercel instance
 | `apiRead` | `GET` on every `/api/*` route | Verified user id | 120 per min |
 | `apiWrite` | `POST`, `PATCH` and `DELETE` on every `/api/*` route | Verified user id | 30 per min |
 
-The client IP comes from `x-real-ip` (or the first `x-forwarded-for` entry), which Vercel sets; requests without one share a single bucket. API limits apply after the session is verified and before any other work. When a limit is hit:
+The client IP comes from `x-real-ip` (or the first `x-forwarded-for` entry), which Vercel sets; requests without one share a single bucket. IPv6 clients are counted per `/64` prefix, because one host usually controls the whole prefix and could otherwise rotate addresses for fresh budgets; IPv4-mapped addresses count as their IPv4 address. API limits apply after the session is verified and before any other work. When a limit is hit:
 
 - The API answers `429` with `Retry-After` and "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.", which the app shows in its alert.
 - Sign-in returns to `/app?authError=rate_limited`, shown as a rate limit, not as wrong credentials. A provider limit from Supabase (HTTP 429 or an `over_*_rate_limit` code) maps to the same message.
-- Invitation acceptance returns to the invitation page with the same message; the invitation page itself shows it instead of looking up the token. Sign-out answers `429`.
+- Invitation acceptance returns to the invitation page with the same message; the invitation page itself shows it instead of looking up the token. A limited sign-out skips the Supabase call but still expires this browser's `sb-*-auth-token` cookies and lands on the home page, so the limit never keeps a session open on the device.
 
 **Fails open.** If the limiter cannot reach the table (for example, the migration is not applied yet or the database is unavailable), the request is allowed and the server logs only the error code, never the IP or user id. That keeps sign-in working during a migration; the layers below still apply. Apply the migration with `npm run db:migrate:deploy` before relying on these limits.
 

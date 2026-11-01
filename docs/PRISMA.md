@@ -10,7 +10,7 @@ Prisma owns the application schema and server persistence. Supabase Auth owns id
 | `Movement` | Catalog slug (shared) or UUID (custom), name, category, group, measurement type and optional owner. `ownerId` null marks the shared catalog; otherwise the movement is private to that profile. |
 | `HiddenMovement` | A shared movement a profile turned off for itself. Records are kept. |
 | `PersonalRecord` | UUIDv7, required profile/movement, decimal measurement, practice date, repetition maximum, notes. Legacy `videoUrl`/`videoId` columns remain but are unused. |
-| `RateLimitBucket` | Fixed-window request counter for the in-app rate limiter: SHA-256 key of policy and subject, count and expiry. Holds no user data and is pruned by the limiter. See [AUTH.md](AUTH.md#rate-limiting). |
+| `RateLimitBucket` | Fixed-window request counter for the in-app rate limiter: hashed key of policy and subject (HMAC when `RATE_LIMIT_SECRET` is set), count and expiry. Stores no raw IPs or user ids, only pseudonymous keys that expire with their window and are pruned by the limiter. See [AUTH.md](AUTH.md#rate-limiting). |
 
 Each account may hold at most 5000 records, and notes are limited to 1000 characters; the record count is checked in the same serializable transaction as the insert (see [AUTH.md](AUTH.md#quotas)). The `20261101120000_rate_limits` migration adds `RateLimitBucket`; deploy it with `npm run db:migrate:deploy` like every other migration. Until it is applied the limiter fails open.
 

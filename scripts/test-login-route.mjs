@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { isIPv6 } from 'node:net';
 import { test } from 'node:test';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { hasSameOrigin } from '../src/lib/server/access-policy.js';
@@ -24,11 +25,13 @@ async function link(code, dependencies) {
 
 // The real limiter over a fake bucket table that reports `count` requests in the current window.
 async function limiter(count, keys) {
+  // Without RATE_LIMIT_SECRET the keys are plain SHA-256 hashes, which the assertions below recompute.
+  delete process.env.RATE_LIMIT_SECRET;
   const prisma = {
     $queryRaw: async (strings, key) => { keys.push(key); return [{ count, expiresAt: new Date(Date.now() + 60_000) }]; },
     $executeRaw: async () => 0,
   };
-  return link(limiterSource, { 'server-only': {}, 'node:crypto': { createHash }, './prisma.js': { getPrisma: () => prisma } });
+  return link(limiterSource, { 'server-only': {}, 'node:crypto': { createHash, createHmac }, 'node:net': { isIPv6 }, './prisma.js': { getPrisma: () => prisma } });
 }
 
 async function login({ error = null, configured = true, requestCount = 1 } = {}) {

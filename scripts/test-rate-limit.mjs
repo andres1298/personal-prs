@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
+import { isIPv6 } from 'node:net';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
@@ -36,11 +37,14 @@ function fakeDatabase({ failure = null } = {}) {
 }
 
 async function limiter(options) {
+  // Key derivation reads RATE_LIMIT_SECRET; tests pass a secret explicitly when they need one.
+  delete process.env.RATE_LIMIT_SECRET;
   const db = fakeDatabase(options);
   const logs = [];
   const dependencies = {
     'server-only': {},
-    'node:crypto': { createHash },
+    'node:crypto': { createHash, createHmac },
+    'node:net': { isIPv6 },
     './prisma.js': { getPrisma: () => db },
   };
   const module = new SourceTextModule(source);
@@ -68,7 +72,7 @@ async function limiter(options) {
 
 test('keys are SHA-256 hashes of the policy and subject, never the raw identifiers', async () => {
   const { api, db, check } = await limiter();
-  const key = api.rateLimitKey('login', '203.0.113.7');
+  const key = api.rateLimitKey('login', '203.0.113.7', '');
   assert.equal(key, createHash('sha256').update('login:203.0.113.7').digest('hex'));
   assert.match(key, /^[0-9a-f]{64}$/);
   assert.notEqual(api.rateLimitKey('apiRead', userId), api.rateLimitKey('apiWrite', userId));
@@ -79,6 +83,46 @@ test('keys are SHA-256 hashes of the policy and subject, never the raw identifie
   const stored = JSON.stringify(db.queries.map((query) => query.values));
   assert.doesNotMatch(stored, /203\.0\.113\.7/);
   assert.ok(!stored.includes(userId));
+});
+
+test('with a server secret the keys are HMACs that cannot be recomputed from the subject alone', async () => {
+  const { api, db } = await limiter();
+  const secret = 'test-only-secret';
+  const key = api.rateLimitKey('login', '203.0.113.7', secret);
+  assert.equal(key, createHmac('sha256', secret).update('login:203.0.113.7').digest('hex'));
+  assert.notEqual(key, api.rateLimitKey('login', '203.0.113.7', ''));
+  assert.notEqual(key, api.rateLimitKey('login', '203.0.113.7', 'another-secret'));
+  process.env.RATE_LIMIT_SECRET = secret;
+  try {
+    assert.equal(api.rateLimitKey('login', '203.0.113.7'), key);
+    await api.checkRateLimit('login', '203.0.113.7', { random: () => 1, now: () => db.clock });
+    assert.equal(db.queries[0].values[0], key);
+  } finally {
+    delete process.env.RATE_LIMIT_SECRET;
+  }
+});
+
+test('IPv6 clients share a bucket per /64 while IPv4 addresses stay exact', async () => {
+  const { api } = await limiter();
+  assert.equal(api.ipSubject('2001:db8:1:2:aaaa:bbbb:cccc:dddd'), '2001:db8:1:2::/64');
+  assert.equal(api.ipSubject('2001:DB8:1:2::1'), '2001:db8:1:2::/64');
+  assert.equal(api.ipSubject('2001:0db8:0001:0002:ffff::7'), '2001:db8:1:2::/64');
+  assert.equal(api.ipSubject('[2001:db8:1:2::1]'), '2001:db8:1:2::/64');
+  assert.equal(api.ipSubject('fe80::1%eth0'), 'fe80:0:0:0::/64');
+  assert.equal(api.ipSubject('2001:db8::'), '2001:db8:0:0::/64');
+  assert.equal(api.ipSubject('::1'), '0:0:0:0::/64');
+  assert.notEqual(api.ipSubject('2001:db8:1:2::1'), api.ipSubject('2001:db8:1:3::1'));
+  // IPv4-mapped addresses count as the IPv4 client they carry.
+  assert.equal(api.ipSubject('::ffff:203.0.113.7'), '203.0.113.7');
+  assert.equal(api.ipSubject('::ffff:cb00:7107'), '203.0.113.7');
+  assert.equal(api.ipSubject('203.0.113.7'), '203.0.113.7');
+  assert.equal(api.ipSubject(' 203.0.113.7 '), '203.0.113.7');
+  assert.equal(api.ipSubject('not-an-ip'), 'not-an-ip');
+  assert.equal(api.ipSubject('1:2:3'), '1:2:3');
+  assert.equal(api.clientIp(new Headers({ 'x-real-ip': '2001:db8:1:2:aaaa::1' })), '2001:db8:1:2::/64');
+  assert.equal(api.clientIp(new Headers({ 'x-forwarded-for': '2001:db8:1:2::9, 10.0.0.1' })), '2001:db8:1:2::/64');
+  assert.equal(api.rateLimitKey('login', api.clientIp(new Headers({ 'x-real-ip': '2001:db8:1:2::1' }))),
+    api.rateLimitKey('login', api.clientIp(new Headers({ 'x-real-ip': '2001:db8:1:2:ffff:ffff:ffff:fffe' }))));
 });
 
 test('the upsert is one parameterized statement on the hashed key', async () => {

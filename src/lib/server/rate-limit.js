@@ -1,5 +1,6 @@
 import 'server-only';
-import { createHash } from 'node:crypto';
+import { createHash, createHmac } from 'node:crypto';
+import { isIPv6 } from 'node:net';
 import { getPrisma } from './prisma.js';
 
 // Fixed-window limits. Vercel instances share no memory, so the counters live in Postgres
@@ -22,18 +23,47 @@ export const UNKNOWN_CLIENT = 'unknown';
 const PRUNE_PROBABILITY = 0.01;
 const MAX_SUBJECT_LENGTH = 256;
 
-// Only a hash of the policy and the subject is stored: raw IP addresses and user ids never reach the table.
-export function rateLimitKey(policyName, subject) {
+// Keys are pseudonymous: raw IP addresses and user ids never reach the table, only a hash of the
+// policy and the subject that expires with its window. With RATE_LIMIT_SECRET set the hash is an
+// HMAC, so a leaked table cannot be matched back to addresses or accounts without that secret;
+// without it a plain SHA-256 is used and the keys remain guessable for known subjects.
+export function rateLimitKey(policyName, subject, secret = process.env.RATE_LIMIT_SECRET) {
   const value = typeof subject === 'string' && subject.trim() ? subject.trim().slice(0, MAX_SUBJECT_LENGTH) : UNKNOWN_CLIENT;
-  return createHash('sha256').update(`${policyName}:${value}`).digest('hex');
+  const hash = secret ? createHmac('sha256', secret) : createHash('sha256');
+  return hash.update(`${policyName}:${value}`).digest('hex');
+}
+
+// One IPv6 host usually controls a whole /64, so IPv6 clients share a bucket per /64 prefix instead of
+// getting a fresh one for every address. IPv4-mapped addresses count as their IPv4 address; IPv4 and
+// anything unparseable are returned unchanged.
+export function ipSubject(address) {
+  if (typeof address !== 'string') return address;
+  const value = address.trim().replace(/^\[(.*)\]$/, '$1').split('%')[0];
+  if (!isIPv6(value)) return address.trim();
+  let text = value.toLowerCase();
+  // A trailing dotted IPv4 part fills the last two hextets.
+  const embedded = text.match(/^(.*:)(\d+)\.(\d+)\.(\d+)\.(\d+)$/);
+  if (embedded) {
+    const [a, b, c, d] = embedded.slice(2).map(Number);
+    text = `${embedded[1]}${((a << 8) | b).toString(16)}:${((c << 8) | d).toString(16)}`;
+  }
+  const [head, tail] = text.split('::');
+  const headParts = head ? head.split(':') : [];
+  const tailParts = tail ? tail.split(':') : [];
+  const fill = tail === undefined ? [] : Array(8 - headParts.length - tailParts.length).fill('0');
+  const hextets = [...headParts, ...fill, ...tailParts].map((part) => parseInt(part, 16));
+  if (hextets.slice(0, 5).every((part) => part === 0) && hextets[5] === 0xffff) {
+    return [hextets[6] >> 8, hextets[6] & 255, hextets[7] >> 8, hextets[7] & 255].join('.');
+  }
+  return `${hextets.slice(0, 4).map((part) => part.toString(16)).join(':')}::/64`;
 }
 
 // On Vercel, x-real-ip and x-forwarded-for are set by the platform, not by the client.
 export function clientIp(headers) {
   const realIp = headers?.get('x-real-ip')?.trim();
-  if (realIp) return realIp;
+  if (realIp) return ipSubject(realIp);
   const forwarded = headers?.get('x-forwarded-for')?.split(',')[0].trim();
-  return forwarded || UNKNOWN_CLIENT;
+  return forwarded ? ipSubject(forwarded) : UNKNOWN_CLIENT;
 }
 
 // Supabase answers HTTP 429 or an over_*_rate_limit code when its own limits are hit.
