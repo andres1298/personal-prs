@@ -117,3 +117,14 @@ model PersonalRecord {
   @@index([profileId, movementId, repetitionMax, performedOn])
   @@index([movementId, measurementType])
 }
+
+// Fixed-window request counters shared by every server instance (src/lib/server/rate-limit.js).
+// The key is a SHA-256 hash of the policy and the subject (client IP or user id); raw
+// identifiers are never stored. Expired rows are reused or pruned by the limiter itself.
+model RateLimitBucket {
+  key       String   @id
+  count     Int
+  expiresAt DateTime @db.Timestamptz(3)
+
+  @@index([expiresAt])
+}

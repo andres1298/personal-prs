@@ -15,7 +15,8 @@ const movements = [
   { id: 'their-clean', name: 'Their Clean', measurementType: 'WEIGHT', ownerId: otherId },
 ];
 
-function fakeDatabase({ records = [], hidden = [], failCreateAt = null, serializationFailure = false } = {}) {
+// existingCount stands in for rows the account already has, so quotas can be tested without building them.
+function fakeDatabase({ records = [], hidden = [], failCreateAt = null, serializationFailure = false, existingCount = 0 } = {}) {
   let creates = 0;
   const db = {
     records,
@@ -31,6 +32,7 @@ function fakeDatabase({ records = [], hidden = [], failCreateAt = null, serializ
         hidden.find((item) => item.profileId === pair.profileId && item.movementId === pair.movementId) ?? null,
     },
     personalRecord: {
+      count: async ({ where }) => existingCount + records.filter((record) => record.profileId === where.profileId).length,
       findFirst: async ({ where }) => records.find((record) => record.profileId === where.profileId &&
         where.OR.some((pair) => pair.movementId === record.movementId && pair.repetitionMax === record.repetitionMax)) ?? null,
       create: async ({ data }) => {
@@ -78,6 +80,7 @@ async function service(options) {
 
 const snatch = { movementId: 'snatch', value: 135, performedOn: '2026-10-17', repetitionMax: 1 };
 const squat = { movementId: 'back-squat', value: 225, performedOn: '2026-10-17', repetitionMax: 3 };
+const MAX_RECORDS = 5000;
 
 test('creates every weight record for the verified owner in one serializable transaction', async () => {
   const { api, db } = await service();
@@ -170,4 +173,53 @@ test('a movement the member turned off no longer accepts records, but other memb
 test('requires a verified owner identity', async () => {
   const { api } = await service();
   await assert.rejects(api.createRecords('not-a-uuid', [snatch]), /verified Auth user ID/);
+});
+
+test('single records are created in a serializable transaction that checks the account quota', async () => {
+  const { api, db } = await service();
+  const created = await api.createRecord(ownerId, { ...snatch, notes: '  Felt fast  ' });
+  assert.deepEqual([created.movementId, created.value, created.notes], ['snatch', '135.000', 'Felt fast']);
+  assert.deepEqual(db.transactionOptions, [{ isolationLevel: 'Serializable' }]);
+  assert.equal(db.records.length, 1);
+});
+
+test('a full account cannot add a single record', async () => {
+  const { api, db } = await service({ existingCount: MAX_RECORDS });
+  assert.equal(api.MAX_RECORDS_PER_ACCOUNT, MAX_RECORDS);
+  await assert.rejects(api.createRecord(ownerId, snatch), (error) => error instanceof api.RecordLimitError && error.limit === api.MAX_RECORDS_PER_ACCOUNT);
+  assert.deepEqual(db.records, []);
+  const almost = await service({ existingCount: MAX_RECORDS - 1 });
+  await almost.api.createRecord(ownerId, snatch);
+  await assert.rejects(almost.api.createRecord(ownerId, squat), almost.api.RecordLimitError);
+  assert.equal(almost.db.records.length, 1);
+});
+
+test('a batch counts its own size against the account quota and writes nothing past it', async () => {
+  const { api, db } = await service({ existingCount: MAX_RECORDS - 1 });
+  await assert.rejects(api.createRecords(ownerId, [snatch, squat]), api.RecordLimitError);
+  assert.deepEqual(db.records, []);
+  await api.createRecords(ownerId, [snatch]);
+  assert.equal(db.records.length, 1);
+});
+
+test('concurrent single saves surface as conflicts', async () => {
+  const { api } = await service({ serializationFailure: true });
+  await assert.rejects(api.createRecord(ownerId, snatch), api.RecordConflictError);
+});
+
+test('notes are capped for single records and updates', async () => {
+  const { api, db } = await service();
+  assert.equal(api.NOTES_MAX, 1000);
+  await assert.rejects(api.createRecord(ownerId, { ...snatch, notes: 'x'.repeat(api.NOTES_MAX + 1) }), api.RecordInputError);
+  await assert.rejects(api.updateRecord(ownerId, 'rec-1', { ...snatch, notes: 'x'.repeat(api.NOTES_MAX + 1) }), api.RecordInputError);
+  assert.deepEqual(db.records, []);
+  // Surrounding spaces are trimmed before the cap applies.
+  const created = await api.createRecord(ownerId, { ...snatch, notes: ` ${'x'.repeat(api.NOTES_MAX)} ` });
+  assert.equal(created.notes.length, api.NOTES_MAX);
+});
+
+test('the record form limits notes to the server cap', async () => {
+  const form = await readFile(new URL('../src/components/prs/record-form-sheet.jsx', import.meta.url), 'utf8');
+  const { api } = await service();
+  assert.match(form, new RegExp(`<textarea[^>]*maxLength=\\{${api.NOTES_MAX}\\}`));
 });

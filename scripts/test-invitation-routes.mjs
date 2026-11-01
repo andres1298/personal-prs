@@ -12,10 +12,14 @@ const anonymous = { user: null, authorized: false, isAdmin: false };
 
 async function load(path, prefix, access, failure) {
   const calls = [];
+  const limits = [];
   class InvitationError extends Error { constructor(code) { super(code); this.code = code; } }
   const dependencies = {
     'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
     [`${prefix}lib/server/auth`]: { getAccess: async () => access, hasSameOrigin },
+    [`${prefix}lib/server/rate-limit`]: {
+      rateLimitResponse: async (policy, subject) => { limits.push([policy, subject]); return failure === 'limited' ? Response.json({ error: 'Demasiadas solicitudes.' }, { status: 429, headers: { 'Retry-After': '30' } }) : null; },
+    },
     [`${prefix}lib/server/invitations`]: {
       InvitationError,
       listPendingInvitations: async (id) => { calls.push(['list', id]); return [{ id: 'inv-1', name: 'Ana', email: 'ana@example.test' }]; },
@@ -43,7 +47,7 @@ async function load(path, prefix, access, failure) {
     });
   });
   await module.evaluate();
-  return { handlers: module.namespace, calls };
+  return { handlers: module.namespace, calls, limits };
 }
 
 const collection = (access, failure) => load('../src/app/api/invitations/route.js', '../../../', access, failure);
@@ -133,4 +137,24 @@ test('admins renew pending invitations into a fresh private link', async () => {
   const response = await failing.handlers.POST(...renew('inv-1'));
   assert.equal(response.status, 503);
   assert.doesNotMatch(await response.text(), /Private/);
+});
+
+test('admin invitation requests are rate limited per user', async () => {
+  const list = await collection(admin);
+  await list.handlers.GET();
+  await list.handlers.POST(post());
+  const single = await item(admin);
+  await single.handlers.DELETE(...remove());
+  await single.handlers.POST(...renew());
+  assert.deepEqual([...list.limits, ...single.limits], [['apiRead', adminId], ['apiWrite', adminId], ['apiWrite', adminId], ['apiWrite', adminId]]);
+  const limitedList = await collection(admin, 'limited');
+  const limitedItem = await item(admin, 'limited');
+  for (const response of [
+    await limitedList.handlers.GET(), await limitedList.handlers.POST(post()),
+    await limitedItem.handlers.DELETE(...remove()), await limitedItem.handlers.POST(...renew()),
+  ]) {
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('Retry-After'), '30');
+  }
+  assert.deepEqual([...limitedList.calls, ...limitedItem.calls], []);
 });

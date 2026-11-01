@@ -1,23 +1,17 @@
 import assert from 'node:assert/strict';
+import { createHash, createHmac } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
+import { isIPv6 } from 'node:net';
 import { test } from 'node:test';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { hasSameOrigin } from '../src/lib/server/access-policy.js';
 
 const source = await readFile(new URL('../src/app/auth/login/route.js', import.meta.url), 'utf8');
+const limiterSource = await readFile(new URL('../src/lib/server/rate-limit.js', import.meta.url), 'utf8');
 const origin = 'https://app.example.test';
 
-async function login({ error = null, configured = true } = {}) {
-  const calls = [];
-  const dependencies = {
-    'next/server': { NextResponse: { redirect: (url, status) => new Response(null, { status, headers: { Location: String(url) } }) } },
-    '../../../lib/server/auth': {
-      hasSameOrigin,
-      hasAuthConfiguration: () => configured,
-      createAuthClient: async () => ({ auth: { signInWithPassword: async (credentials) => { calls.push(credentials); return { data: {}, error }; } } }),
-    },
-  };
-  const module = new SourceTextModule(source);
+async function link(code, dependencies) {
+  const module = new SourceTextModule(code);
   await module.link((specifier) => {
     const exports = dependencies[specifier];
     if (!exports) throw new Error(`Unexpected dependency: ${specifier}`);
@@ -26,11 +20,40 @@ async function login({ error = null, configured = true } = {}) {
     });
   });
   await module.evaluate();
-  return { POST: module.namespace.POST, calls };
+  return module.namespace;
+}
+
+// The real limiter over a fake bucket table that reports `count` requests in the current window.
+async function limiter(count, keys) {
+  // Without RATE_LIMIT_SECRET the keys are plain SHA-256 hashes, which the assertions below recompute.
+  delete process.env.RATE_LIMIT_SECRET;
+  const prisma = {
+    $queryRaw: async (strings, key) => { keys.push(key); return [{ count, expiresAt: new Date(Date.now() + 60_000) }]; },
+    $executeRaw: async () => 0,
+  };
+  return link(limiterSource, { 'server-only': {}, 'node:crypto': { createHash, createHmac }, 'node:net': { isIPv6 }, './prisma.js': { getPrisma: () => prisma } });
+}
+
+async function login({ error = null, configured = true, requestCount = 1 } = {}) {
+  const calls = [];
+  const keys = [];
+  const dependencies = {
+    'next/server': { NextResponse: { redirect: (url, status) => new Response(null, { status, headers: { Location: String(url) } }) } },
+    '../../../lib/server/auth': {
+      hasSameOrigin,
+      hasAuthConfiguration: () => configured,
+      createAuthClient: async () => ({ auth: { signInWithPassword: async (credentials) => { calls.push(credentials); return { data: {}, error }; } } }),
+    },
+    '../../../lib/server/rate-limit': await limiter(requestCount, keys),
+  };
+  const { POST } = await link(source, dependencies);
+  return { POST, calls, keys };
 }
 
 function form(fields, requestOrigin = origin) {
-  return new Request(`${origin}/auth/login`, { method: 'POST', headers: { origin: requestOrigin }, body: new URLSearchParams(fields) });
+  return new Request(`${origin}/auth/login`, {
+    method: 'POST', headers: { origin: requestOrigin, 'x-real-ip': '203.0.113.7' }, body: new URLSearchParams(fields),
+  });
 }
 
 test('valid credentials sign in with a normalized email', async () => {
@@ -60,4 +83,34 @@ test('cross-origin and unconfigured logins never reach Auth', async () => {
 
 test('no Google OAuth flow remains', () => {
   assert.doesNotMatch(source, /OAuth|google/i);
+});
+
+test('too many attempts from one address stop before Auth and say so', async () => {
+  const { POST, calls, keys } = await login({ requestCount: 21 });
+  const response = await POST(form({ email: 'ana@example.test', password: 'long-password' }));
+  assert.equal(response.status, 303);
+  assert.equal(response.headers.get('Location'), `${origin}/app?authError=rate_limited`);
+  assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
+  assert.deepEqual(calls, []);
+  // The bucket is keyed by a hash of the policy and the client address, never the address itself.
+  assert.deepEqual(keys, [createHash('sha256').update('login:203.0.113.7').digest('hex')]);
+});
+
+test('provider rate limits are reported as rate limited, not as wrong credentials', async () => {
+  for (const error of [
+    { status: 429, code: 'over_request_rate_limit', message: 'Private auth diagnostic' },
+    { status: 400, code: 'over_email_send_rate_limit', message: 'Private auth diagnostic' },
+  ]) {
+    const { POST, calls } = await login({ error });
+    const response = await POST(form({ email: 'ana@example.test', password: 'long-password' }));
+    assert.equal(response.headers.get('Location'), `${origin}/app?authError=rate_limited`);
+    assert.equal(calls.length, 1);
+  }
+  const wrong = await login({ error: { status: 400, code: 'invalid_credentials' } });
+  assert.equal((await wrong.POST(form({ email: 'ana@example.test', password: 'wrong' }))).headers.get('Location'), `${origin}/app?authError=credentials`);
+});
+
+test('the sign-in screen explains a rate limit', async () => {
+  const panel = await readFile(new URL('../src/app/auth-panel.jsx', import.meta.url), 'utf8');
+  assert.match(panel, /rate_limited: 'Demasiados intentos/);
 });

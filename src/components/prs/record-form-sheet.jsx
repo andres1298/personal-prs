@@ -66,7 +66,8 @@ function RecordForm({ initial, onSave, formId, onSavingChange }) {
     <div className="list form-group">
       <label className="field stacked">
         <span>Notas</span>
-        <textarea rows={3} value={notes} placeholder="Opcional" onChange={(event) => setNotes(event.target.value)} />
+        {/* Matches NOTES_MAX in src/lib/server/records.js. */}
+        <textarea rows={3} maxLength={1000} value={notes} placeholder="Opcional" onChange={(event) => setNotes(event.target.value)} />
       </label>
     </div>
   </form>;

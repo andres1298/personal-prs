@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../../lib/server/auth';
 import { MemberError, setMemberDisabled } from '../../../../lib/server/members';
+import { rateLimitResponse } from '../../../../lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -14,6 +15,8 @@ export async function PATCH(request, { params }) {
   try {
     const access = await getAccess();
     if (!access.user) return json({ error: 'Inicia sesión para continuar.' }, 401);
+    const limited = await rateLimitResponse('apiWrite', access.user.id);
+    if (limited) return limited;
     if (!access.isAdmin) return json({ error: 'Solo el administrador puede gestionar usuarios.' }, 403);
     let input;
     try {

@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../lib/server/auth';
+import { rateLimitResponse } from '../../../lib/server/rate-limit';
 import { completeTour } from '../../../lib/server/records';
 
 export const runtime = 'nodejs';
@@ -15,6 +16,8 @@ export async function POST(request) {
   try {
     const access = await getAccess();
     if (!access.user) return json({ error: 'Inicia sesión para continuar.' }, 401);
+    const limited = await rateLimitResponse('apiWrite', access.user.id);
+    if (limited) return limited;
     if (!access.authorized) return json({ error: 'Tu cuenta todavía no tiene acceso.' }, 403);
     await completeTour(access.user.id);
     return json({ ok: true });

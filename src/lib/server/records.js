@@ -4,9 +4,18 @@ import { getPrisma } from './prisma.js';
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Shared weight movements plus the custom movement limit, times the three repetition maximums.
 export const MAX_BULK_RECORDS = (21 + 30) * 3;
+// Per-account quotas, so one account cannot grow the shared database without bound.
+export const MAX_RECORDS_PER_ACCOUNT = 5000;
+export const NOTES_MAX = 1000;
 
 export class RecordInputError extends Error {}
 export class RecordConflictError extends Error {}
+export class RecordLimitError extends Error {
+  constructor(limit = MAX_RECORDS_PER_ACCOUNT) {
+    super(`At most ${limit} records are allowed per account.`);
+    this.limit = limit;
+  }
+}
 
 function requireProfileId(profileId) {
   if (typeof profileId !== 'string' || !uuidPattern.test(profileId)) {
@@ -71,13 +80,15 @@ async function validatedRecord(profileId, input) {
   if (movement.measurementType === 'WEIGHT' ? ![1, 3, 5].includes(repetitionMax) : repetitionMax !== null) {
     throw new RecordInputError('Weight records require 1, 3 or 5 repetitions; time and repetition records have none.');
   }
+  const notes = optionalText(input.notes, 'Notes');
+  if (notes && notes.length > NOTES_MAX) throw new RecordInputError(`Notes must have at most ${NOTES_MAX} characters.`);
   return {
     movementId: movement.id,
     measurementType: movement.measurementType,
     value,
     performedOn,
     repetitionMax,
-    notes: optionalText(input.notes, 'Notes'),
+    notes,
   };
 }
 
@@ -133,13 +144,22 @@ export async function listRecords(authUserId) {
   return records.map(recordDto);
 }
 
+// The quota is counted in the same serializable transaction as the insert, so concurrent saves
+// cannot both pass the last free slot.
 export async function createRecord(authUserId, input) {
   const profileId = requireProfileId(authUserId);
   const data = await validatedRecord(profileId, input);
-  const record = await getPrisma().personalRecord.create({
-    data: { ...data, profileId }, include: { movement: true },
-  });
-  return recordDto(record);
+  try {
+    return await getPrisma().$transaction(async (tx) => {
+      if (await tx.personalRecord.count({ where: { profileId } }) >= MAX_RECORDS_PER_ACCOUNT) throw new RecordLimitError();
+      const record = await tx.personalRecord.create({ data: { ...data, profileId }, include: { movement: true } });
+      return recordDto(record);
+    }, { isolationLevel: 'Serializable' });
+  } catch (error) {
+    // P2034: a concurrent save touched the same rows; the client can retry.
+    if (error?.code === 'P2034') throw new RecordConflictError('A concurrent save conflicted with this record.');
+    throw error;
+  }
 }
 
 // Quick upload only fills gaps: every movement and repetition pair (none for repetition records) must be new for the owner.
@@ -165,6 +185,9 @@ export async function createRecords(authUserId, inputs) {
         select: { id: true },
       });
       if (existing) throw new RecordConflictError('A movement and repetition pair already has a record.');
+      if (await tx.personalRecord.count({ where: { profileId } }) + records.length > MAX_RECORDS_PER_ACCOUNT) {
+        throw new RecordLimitError();
+      }
       const created = [];
       for (const data of records) {
         created.push(await tx.personalRecord.create({ data: { ...data, profileId }, include: { movement: true } }));

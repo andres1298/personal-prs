@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createAuthClient, hasSameOrigin } from '../../../lib/server/auth';
 import { acceptInvitation, InvitationError } from '../../../lib/server/invitations';
+import { checkRateLimit, clientIp } from '../../../lib/server/rate-limit';
 
 function redirect(path, request) {
   const response = NextResponse.redirect(new URL(path, request.url), 303);
@@ -14,6 +15,8 @@ export async function POST(request) {
   const token = String(form.get('token') ?? '');
   const password = String(form.get('password') ?? '');
   const invitationPage = `/invite/${encodeURIComponent(token)}`;
+  // Checked before any validation or service call; the form is read first only to know where to return.
+  if (!(await checkRateLimit('inviteAccept', clientIp(request.headers))).allowed) return redirect(`${invitationPage}?error=rate_limited`, request);
   if (password !== String(form.get('confirm') ?? '')) return redirect(`${invitationPage}?error=mismatch`, request);
   let email;
   try {

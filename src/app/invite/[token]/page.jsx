@@ -1,6 +1,8 @@
+import { headers } from 'next/headers';
 import Link from 'next/link';
 import { AuthShell } from '../../auth-panel';
 import { findValidInvitation, MIN_PASSWORD_LENGTH } from '../../../lib/server/invitations';
+import { checkRateLimit, clientIp, RATE_LIMIT_MESSAGE } from '../../../lib/server/rate-limit';
 
 export const dynamic = 'force-dynamic';
 // The link token is a credential; keep its path out of cross-origin Referer headers.
@@ -11,11 +13,18 @@ const formErrors = {
   mismatch: 'Las contraseñas no coinciden.',
   weak_password: 'La contraseña debe tener al menos 8 caracteres.',
   email_taken: 'Ya existe una cuenta con este correo.',
+  rate_limited: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
 };
 
 export default async function InvitationPage({ params, searchParams }) {
   const { token } = await params;
   const { error } = await searchParams;
+  // Each visit looks the token up in the database, so repeated guesses from one address are limited.
+  if (!(await checkRateLimit('invitePage', clientIp(await headers()))).allowed) {
+    return <AuthShell title="Mis PRs">
+      <p className="auth-message error" role="alert">{RATE_LIMIT_MESSAGE}</p>
+    </AuthShell>;
+  }
   const invitation = await findValidInvitation(token);
 
   if (!invitation) {

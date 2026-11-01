@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../../lib/server/auth';
 import { renewInvitation, revokeInvitation } from '../../../../lib/server/invitations';
+import { rateLimitResponse } from '../../../../lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -16,6 +17,8 @@ export async function DELETE(request, { params }) {
   try {
     const access = await getAccess();
     if (!access.user) return json({ error: 'Inicia sesión para continuar.' }, 401);
+    const limited = await rateLimitResponse('apiWrite', access.user.id);
+    if (limited) return limited;
     if (!access.isAdmin) return json({ error: 'Solo el administrador puede gestionar invitaciones.' }, 403);
     const { id } = await params;
     if (!await revokeInvitation(access.user.id, id)) return json({ error: 'La invitación ya no está pendiente.' }, 404);
@@ -30,6 +33,8 @@ export async function POST(request, { params }) {
   try {
     const access = await getAccess();
     if (!access.user) return json({ error: 'Inicia sesión para continuar.' }, 401);
+    const limited = await rateLimitResponse('apiWrite', access.user.id);
+    if (limited) return limited;
     if (!access.isAdmin) return json({ error: 'Solo el administrador puede gestionar invitaciones.' }, 403);
     const { id } = await params;
     const renewed = await renewInvitation(access.user.id, id);
