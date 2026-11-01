@@ -10,7 +10,7 @@ import { SegmentedControl, Switch, SymbolTile } from './ui/controls';
 import AdminPanel from '../app/admin-panel';
 import { clearCaches } from './hooks';
 
-export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin, onTour, onMyMovements }) {
+export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, userEmail, isAdmin, onTour, onMyMovements }) {
   const togglePlate = (plate) => updateSettings((s) => ({
     plates: s.plates.includes(plate) ? s.plates.filter((p) => p !== plate) : [...s.plates, plate],
   }));
@@ -47,7 +47,7 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
     </List>}
     <List header="Cuenta">
       <Row leading={<SymbolTile color="--b-blue"><Icon name="person" /></SymbolTile>} title="Datos"
-        subtitle={demo ? 'Datos de ejemplo · cambios solo en esta sesión' : 'Conectado a tu cuenta'} />
+        subtitle={demo ? 'Datos de ejemplo · cambios solo en esta sesión' : userEmail ? `Conectado como ${userEmail}` : 'Conectado a tu cuenta'} />
       {demo
         ? <Link className="row row-button tint-row" href="/app">Iniciar sesión</Link>
         : <form action="/auth/logout" method="post" onSubmit={clearCaches}><button className="row row-button danger-row">Cerrar sesión</button></form>}

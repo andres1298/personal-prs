@@ -16,5 +16,5 @@ export default async function Home({ searchParams }) {
   if (!authorized) return <AuthPanel configured={configured} signedIn={Boolean(user)} authError={authError} captchaSiteKey={providerCaptchaSiteKey()} />;
   // The tour is a convenience: if its state cannot be read, the app still opens without it.
   const tourPending = await hasPendingTour(user.id).catch(() => false);
-  return <App hasBackend={true} userId={user.id} isAdmin={isAdmin} tourPending={tourPending} />;
+  return <App hasBackend={true} userId={user.id} userEmail={user.email ?? ''} isAdmin={isAdmin} tourPending={tourPending} />;
 }
