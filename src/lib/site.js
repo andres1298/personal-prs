@@ -4,7 +4,7 @@
 export const SITE_NAME = 'Mis PRs';
 export const SITE_TITLE = 'Mis PRs · Tus PRs de CrossFit y los discos de la barra';
 export const SITE_DESCRIPTION =
-  'Guarda tus marcas personales de CrossFit, calcula el peso por porcentaje y ve qué discos poner en la barra, con calentamiento y timer. Gratis, desde tu teléfono.';
+  'Guarda tus marcas personales de CrossFit, calcula el peso por porcentaje y ve qué discos poner en la barra, con tabla de porcentajes y timer. Gratis, desde tu teléfono.';
 
 // Shared preview for links on social networks and chats (1200×630, in public/).
 export const SITE_IMAGE = {

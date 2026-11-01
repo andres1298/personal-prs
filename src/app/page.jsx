@@ -12,7 +12,7 @@ import './landing.css';
 export const metadata = {
   title: { absolute: SITE_TITLE },
   description: SITE_DESCRIPTION,
-  keywords: ['PR CrossFit', 'calculadora de discos', 'calculadora de barra', 'porcentajes 1RM', 'registro de marcas personales', 'timer AMRAP EMOM Tabata', 'calentamiento levantamiento olímpico'],
+  keywords: ['PR CrossFit', 'calculadora de discos', 'calculadora de barra', 'porcentajes 1RM', 'registro de marcas personales', 'timer AMRAP EMOM Tabata', 'tabla de porcentajes levantamiento olímpico'],
   alternates: { canonical: '/' },
   robots: { index: true, follow: true, googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 } },
   openGraph: {
@@ -42,17 +42,25 @@ const MOVES = [
 const FEATURES = [
   { icon: 'trophy', color: '--b-pink', title: 'Todos tus PRs', text: '1RM, 3RM y 5RM de cada levantamiento, tiempos de benchmarks y cardio, y repeticiones máximas de gimnasia.', wide: true },
   { icon: 'barbell', color: '--b-blue', title: 'Discos por lado', text: 'Elige el porcentaje y ve qué discos poner, con la barra y los discos que tiene tu box.' },
-  { icon: 'flame', color: '--b-yellow', title: 'Calentamiento listo', text: 'Una escalera desde la barra sola, con saltos parejos y pocos cambios de discos.' },
+  { icon: 'number', color: '--b-yellow', title: 'Tabla de porcentajes', text: 'Del 100% al 40% de tu PR, cada 5%, con los discos de cada carga. Toca uno y se arma en la barra.' },
   { icon: 'timer', color: '--b-green', title: 'Timer de workout', text: 'AMRAP, EMOM, Tabata y For Time con cuenta regresiva y avisos de sonido.' },
   { icon: 'chart', color: '--b-lilac', title: 'Tu progreso', text: 'Una gráfica por movimiento con cada marca y su fecha, en lb y en kg.' },
   { icon: 'sparkles', color: '--b-cyan', title: 'Tus movimientos', text: 'Crea movimientos y categorías propias, o apaga los que no haces.' },
   { icon: 'bolt', color: '--b-lime', title: 'Como una app', text: 'Agrégala a tu pantalla de inicio y mantén la pantalla encendida mientras entrenas.', wide: true },
 ];
 
+const DEMO_HINTS = [
+  'Sube o baja el porcentaje con − y +, o cambia entre 1RM, 3RM y 5RM.',
+  'Toca un disco de abajo para agregarlo y tócalo en la barra para quitarlo.',
+  'Con las flechas ves otras formas de cargar el mismo peso.',
+  'En Porcentajes tienes la carga del 100% al 40% de tu PR.',
+  'Toca ‹ Squats para elegir otro movimiento.',
+];
+
 const STEPS = [
   { title: 'Crea tu cuenta', text: 'Con tu correo y una contraseña. Confirmas desde el enlace que te llega y listo.', color: '--b-yellow' },
   { title: 'Registra tus PRs', text: 'Uno por uno o varios a la vez con la carga rápida. La fecha y la nota son opcionales.', color: '--b-pink' },
-  { title: 'Entrena con el peso exacto', text: 'Elige el porcentaje del día, arma la barra y sigue la escalera de calentamiento.', color: '--b-green' },
+  { title: 'Entrena con el peso exacto', text: 'Elige el porcentaje del día y arma la barra. Si te falta un disco, ajusta la carga disco por disco.', color: '--b-green' },
 ];
 
 const FAQ = [
@@ -133,7 +141,7 @@ function Hero() {
         </h1>
         <p className="lp-lead lp-enter" style={{ '--d': 5 }}>
           Guarda tus marcas personales, elige el porcentaje del día y ve exactamente qué discos poner a cada lado de la barra.
-          Con calentamiento y timer incluidos.
+          Con tabla de porcentajes y timer incluidos.
         </p>
         <div className="lp-ctas lp-enter" style={{ '--d': 6 }}>
           <Link href={SIGN_UP} className="lp-btn lp-btn-large">Crear cuenta gratis<Icon name="arrowRight" size={20} weight={2.6} /></Link>
@@ -146,7 +154,7 @@ function Hero() {
         </ul>
       </div>
       <div className="lp-hero-visual">
-        <div className="lp-phone"><HeroPhone /></div>
+        <div className="lp-hero-device"><HeroPhone /></div>
         <div className="lp-sticker lp-sticker-a" aria-hidden="true"><Icon name="arrowUp" size={18} weight={3} /><b className="display">+35 lb</b><span>Back Squat</span></div>
         <div className="lp-sticker lp-sticker-b" aria-hidden="true"><Icon name="timer" size={18} weight={2.6} /><b className="display num">0:20</b><span>Tabata</span></div>
         <div className="lp-sticker lp-sticker-c" aria-hidden="true"><b className="display">80%</b><span>de tu PR</span></div>
@@ -185,12 +193,21 @@ export default function LandingPage() {
       <Hero />
       <Marquee />
 
-      <section id="demo" className="lp-section" aria-labelledby="demo-title">
-        <div className="lp-wrap">
-          <SectionHead id="demo-title" eyebrow="Demo en vivo" title="Pruébala aquí. Sin cuenta." color="--b-blue">
-            Es la misma calculadora de la app. Cambia el PR, el porcentaje o la barra y mira cómo se arma la carga y el calentamiento.
-          </SectionHead>
-          <div data-reveal><PlateDemo /></div>
+      <section id="demo" className="lp-section lp-dark" aria-labelledby="demo-title">
+        <div className="lp-wrap lp-split lp-demo-split">
+          <div>
+            <SectionHead id="demo-title" eyebrow="Demo en vivo" title="Pruébala aquí. Sin cuenta." color="--b-blue">
+              Es la app real con datos de ejemplo. Lo que cambies no se guarda.
+            </SectionHead>
+            <ol className="lp-hints" data-reveal>
+              {DEMO_HINTS.map((hint) => <li key={hint}>{hint}</li>)}
+            </ol>
+            <div className="lp-ctas" data-reveal>
+              <Link href={SIGN_UP} className="lp-btn lp-btn-large">Crear cuenta gratis<Icon name="arrowRight" size={20} weight={2.6} /></Link>
+              <Link href={DEMO} className="lp-btn lp-btn-outline lp-btn-large">Abrir la demo completa</Link>
+            </div>
+          </div>
+          <div className="lp-demo-device" data-reveal><PlateDemo /></div>
         </div>
       </section>
 

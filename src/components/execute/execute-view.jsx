@@ -47,8 +47,9 @@ const FREE_PATCH = { view: 'run', free: true };
 // Lifts calculate loads; gymnastics groups list maximum repetitions and open each movement's record.
 const executeGroups = () => [...weightGroups(), ...repsGroups()];
 
-export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings, onOpenRecord }) {
-  const go = (patch) => { setEx(patch); scrollTop(); };
+// `scrollToTop` lets a host that scrolls an inner container (the landing page's phone) keep the window still.
+export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings, onOpenRecord, scrollToTop = scrollTop }) {
+  const go = (patch) => { setEx(patch); scrollToTop(); };
   if (ex.view === 'pick') {
     return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} onOpenSettings={onOpenSettings} />;
   }

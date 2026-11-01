@@ -10,7 +10,7 @@ html:has(.lp) { scroll-padding-top: 84px; }
   --lp-gutter: clamp(16px, 4vw, 32px);
   overflow-x: clip; -webkit-user-select: text; user-select: text; font-size: 17px; line-height: 1.5;
 }
-.lp button, .lp .lp-btn, .lp .lp-chips, .lp .lp-segmented { -webkit-user-select: none; user-select: none; }
+.lp button, .lp .lp-btn, .lp .lp-chips { -webkit-user-select: none; user-select: none; }
 .lp-wrap { width: 100%; max-width: 1200px; margin: 0 auto; padding: 0 var(--lp-gutter); }
 .lp h2, .lp h3 { text-wrap: balance; }
 .lp p { text-wrap: pretty; }
@@ -115,42 +115,50 @@ html:has(.lp) { scroll-padding-top: 84px; }
 .lp-checks li { display: inline-flex; align-items: center; gap: 6px; }
 .lp-checks svg { color: var(--b-green); }
 
-.lp-hero-visual { position: relative; display: grid; place-items: center; min-height: 600px; isolation: isolate; }
+.lp-hero-visual { position: relative; display: grid; place-items: center; min-height: 720px; isolation: isolate; }
 .lp-hero-visual::before, .lp-hero-visual::after { content: ''; position: absolute; z-index: -1; }
 .lp-hero-visual::before { width: min(440px, 92%); aspect-ratio: 1; border-radius: 50%; background: var(--b-blue); top: 6%; }
 .lp-hero-visual::after { width: 180px; height: 180px; border-radius: 40px; background: var(--b-pink); right: 2%; bottom: 8%; transform: rotate(14deg); }
 
-.lp-phone {
-  position: relative; width: 300px; height: 612px; padding: 11px; border-radius: 52px; background: #0d0d0d;
-  box-shadow: 0 0 0 2px #2a2a28, 0 40px 80px -30px rgba(0, 0, 0, .65);
+/* ---------- Phone with the real app ---------- */
+/* The app's dark tokens (globals.css, prefers-color-scheme: dark), applied whatever theme the page uses. */
+.lp-app-dark {
+  color-scheme: dark;
+  --bg: #0d0d0d; --surface: #1c1c1b; --surface2: #2a2a28; --ink: #f5f3ee; --ink2: #aaa79f; --ink3: #74716a;
+  --line: rgba(245, 243, 238, .12); --inverse: #ffffff; --inverse-ink: #0d0d0d; --scrim: rgba(0, 0, 0, .6);
+  --accent-mix: 100%; --shadow: 0 10px 30px -10px rgba(0, 0, 0, .8); --danger: #ff6a4d;
+  background: var(--bg); color: var(--ink); font: 500 16px/1.3 var(--font); text-align: left;
+  -webkit-user-select: none; user-select: none;
 }
-.lp-screen {
-  position: relative; height: 100%; display: flex; flex-direction: column; gap: 12px; padding: 12px 14px 0; overflow: hidden;
-  border-radius: 41px; background: var(--bg); color: var(--ink); font-size: 14px; line-height: 1.25;
+.lp-device {
+  --w: 402px; --h: 860px; --bezel: 12px;
+  position: relative; flex: none; width: var(--w); height: var(--h); padding: var(--bezel); border-radius: 58px; zoom: var(--zoom, 1);
+  background: #1b1b1a; box-shadow: inset 0 0 0 1.5px #3a3a37, 0 0 0 1px rgba(0, 0, 0, .5), 0 50px 90px -40px rgba(0, 0, 0, .75);
 }
-.lp-screen-status { display: flex; justify-content: space-between; align-items: center; padding: 2px 14px 0; font-size: 13px; font-weight: 800; }
-.lp-screen-island { width: 86px; height: 26px; border-radius: 999px; background: #0d0d0d; }
-.lp-screen-head { display: grid; gap: 4px; padding: 14px 16px; border-radius: 20px; background: var(--c); color: var(--block-ink); }
-.lp-screen-head small { font-size: 11px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; opacity: .7; }
-.lp-screen-head b { font-size: 26px; }
-.lp-screen-head span { font-size: 13px; font-weight: 700; }
-.lp-screen-chips { display: flex; gap: 5px; }
-.lp-screen-chips span {
-  flex: 1 1 0; min-width: 0; padding: 7px 0; border-radius: 999px; background: var(--surface2); text-align: center; font-size: 11.5px; font-weight: 800;
-  transition: background-color .35s, color .35s, transform .35s var(--bounce);
+/* Drawn at a real phone's size (402 pt wide, like the app on an iPhone) and scaled with zoom, so the app lays out
+   exactly as it does on a phone. A transformed screen is the containing block of the app's fixed tab bar, so it sits at the screen's bottom. */
+.lp-device-screen {
+  --safe-top: 48px; --safe-bottom: 16px;
+  position: relative; height: 100%; overflow: hidden; border-radius: 46px; transform: translateZ(0);
 }
-.lp-screen-chips span[data-on="true"] { background: var(--inverse); color: var(--inverse-ink); transform: scale(1.06); }
-.lp-screen-weight { text-align: center; padding: 6px 0 0; }
-.lp-screen-weight b { display: block; font-size: 64px; letter-spacing: -.02em; }
-.lp-screen-weight b small { font-size: 18px; margin-left: 4px; letter-spacing: 0; }
-.lp-screen-weight span { color: var(--ink2); font-size: 13px; font-weight: 700; }
-.lp-screen-card { display: grid; gap: 10px; padding: 12px 12px 14px; }
-.lp-screen-card .barbell { flex: none; height: 116px; min-height: 0; }
-.lp-screen-tabs {
-  display: flex; justify-content: space-around; margin: auto -14px 0; padding: 12px 8px 22px; box-shadow: 0 -1px 0 var(--line);
-  color: var(--ink3); font-size: 11px; font-weight: 800;
+.lp-device-status {
+  position: absolute; z-index: 40; top: 0; left: 0; right: 0; height: 46px; display: flex; align-items: center; justify-content: space-between;
+  padding: 0 30px; font-size: 14px; font-weight: 800; pointer-events: none;
 }
-.lp-screen-tabs span[data-on="true"] { color: var(--ink); }
+.lp-device-status i { width: 96px; height: 28px; border-radius: 999px; background: #000; }
+.lp-device-scroll { height: 100%; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: none; }
+.lp-device-scroll::-webkit-scrollbar { display: none; }
+.lp-device .workbench { min-height: calc(var(--h) - 2 * var(--bezel)); }
+/* The app sizes some type with vw; inside the phone those take their value at the phone's 402 pt width. */
+.lp-device .large-title h1 { font-size: 46px; }
+.lp-device .page-title { font-size: 40px; }
+.lp-device .category-hero h1 { font-size: 34px; }
+.lp-device .category-name { font-size: clamp(13px, calc(100cqw / (var(--chars, 10) * .95)), 17px); }
+.lp-device .hero-weight { font-size: 64px; }
+.lp-device .navbar-title { max-width: 210px; }
+
+.lp-hero-device .lp-device { --zoom: .8; }
+.lp-demo-device .lp-device { --zoom: .92; }
 
 .lp-sticker {
   position: absolute; z-index: 2; display: grid; grid-template-columns: auto auto; align-items: center; gap: 2px 8px; padding: 12px 16px;
@@ -158,22 +166,20 @@ html:has(.lp) { scroll-padding-top: 84px; }
 }
 .lp-sticker b { font-size: 24px; }
 .lp-sticker span { grid-column: 1 / -1; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; opacity: .75; }
-.lp-sticker-a { --c: var(--b-green); --r: -6deg; top: 3%; left: -12%; }
+.lp-sticker-a { --c: var(--b-green); --r: -6deg; top: 3%; left: -17%; }
 .lp-sticker-b { --c: var(--b-lilac); --r: 5deg; bottom: 18%; left: -8%; }
 .lp-sticker-c { --c: var(--b-yellow); --r: 8deg; top: 30%; right: -6%; grid-template-columns: auto; }
 .lp-sticker { transform: rotate(var(--r)); }
 
 @media (max-width: 960px) {
   .lp-hero-grid { grid-template-columns: minmax(0, 1fr); }
-  .lp-hero-visual { min-height: 560px; }
+  .lp-hero-visual { min-height: 0; padding: 24px 0; }
   .lp-sticker-a { left: 4%; top: 1%; }
   .lp-sticker-b { left: 2%; }
   .lp-sticker-c { right: 4%; }
 }
 @media (max-width: 420px) {
   .lp-hero-visual { min-height: 0; padding: 12px 0; }
-  .lp-phone { width: 272px; height: 560px; }
-  .lp-screen-weight b { font-size: 54px; }
   .lp-sticker { padding: 9px 12px; }
   .lp-sticker b { font-size: 19px; }
   .lp-sticker-a { left: -2%; top: -1%; }
@@ -190,87 +196,26 @@ html:has(.lp) { scroll-padding-top: 84px; }
   font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: clamp(16px, 2vw, 22px); text-transform: uppercase;
 }
 
-/* ---------- Plate demo ---------- */
-.lp-demo {
-  display: grid; grid-template-columns: minmax(0, 360px) minmax(0, 1fr); gap: clamp(20px, 3vw, 40px);
-  padding: clamp(18px, 3vw, 36px); border-radius: var(--lp-radius); background: var(--surface); box-shadow: var(--shadow);
+/* ---------- Live demo ---------- */
+.lp-demo-split { grid-template-columns: minmax(0, 1fr) auto; }
+.lp-demo-split .lp-section-head { margin-bottom: 28px; }
+.lp-demo-device { display: flex; justify-content: center; }
+.lp-hints { display: grid; gap: 14px; margin-bottom: 32px; list-style: none; counter-reset: hint; max-width: 520px; }
+.lp-hints li { display: grid; grid-template-columns: 34px 1fr; align-items: start; gap: 14px; color: var(--ink2); font-size: 17px; counter-increment: hint; }
+.lp-hints li::before {
+  content: counter(hint); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
+  background: var(--surface2); color: var(--ink); font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 15px;
 }
-.lp-demo-controls { display: grid; align-content: start; gap: 26px; }
-.lp-field { display: grid; gap: 10px; border: 0; min-width: 0; }
-.lp-field > label, .lp-field > legend {
-  display: flex; justify-content: space-between; align-items: baseline; width: 100%; padding: 0; margin-bottom: 10px;
-  color: var(--ink2); font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+@media (max-width: 960px) {
+  .lp-demo-split { grid-template-columns: minmax(0, 1fr); }
 }
-.lp-field > label { margin-bottom: 0; }
-.lp-field > label b { color: var(--ink); font-size: 20px; letter-spacing: 0; }
-.lp-input {
-  display: flex; align-items: center; gap: 8px; height: 60px; padding: 0 18px; border-radius: 16px; background: var(--surface2);
-  transition: box-shadow .2s;
+@media (max-width: 480px) {
+  .lp-hero-device .lp-device { --zoom: .72; }
+  .lp-demo-device .lp-device { --zoom: .87; }
 }
-.lp-input:focus-within { box-shadow: inset 0 0 0 2.5px var(--c); }
-.lp-input input {
-  flex: 1; min-width: 0; height: 100%; border: 0; background: none; outline: none;
-  font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 28px; -moz-appearance: textfield; appearance: textfield;
-}
-.lp-input input::-webkit-inner-spin-button, .lp-input input::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-.lp-input span { color: var(--ink2); font-weight: 800; }
-.lp-hint { color: var(--ink3); font-size: 13px; }
-
-.lp-range { -webkit-appearance: none; appearance: none; width: 100%; height: 36px; background: none; cursor: pointer; }
-.lp-range:focus-visible { outline-offset: 4px; }
-.lp-range::-webkit-slider-runnable-track {
-  height: 12px; border-radius: 999px; background: linear-gradient(var(--c), var(--c)) no-repeat 0 0 / var(--fill) 100%, var(--surface2);
-}
-.lp-range::-moz-range-track { height: 12px; border-radius: 999px; background: var(--surface2); }
-.lp-range::-moz-range-progress { height: 12px; border-radius: 999px; background: var(--c); }
-.lp-range::-webkit-slider-thumb {
-  -webkit-appearance: none; width: 30px; height: 30px; margin-top: -9px; border-radius: 50%; background: var(--inverse);
-  box-shadow: 0 0 0 5px var(--surface), 0 4px 12px rgba(0, 0, 0, .3); transition: transform .2s var(--bounce);
-}
-.lp-range::-moz-range-thumb { width: 30px; height: 30px; border: 0; border-radius: 50%; background: var(--inverse); box-shadow: 0 0 0 5px var(--surface), 0 4px 12px rgba(0, 0, 0, .3); }
-.lp-range:active::-webkit-slider-thumb { transform: scale(1.15); }
-
-.lp-segmented {
-  position: relative; display: grid; grid-template-columns: repeat(var(--count), 1fr); padding: 4px; border-radius: 16px; background: var(--surface2);
-}
-.lp-segmented::before {
-  content: ''; position: absolute; top: 4px; bottom: 4px; left: 4px; width: calc((100% - 8px) / var(--count)); border-radius: 12px;
-  background: var(--inverse); transform: translateX(calc(var(--index) * 100%)); transition: transform .4s var(--spring);
-}
-.lp-segmented button { position: relative; min-height: 46px; text-align: center; font-weight: 800; transition: color .3s; }
-.lp-segmented button[aria-pressed="true"] { color: var(--inverse-ink); }
-
-.lp-demo-result { display: grid; align-content: start; gap: 18px; min-width: 0; }
-.lp-kicker { color: var(--ink2); font-size: 14px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
-.lp-big { font-size: clamp(64px, 9vw, 120px); line-height: .95; letter-spacing: -.03em; margin: 6px 0 4px; }
-.lp-big small { font-size: .28em; margin-left: 6px; letter-spacing: 0; }
-.lp-sub { color: var(--ink2); font-weight: 700; }
-.lp-load { display: grid; gap: 12px; background: var(--bg); }
-.lp-load .barbell { flex: none; height: clamp(140px, 18vw, 190px); min-height: 0; }
-.lp .plate { animation-fill-mode: backwards; }
-
-.lp-ladder { border-radius: var(--radius); background: var(--bg); padding: 16px 16px 8px; }
-.lp-ladder-title { margin-bottom: 8px; font-size: 12px; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; color: var(--ink2); }
-.lp-ladder-title span { letter-spacing: 0; text-transform: none; font-weight: 600; font-size: 14px; margin-left: 6px; }
-.lp-ladder ol { list-style: none; display: grid; }
-.lp-ladder li {
-  display: grid; grid-template-columns: 88px 52px minmax(0, 1fr) auto; align-items: center; gap: 10px; min-height: 48px;
-  box-shadow: inset 0 -1px 0 var(--line); animation: lp-row-in .5s var(--ease) backwards; animation-delay: calc(var(--i) * 70ms);
-}
-.lp-ladder li:last-child { box-shadow: none; }
-.lp-ladder li[data-final="true"] { margin: 4px -8px 8px; padding: 0 8px; border-radius: 12px; background: color-mix(in srgb, var(--c) 30%, transparent); }
-.lp-ladder-load { font-size: 14px; color: var(--ink2); font-weight: 700; }
-.lp-ladder-load b { color: var(--ink); font-size: 19px; font-weight: 900; }
-.lp-ladder-reps { font-weight: 800; }
-.lp-ladder-note { color: var(--ink2); font-size: 14px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-@keyframes lp-row-in { from { opacity: 0; transform: translateX(-12px); } }
-
-@media (max-width: 860px) {
-  .lp-demo { grid-template-columns: minmax(0, 1fr); }
-}
-@media (max-width: 420px) {
-  .lp-ladder li { grid-template-columns: 76px 40px minmax(0, 1fr); }
-  .lp-ladder .mini-plates { display: none; }
+@media (max-width: 380px) {
+  .lp-hero-device .lp-device { --zoom: .68; }
+  .lp-demo-device .lp-device { --zoom: .8; }
 }
 
 /* ---------- Progress ---------- */
@@ -408,7 +353,7 @@ html:has(.lp) { scroll-padding-top: 84px; }
   .lp-enter { animation: lp-fade-up .9s var(--ease) both; animation-delay: calc(var(--d) * 90ms); }
   .lp-enter-up { animation: lp-rise 1s var(--ease) both; animation-delay: calc(var(--d) * 110ms); }
   .lp-mark { animation: lp-rise 1s var(--ease) both, lp-mark .7s var(--ease) both; animation-delay: calc(var(--d) * 110ms), .75s; }
-  .lp-phone { animation: lp-phone-in 1.2s var(--ease) both .2s; }
+  .lp-hero-device { animation: lp-phone-in 1.2s var(--ease) both .2s; }
   .lp-hero-visual::before { animation: lp-scale-in 1.2s var(--ease) both, lp-drift 9s ease-in-out 1.2s infinite alternate; }
   .lp-hero-visual::after { animation: lp-scale-in 1.2s var(--ease) both .2s, lp-spin 24s linear infinite; }
   .lp-sticker { animation: lp-pop .8s var(--bounce) both, lp-float 6s ease-in-out infinite; }
