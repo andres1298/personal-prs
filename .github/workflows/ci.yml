@@ -9,9 +9,11 @@ on:
 permissions:
   contents: read
 
+# Superseded pull request runs are cancelled; every push to main runs to completion so each
+# merged commit gets its own result.
 concurrency:
   group: ci-${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
   verify:
@@ -24,8 +26,8 @@ jobs:
       - name: Check out the repository
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
-          # Two commits give the parent needed to check whitespace in the incoming change.
-          fetch-depth: 2
+          # Full history lets the whitespace check reach every commit included in a push.
+          fetch-depth: 0
           persist-credentials: false
 
       - name: Set up Node.js
@@ -47,10 +49,21 @@ jobs:
         run: npm run build
 
       - name: Check whitespace
-        # On pull requests HEAD is the merge commit, so HEAD^ is the base branch; on pushes it is
-        # the previous commit. The second check covers files changed by install or build.
+        # On pull requests HEAD is the merge commit, so HEAD^ is the base branch. On pushes the
+        # check starts at the previous tip of the branch so every pushed commit is covered, and
+        # falls back to HEAD^ when that commit is unknown (new branch or force push). The second
+        # check covers files changed by install or build.
+        env:
+          EVENT_NAME: ${{ github.event_name }}
+          PUSH_BEFORE: ${{ github.event.before }}
         run: |
-          git diff --check HEAD^ HEAD
+          base=HEAD^
+          if [ "$EVENT_NAME" = push ] && [ -n "$PUSH_BEFORE" ] \
+            && [ "$PUSH_BEFORE" != 0000000000000000000000000000000000000000 ] \
+            && git cat-file -e "$PUSH_BEFORE^{commit}" 2>/dev/null; then
+            base=$PUSH_BEFORE
+          fi
+          git diff --check "$base" HEAD
           git diff --check
 
       - name: Audit production dependencies

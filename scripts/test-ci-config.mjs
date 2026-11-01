@@ -48,7 +48,8 @@ test('the CI workflow runs on pull requests and main with read-only permissions'
   // No job may widen the token scope.
   assert.equal(workflow.match(/permissions:/g).length, 1);
   assert.doesNotMatch(workflow, /pull_request_target|secrets\./);
-  assert.match(workflow, /^ {2}cancel-in-progress: true$/m);
+  // Only superseded pull request runs are cancelled, never runs for commits on main.
+  assert.match(workflow, /^ {2}cancel-in-progress: \$\{\{ github\.event_name == 'pull_request' \}\}$/m);
   assert.match(workflow, /persist-credentials: false/);
 });
 
@@ -73,6 +74,10 @@ test('the CI workflow installs, tests, validates, builds and checks whitespace i
   assert.deepEqual([...positions].sort((a, b) => a - b), positions);
   assert.match(workflow, /node-version-file: \.nvmrc/);
   assert.equal(read('.nvmrc').trim(), '24');
+  // Pushes check whitespace from the previous branch tip, which needs the full history.
+  assert.match(workflow, /fetch-depth: 0/);
+  assert.match(workflow, /PUSH_BEFORE: \$\{\{ github\.event\.before \}\}/);
+  assert.match(workflow, /git diff --check "\$base" HEAD/);
   // The audit step is informational only.
   assert.match(workflow, /continue-on-error: true\n\s+run: npm audit --omit=dev --audit-level=high/);
 });
