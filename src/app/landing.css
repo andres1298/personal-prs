@@ -121,12 +121,12 @@ html:has(.lp) { scroll-padding-top: 84px; }
 .lp-hero-visual::after { width: 180px; height: 180px; border-radius: 40px; background: var(--b-pink); right: 2%; bottom: 8%; transform: rotate(14deg); }
 
 /* ---------- Phone with the real app ---------- */
-/* The app's dark tokens (globals.css, prefers-color-scheme: dark), applied whatever theme the page uses. */
-.lp-app-dark {
-  color-scheme: dark;
-  --bg: #0d0d0d; --surface: #1c1c1b; --surface2: #2a2a28; --ink: #f5f3ee; --ink2: #aaa79f; --ink3: #74716a;
-  --line: rgba(245, 243, 238, .12); --inverse: #ffffff; --inverse-ink: #0d0d0d; --scrim: rgba(0, 0, 0, .6);
-  --accent-mix: 100%; --shadow: 0 10px 30px -10px rgba(0, 0, 0, .8); --danger: #ff6a4d;
+/* The app's light tokens (globals.css :root), applied whatever theme the page uses. */
+.lp-app-light {
+  color-scheme: light;
+  --bg: #f3f1ec; --surface: #ffffff; --surface2: #e9e6df; --ink: #0d0d0d; --ink2: #5a5852; --ink3: #8d8a83;
+  --line: rgba(13, 13, 13, .12); --inverse: #0d0d0d; --inverse-ink: #ffffff; --scrim: rgba(13, 13, 13, .35);
+  --accent-mix: 74%; --shadow: 0 10px 30px -10px rgba(0, 0, 0, .35); --danger: #c4321f;
   background: var(--bg); color: var(--ink); font: 500 16px/1.3 var(--font); text-align: left;
   -webkit-user-select: none; user-select: none;
 }
@@ -197,18 +197,8 @@ html:has(.lp) { scroll-padding-top: 84px; }
 }
 
 /* ---------- Live demo ---------- */
-.lp-demo-split { grid-template-columns: minmax(0, 1fr) auto; }
-.lp-demo-split .lp-section-head { margin-bottom: 28px; }
+.lp-demo-title { margin-bottom: clamp(32px, 5vw, 56px); text-align: center; font-size: clamp(34px, 5.4vw, 68px); }
 .lp-demo-device { display: flex; justify-content: center; }
-.lp-hints { display: grid; gap: 14px; margin-bottom: 32px; list-style: none; counter-reset: hint; max-width: 520px; }
-.lp-hints li { display: grid; grid-template-columns: 34px 1fr; align-items: start; gap: 14px; color: var(--ink2); font-size: 17px; counter-increment: hint; }
-.lp-hints li::before {
-  content: counter(hint); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 10px;
-  background: var(--surface2); color: var(--ink); font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 15px;
-}
-@media (max-width: 960px) {
-  .lp-demo-split { grid-template-columns: minmax(0, 1fr); }
-}
 @media (max-width: 480px) {
   .lp-hero-device .lp-device { --zoom: .72; }
   .lp-demo-device .lp-device { --zoom: .87; }
@@ -243,34 +233,18 @@ html:has(.lp) { scroll-padding-top: 84px; }
   margin: 0 clamp(8px, 2vw, 24px); border-radius: clamp(28px, 4vw, 48px); background: var(--bg); color: var(--ink); color-scheme: dark;
 }
 @media (prefers-color-scheme: dark) { .lp-dark { --bg: #1a1a19; --surface: #262624; --surface2: #33332f; } }
-.lp-timer { display: grid; justify-items: center; gap: 28px; }
-.lp-timer-tabs { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
-.lp-timer-tabs button {
-  min-height: 44px; padding: 0 18px; border-radius: 999px; background: var(--surface2); color: var(--ink); font-weight: 800;
-  font-family: var(--display); font-stretch: 125%; text-transform: uppercase; font-size: 14px; transition: background-color .25s, color .25s, transform .25s var(--bounce);
-}
-.lp-timer-tabs button:active { transform: scale(.94); }
-.lp-timer-tabs button[aria-pressed="true"] { background: var(--c); color: var(--block-ink); }
-@media (max-width: 480px) {
-  .lp-timer-tabs { flex-wrap: nowrap; gap: 6px; }
-  .lp-timer-tabs button { padding: 0 11px; font-size: 12px; }
-}
-.lp-timer-face { --ring: var(--c); position: relative; width: min(340px, 82vw); aspect-ratio: 1; display: grid; place-items: center; }
-.lp-timer-face[data-kind="prep"] { --ring: var(--b-yellow); }
+.lp-timer-wrap { display: grid; justify-items: center; text-align: center; }
+.lp-timer-wrap .lp-section-head { margin-bottom: clamp(28px, 4vw, 44px); }
+.lp-timer { display: grid; justify-items: center; }
+.lp-timer-face { --ring: var(--b-green); position: relative; width: min(360px, 80vw); aspect-ratio: 1; display: grid; place-items: center; }
 .lp-timer-face[data-kind="rest"] { --ring: var(--b-cyan); }
-.lp-timer-face[data-kind="paused"] { --ring: var(--ink3); }
-.lp-timer-face[data-kind="done"] { --ring: var(--b-green); }
 .lp-timer-face svg { position: absolute; inset: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
 .lp-ring-track { fill: none; stroke: var(--surface2); stroke-width: 12; }
 .lp-ring { fill: none; stroke: var(--ring); stroke-width: 12; stroke-linecap: round; transition: stroke-dashoffset .12s linear, stroke .4s; }
-.lp-ring-pulse { position: absolute; inset: 4%; border-radius: 50%; box-shadow: 0 0 0 6px var(--ring); animation: lp-pulse .8s var(--ease) forwards; pointer-events: none; }
-@keyframes lp-pulse { from { opacity: .9; transform: scale(.94); } to { opacity: 0; transform: scale(1.08); } }
 .lp-timer-readout { display: grid; justify-items: center; gap: 6px; text-align: center; }
 .lp-timer-phase { color: var(--ring); font-size: 14px; font-weight: 900; letter-spacing: .14em; text-transform: uppercase; transition: color .4s; }
-.lp-timer-readout b { font-size: clamp(60px, 15vw, 92px); line-height: 1; letter-spacing: -.02em; }
-.lp-timer-caption { color: var(--ink2); font-size: 15px; font-weight: 700; max-width: 220px; }
-.lp-timer-actions { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; }
-.lp-timer-actions .lp-btn { min-width: 132px; min-height: 54px; }
+.lp-timer-readout b { font-size: clamp(64px, 16vw, 100px); line-height: 1; letter-spacing: -.02em; }
+.lp-timer-caption { color: var(--ink2); font-size: 15px; font-weight: 700; }
 
 /* ---------- Features ---------- */
 .lp-bento { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; list-style: none; }

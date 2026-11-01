@@ -40,37 +40,29 @@ const MOVES = [
 ];
 
 const FEATURES = [
-  { icon: 'trophy', color: '--b-pink', title: 'Todos tus PRs', text: '1RM, 3RM y 5RM de cada levantamiento, tiempos de benchmarks y cardio, y repeticiones máximas de gimnasia.', wide: true },
-  { icon: 'barbell', color: '--b-blue', title: 'Discos por lado', text: 'Elige el porcentaje y ve qué discos poner, con la barra y los discos que tiene tu box.' },
-  { icon: 'number', color: '--b-yellow', title: 'Tabla de porcentajes', text: 'Del 100% al 40% de tu PR, cada 5%, con los discos de cada carga. Toca uno y se arma en la barra.' },
-  { icon: 'timer', color: '--b-green', title: 'Timer de workout', text: 'AMRAP, EMOM, Tabata y For Time con cuenta regresiva y avisos de sonido.' },
-  { icon: 'chart', color: '--b-lilac', title: 'Tu progreso', text: 'Una gráfica por movimiento con cada marca y su fecha, en lb y en kg.' },
-  { icon: 'sparkles', color: '--b-cyan', title: 'Tus movimientos', text: 'Crea movimientos y categorías propias, o apaga los que no haces.' },
-  { icon: 'bolt', color: '--b-lime', title: 'Como una app', text: 'Agrégala a tu pantalla de inicio y mantén la pantalla encendida mientras entrenas.', wide: true },
-];
-
-const DEMO_HINTS = [
-  'Sube o baja el porcentaje con − y +, o cambia entre 1RM, 3RM y 5RM.',
-  'Toca un disco de abajo para agregarlo y tócalo en la barra para quitarlo.',
-  'Con las flechas ves otras formas de cargar el mismo peso.',
-  'En Porcentajes tienes la carga del 100% al 40% de tu PR.',
-  'Toca ‹ Squats para elegir otro movimiento.',
+  { icon: 'trophy', color: '--b-pink', title: 'Todos tus PRs', text: 'Levantamientos, tiempos y repeticiones.', wide: true },
+  { icon: 'barbell', color: '--b-blue', title: 'Discos por lado', text: 'Qué poner a cada lado, al instante.' },
+  { icon: 'number', color: '--b-yellow', title: 'Tabla de porcentajes', text: 'Del 100% al 40% de tu PR.' },
+  { icon: 'timer', color: '--b-green', title: 'Timer de workout', text: 'AMRAP, EMOM, Tabata y For Time.' },
+  { icon: 'chart', color: '--b-lilac', title: 'Tu progreso', text: 'Una gráfica por movimiento.' },
+  { icon: 'sparkles', color: '--b-cyan', title: 'Tus movimientos', text: 'Crea los que no estén.' },
+  { icon: 'bolt', color: '--b-lime', title: 'Como una app', text: 'Agrégala a tu pantalla de inicio.', wide: true },
 ];
 
 const STEPS = [
-  { title: 'Crea tu cuenta', text: 'Con tu correo y una contraseña. Confirmas desde el enlace que te llega y listo.', color: '--b-yellow' },
-  { title: 'Registra tus PRs', text: 'Uno por uno o varios a la vez con la carga rápida. La fecha y la nota son opcionales.', color: '--b-pink' },
-  { title: 'Entrena con el peso exacto', text: 'Elige el porcentaje del día y arma la barra. Si te falta un disco, ajusta la carga disco por disco.', color: '--b-green' },
+  { title: 'Crea tu cuenta', text: 'Solo con tu correo.', color: '--b-yellow' },
+  { title: 'Registra tus PRs', text: 'Uno por uno o varios a la vez.', color: '--b-pink' },
+  { title: 'Entrena con el peso exacto', text: 'Elige el porcentaje y arma la barra.', color: '--b-green' },
 ];
 
 const FAQ = [
   ['¿Cuánto cuesta?', 'Nada. Crear tu cuenta y usar la app es gratis.'],
-  ['¿Tengo que descargar algo?', 'No. Funciona en el navegador del teléfono o de la computadora. Si quieres, agrégala a la pantalla de inicio desde Safari o Chrome y se abre como una app más.'],
-  ['¿Puedo probarla sin crear una cuenta?', 'Sí. La demo abre la app completa con datos de ejemplo. Lo que cambies ahí no se guarda.'],
-  ['¿Usa libras o kilos?', 'Los pesos se registran en libras, como en la mayoría de boxes, y cada carga muestra su equivalente en kilos.'],
-  ['¿Qué barras y discos usa la calculadora?', 'Barra de 45, 35 o 15 lb y discos de 55 a 2.5 lb. En Ajustes marcas los que tiene tu box y la calculadora solo usa esos.'],
-  ['¿Qué movimientos puedo registrar?', 'Sentadillas, cleans, snatches, presses, jerks y deadlifts en 1RM, 3RM y 5RM; cardio y benchmarks como Fran o Murph por tiempo; y gimnasia por repeticiones máximas. También puedes crear los tuyos.'],
-  ['¿Quién ve mis marcas?', 'Solo tú. Tus registros quedan asociados a tu cuenta y no son públicos.'],
+  ['¿Tengo que descargar algo?', 'No. Funciona en el navegador y puedes agregarla a tu pantalla de inicio.'],
+  ['¿Puedo probarla sin crear una cuenta?', 'Sí. La demo usa datos de ejemplo y no guarda nada.'],
+  ['¿Usa libras o kilos?', 'En libras, y cada carga muestra su equivalente en kilos.'],
+  ['¿Qué barras y discos usa la calculadora?', 'Barra de 45, 35 o 15 lb y discos de 55 a 2.5 lb. Eliges los que tiene tu box.'],
+  ['¿Qué movimientos puedo registrar?', 'Levantamientos en 1RM, 3RM y 5RM, benchmarks y cardio por tiempo, y gimnasia por repeticiones. También los tuyos.'],
+  ['¿Quién ve mis marcas?', 'Solo tú. Tus registros no son públicos.'],
 ];
 
 function structuredData() {
@@ -140,8 +132,7 @@ function Hero() {
           <span className="lp-line"><span className="lp-enter-up" style={{ '--d': 4 }}>cálculos.</span></span>
         </h1>
         <p className="lp-lead lp-enter" style={{ '--d': 5 }}>
-          Guarda tus marcas personales, elige el porcentaje del día y ve exactamente qué discos poner a cada lado de la barra.
-          Con tabla de porcentajes y timer incluidos.
+          Guarda tus marcas y ve qué discos poner a cada lado de la barra.
         </p>
         <div className="lp-ctas lp-enter" style={{ '--d': 6 }}>
           <Link href={SIGN_UP} className="lp-btn lp-btn-large">Crear cuenta gratis<Icon name="arrowRight" size={20} weight={2.6} /></Link>
@@ -193,39 +184,23 @@ export default function LandingPage() {
       <Hero />
       <Marquee />
 
-      <section id="demo" className="lp-section lp-dark" aria-labelledby="demo-title">
-        <div className="lp-wrap lp-split lp-demo-split">
-          <div>
-            <SectionHead id="demo-title" eyebrow="Demo en vivo" title="Pruébala aquí. Sin cuenta." color="--b-blue">
-              Es la app real con datos de ejemplo. Lo que cambies no se guarda.
-            </SectionHead>
-            <ol className="lp-hints" data-reveal>
-              {DEMO_HINTS.map((hint) => <li key={hint}>{hint}</li>)}
-            </ol>
-            <div className="lp-ctas" data-reveal>
-              <Link href={SIGN_UP} className="lp-btn lp-btn-large">Crear cuenta gratis<Icon name="arrowRight" size={20} weight={2.6} /></Link>
-              <Link href={DEMO} className="lp-btn lp-btn-outline lp-btn-large">Abrir la demo completa</Link>
-            </div>
-          </div>
+      <section id="demo" className="lp-section lp-demo" aria-labelledby="demo-title">
+        <div className="lp-wrap">
+          <h2 id="demo-title" className="display lp-demo-title" data-reveal>Pruébala aquí. Sin cuenta.</h2>
           <div className="lp-demo-device" data-reveal><PlateDemo /></div>
         </div>
       </section>
 
       <section id="progreso" className="lp-section" aria-labelledby="progress-title">
         <div className="lp-wrap lp-split">
-          <SectionHead id="progress-title" eyebrow="Progreso" title="Mira cuánto has subido." color="--b-pink">
-            Cada PR queda con su fecha. La gráfica de cada movimiento te muestra la tendencia, y en los tiempos, bajar es ganar.
-          </SectionHead>
+          <SectionHead id="progress-title" eyebrow="Progreso" title="Mira cuánto has subido." color="--b-pink" />
           <div data-reveal><ProgressDemo /></div>
         </div>
       </section>
 
       <section id="timer" className="lp-section lp-dark" aria-labelledby="timer-title">
-        <div className="lp-wrap lp-split reverse">
-          <SectionHead id="timer-title" eyebrow="Timer" title="El reloj del WOD, en tu bolsillo." color="--b-green">
-            AMRAP, EMOM, Tabata y For Time con diez segundos para prepararte y cuenta regresiva antes de cada ronda.
-            Si pausas, sigue con una cuenta de cinco. Pruébalo:
-          </SectionHead>
+        <div className="lp-wrap lp-timer-wrap">
+          <SectionHead id="timer-title" eyebrow="Timer" title="El reloj del WOD." color="--b-green" />
           <div data-reveal><TimerDemo /></div>
         </div>
       </section>
@@ -259,9 +234,7 @@ export default function LandingPage() {
 
       <section id="preguntas" className="lp-section" aria-labelledby="faq-title">
         <div className="lp-wrap lp-faq-grid">
-          <SectionHead id="faq-title" eyebrow="Preguntas" title="Lo que quieres saber." color="--b-lilac">
-            ¿Te queda otra duda? Abre la demo: es la app completa con datos de ejemplo.
-          </SectionHead>
+          <SectionHead id="faq-title" eyebrow="Preguntas" title="Lo que quieres saber." color="--b-lilac" />
           <div className="lp-faq" data-reveal>
             {FAQ.map(([question, answer]) => <details key={question}>
               <summary><h3>{question}</h3><Icon name="plus" size={22} weight={2.6} /></summary>
@@ -275,7 +248,6 @@ export default function LandingPage() {
         <div className="lp-wrap">
           <div className="lp-final-block" data-reveal>
             <h2 id="final-title" className="display">Tu próximo PR empieza con el peso correcto.</h2>
-            <p>Crea tu cuenta en un minuto, o abre la demo y explora la app con datos de ejemplo.</p>
             <div className="lp-ctas">
               <Link href={SIGN_UP} className="lp-btn lp-btn-large lp-btn-ink">Crear cuenta gratis<Icon name="arrowRight" size={20} weight={2.6} /></Link>
               <Link href={DEMO} className="lp-btn lp-btn-large lp-btn-outline-ink">Abrir la demo</Link>
@@ -297,7 +269,7 @@ export default function LandingPage() {
           <Link href={DEMO}>Demo</Link>
           <a href="#preguntas">Preguntas</a>
         </nav>
-        <p>© {new Date().getFullYear()} {SITE_NAME}. Hecho para entrenar.</p>
+        <p>Created with <span role="img" aria-label="amor">❤️</span> by Andrés B.</p>
       </div>
     </footer>
   </div>;
