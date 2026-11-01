@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../../lib/server/auth';
-import { createRecords, MAX_BULK_RECORDS, RecordConflictError, RecordInputError, toLegacyRecord } from '../../../../lib/server/records';
+import { rateLimitResponse } from '../../../../lib/server/rate-limit';
+import {
+  createRecords, MAX_BULK_RECORDS, RecordConflictError, RecordInputError, RecordLimitError, toLegacyRecord,
+} from '../../../../lib/server/records';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,6 +24,8 @@ export async function POST(request) {
   try {
     const access = await getAccess();
     if (!access.user) return json({ error: 'Inicia sesión para acceder a tus registros.' }, 401);
+    const limited = await rateLimitResponse('apiWrite', access.user.id);
+    if (limited) return limited;
     if (!access.authorized) return json({ error: 'Tu cuenta todavía no tiene acceso.' }, 403);
     let input;
     try {
@@ -41,6 +46,7 @@ export async function POST(request) {
     })));
     return json({ records: records.map(toLegacyRecord) }, 201);
   } catch (error) {
+    if (error instanceof RecordLimitError) return json({ error: `Alcanzaste el límite de ${error.limit} registros de tu cuenta. No se pueden guardar más.` }, 409);
     if (error instanceof RecordConflictError) return json({ error: 'Algunos movimientos ya tienen registro. Recarga e inténtalo de nuevo.' }, 409);
     if (error instanceof RecordInputError) return json({ error: 'Revisa los pesos ingresados.' }, 400);
     return json({ error: 'No se pudieron guardar tus pesos. Inténtalo de nuevo.' }, 503);

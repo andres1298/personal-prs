@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAccess } from '../../../lib/server/auth';
 import { listMembers } from '../../../lib/server/members';
+import { rateLimitResponse } from '../../../lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -13,6 +14,8 @@ export async function GET() {
   try {
     const access = await getAccess();
     if (!access.user) return json({ error: 'Inicia sesión para continuar.' }, 401);
+    const limited = await rateLimitResponse('apiRead', access.user.id);
+    if (limited) return limited;
     if (!access.isAdmin) return json({ error: 'Solo el administrador puede gestionar usuarios.' }, 403);
     return json({ members: await listMembers(process.env.SUPABASE_ADMIN_USER_IDS) });
   } catch {

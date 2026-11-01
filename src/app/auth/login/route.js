@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { createAuthClient, hasAuthConfiguration, hasSameOrigin } from '../../../lib/server/auth';
+import { checkRateLimit, clientIp, isProviderRateLimit } from '../../../lib/server/rate-limit';
 
 function redirect(path, request) {
   const response = NextResponse.redirect(new URL(path, request.url), 303);
@@ -9,6 +10,7 @@ function redirect(path, request) {
 
 export async function POST(request) {
   if (!hasSameOrigin(request)) return new Response('Invalid origin.', { status: 403 });
+  if (!(await checkRateLimit('login', clientIp(request.headers))).allowed) return redirect('/app?authError=rate_limited', request);
   if (!hasAuthConfiguration()) return redirect('/app?authError=configuration', request);
   const form = await request.formData();
   const email = String(form.get('email') ?? '').trim().toLowerCase();
@@ -16,5 +18,7 @@ export async function POST(request) {
   if (!email || !password) return redirect('/app?authError=credentials', request);
   const client = await createAuthClient();
   const { error } = await client.auth.signInWithPassword({ email, password });
-  return redirect(error ? '/app?authError=credentials' : '/app', request);
+  // A provider limit is reported as such, never as wrong credentials.
+  if (error) return redirect(`/app?authError=${isProviderRateLimit(error) ? 'rate_limited' : 'credentials'}`, request);
+  return redirect('/app', request);
 }

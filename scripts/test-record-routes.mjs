@@ -11,17 +11,31 @@ const validRecord = { move: 'Clean & Jerk', value: 185, date: '2026-10-03', rm: 
 
 async function routes(access, failure) {
   const calls = [];
+  const limits = [];
   class RecordInputError extends Error {}
+  class RecordConflictError extends Error {}
+  class RecordLimitError extends Error { constructor() { super('Private diagnostic'); this.limit = 5000; } }
   const dependencies = {
     'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
     '../../../lib/server/auth': { getAccess: async () => access, hasSameOrigin },
+    '../../../lib/server/rate-limit': {
+      rateLimitResponse: async (policy, subject) => {
+        limits.push([policy, subject]);
+        return failure === 'limited' ? Response.json({ error: 'Demasiadas solicitudes.' }, { status: 429, headers: { 'Retry-After': '30' } }) : null;
+      },
+    },
     '../../../lib/server/records': {
+      NOTES_MAX: 1000,
+      RecordConflictError,
       RecordInputError,
+      RecordLimitError,
       listRecords: async (id) => { calls.push(['list', id]); return []; },
       createRecord: async (id, input) => {
         calls.push(['create', id, input]);
         if (failure === 'input') throw new RecordInputError('Private diagnostic');
         if (failure === 'database') throw new Error('Private database diagnostic');
+        if (failure === 'quota') throw new RecordLimitError();
+        if (failure === 'conflict') throw new RecordConflictError('Private diagnostic');
         return input;
       },
       toLegacyRecord: (record) => record,
@@ -36,7 +50,7 @@ async function routes(access, failure) {
     });
   });
   await module.evaluate();
-  return { handlers: module.namespace, calls };
+  return { handlers: module.namespace, calls, limits };
 }
 
 function post(record = validRecord, requestOrigin = origin) {
@@ -55,7 +69,7 @@ test('anonymous and unapproved sessions never reach persistence', async () => {
 });
 
 test('authorized reads and creation use only the verified server identity', async () => {
-  const { handlers, calls } = await routes({ user: { id: ownerId }, authorized: true });
+  const { handlers, calls, limits } = await routes({ user: { id: ownerId }, authorized: true });
   const read = await handlers.GET();
   assert.equal(read.status, 200);
   assert.equal(read.headers.get('Cache-Control'), 'private, no-store');
@@ -65,11 +79,13 @@ test('authorized reads and creation use only the verified server identity', asyn
     ['list', ownerId],
     ['create', ownerId, { movementName: 'Clean & Jerk', value: 185, performedOn: '2026-10-03', repetitionMax: 3, notes: 'Test' }],
   ]);
+  // Reads and writes use separate per-user budgets.
+  assert.deepEqual(limits, [['apiRead', ownerId], ['apiWrite', ownerId]]);
 });
 
 test('owner injection and invalid payloads do not write', async () => {
   const { handlers, calls } = await routes({ user: { id: ownerId }, authorized: true });
-  for (const record of [null, [], { ...validRecord, profileId: ownerId }, { ...validRecord, notes: 'x'.repeat(5001) }]) {
+  for (const record of [null, [], { ...validRecord, profileId: ownerId }, { ...validRecord, notes: 'x'.repeat(1001) }]) {
     assert.equal((await handlers.POST(post(record))).status, 400);
   }
   assert.equal((await handlers.POST(post(validRecord, 'https://other.example.test'))).status, 403);
@@ -77,10 +93,29 @@ test('owner injection and invalid payloads do not write', async () => {
 });
 
 test('validation and database failures do not disclose private diagnostics', async () => {
-  for (const [failure, status] of [['input', 400], ['database', 503]]) {
+  for (const [failure, status] of [['input', 400], ['conflict', 409], ['database', 503]]) {
     const { handlers } = await routes({ user: { id: ownerId }, authorized: true }, failure);
     const response = await handlers.POST(post());
     assert.equal(response.status, status);
     assert.doesNotMatch(await response.text(), /Private/);
   }
+});
+
+test('a rate-limited user gets 429 with Retry-After and never reaches persistence', async () => {
+  const { handlers, calls } = await routes({ user: { id: ownerId }, authorized: true }, 'limited');
+  for (const response of [await handlers.GET(), await handlers.POST(post())]) {
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('Retry-After'), '30');
+    assert.match((await response.json()).error, /Demasiadas solicitudes/);
+  }
+  assert.deepEqual(calls, []);
+});
+
+test('the account record quota answers 409 with a clear message', async () => {
+  const { handlers } = await routes({ user: { id: ownerId }, authorized: true }, 'quota');
+  const response = await handlers.POST(post());
+  assert.equal(response.status, 409);
+  const { error } = await response.json();
+  assert.match(error, /límite de 5000 registros/);
+  assert.doesNotMatch(error, /Private/);
 });

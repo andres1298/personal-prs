@@ -1,9 +1,14 @@
 import { NextResponse } from 'next/server';
 import { createAuthClient, hasAuthConfiguration, hasSameOrigin } from '../../../lib/server/auth';
+import { checkRateLimit, clientIp, RATE_LIMIT_MESSAGE } from '../../../lib/server/rate-limit';
 
 // Signing out lands on the public landing page; an installed app is sent on to /app from there.
 export async function POST(request) {
   if (!hasSameOrigin(request)) return new Response('Invalid origin.', { status: 403 });
+  const { allowed, retryAfter } = await checkRateLimit('logout', clientIp(request.headers));
+  if (!allowed) {
+    return new Response(RATE_LIMIT_MESSAGE, { status: 429, headers: { 'Cache-Control': 'private, no-store', 'Retry-After': String(retryAfter) } });
+  }
   if (hasAuthConfiguration()) {
     const client = await createAuthClient();
     const { error } = await client.auth.signOut({ scope: 'local' });

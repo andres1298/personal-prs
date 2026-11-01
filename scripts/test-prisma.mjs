@@ -7,6 +7,7 @@ import {
 import {
   createMovement, deleteMovement, MovementConfirmationError, MovementForbiddenError, setMovementHidden,
 } from '../src/lib/server/movements.js';
+import { checkRateLimit, RATE_LIMITS, rateLimitKey } from '../src/lib/server/rate-limit.js';
 import { movementCatalog, seedMovements } from '../prisma/catalog.mjs';
 
 // Require a deliberate choice of a disposable database; never run against live data.
@@ -17,6 +18,7 @@ if (process.env.PRISMA_TEST_DATABASE !== 'disposable') {
 const prisma = getPrisma();
 const ownerId = randomUUID();
 const otherId = randomUUID();
+const rateLimitSubject = `test-${randomUUID()}`;
 const input = {
   movementId: 'back-squat', value: '225.125', performedOn: '2026-02-28', repetitionMax: 3,
   notes: 'Test record',
@@ -52,7 +54,7 @@ try {
   for (const invalid of [
     { value: '0' }, { value: '-1' }, { value: '1.2345' }, { value: '1000000000' },
     { performedOn: '2026-02-30' }, { repetitionMax: 2 },
-    { movementId: 'unknown-movement' },
+    { movementId: 'unknown-movement' }, { notes: 'x'.repeat(1001) },
   ]) await assert.rejects(createRecord(ownerId, { ...input, ...invalid }));
 
   const updated = await updateRecord(ownerId, created.id, { ...input, value: '230.500' });
@@ -84,9 +86,19 @@ try {
   const protections = await prisma.$queryRaw`
     SELECT relname FROM pg_class
     WHERE relnamespace = 'public'::regnamespace AND relrowsecurity
-      AND relname IN ('Profile', 'Movement', 'PersonalRecord')
+      AND relname IN ('Profile', 'Movement', 'PersonalRecord', 'RateLimitBucket')
   `;
-  assert.equal(protections.length, 3);
+  assert.equal(protections.length, 4);
+
+  // The shared limiter counts in Postgres: the limit passes, the next request is blocked, and pruning runs.
+  // A missing table would fail open and allow every request, so this also proves the migration is applied.
+  const { limit } = RATE_LIMITS.inviteAccept;
+  for (let index = 0; index < limit; index += 1) {
+    assert.equal((await checkRateLimit('inviteAccept', rateLimitSubject, { random: () => (index === 0 ? 0 : 1) })).allowed, true);
+  }
+  const blocked = await checkRateLimit('inviteAccept', rateLimitSubject, { random: () => 1 });
+  assert.equal(blocked.allowed, false);
+  assert.ok(blocked.retryAfter >= 1 && blocked.retryAfter <= RATE_LIMITS.inviteAccept.windowSeconds);
   await deleteRecord(ownerId, created.id);
   assert.equal((await listRecords(ownerId)).some((record) => record.id === created.id), false);
 
@@ -118,7 +130,7 @@ try {
   assert.deepEqual(await deleteMovement(ownerId, custom.id, true), { deletedRecords: 1 });
   assert.equal(await prisma.movement.count({ where: { id: custom.id } }), 0);
   assert.equal((await listRecords(otherId)).some((record) => record.movementId === theirs.id), true);
-  console.log('Prisma integration checks passed: catalog, CRUD, ownership filters, constraints, serialization, tour state and custom movements.');
+  console.log('Prisma integration checks passed: catalog, CRUD, ownership filters, constraints, serialization, tour state, custom movements and rate limits.');
 } catch {
   console.error('Prisma integration checks failed. Inspect the isolated test environment privately.');
   process.exitCode = 1;
@@ -127,5 +139,7 @@ try {
   await prisma.hiddenMovement.deleteMany({ where: { profileId: { in: [ownerId, otherId] } } });
   await prisma.movement.deleteMany({ where: { ownerId: { in: [ownerId, otherId] } } });
   await prisma.profile.deleteMany({ where: { id: { in: [ownerId, otherId] } } });
+  // Tolerates a missing table so the connection is still closed; the checks above already failed then.
+  await prisma.rateLimitBucket.deleteMany({ where: { key: rateLimitKey('inviteAccept', rateLimitSubject) } }).catch(() => {});
   await prisma.$disconnect();
 }

@@ -89,10 +89,14 @@ const anonymous = { user: null, authorized: false, isAdmin: false };
 
 async function routes(access, failure) {
   const calls = [];
+  const limits = [];
   class MemberError extends Error { constructor(errorCode) { super(errorCode); this.code = errorCode; } }
   const dependencies = (prefix) => ({
     'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
     [`${prefix}lib/server/auth`]: { getAccess: async () => access, hasSameOrigin },
+    [`${prefix}lib/server/rate-limit`]: {
+      rateLimitResponse: async (policy, subject) => { limits.push([policy, subject]); return failure === 'limited' ? Response.json({ error: 'Demasiadas solicitudes.' }, { status: 429, headers: { 'Retry-After': '30' } }) : null; },
+    },
     [`${prefix}lib/server/members`]: {
       MemberError,
       listMembers: async () => { calls.push(['list']); return [{ id: memberId, recordCount: 2 }]; },
@@ -106,7 +110,7 @@ async function routes(access, failure) {
   });
   const collection = await link('../src/app/api/members/route.js', dependencies('../../../'));
   const single = await link('../src/app/api/members/[id]/route.js', dependencies('../../../../'));
-  return { collection, single, calls };
+  return { collection, single, calls, limits };
 }
 
 function patch(body = { disabled: true }, requestOrigin = origin) {
@@ -152,4 +156,15 @@ test('service errors map to safe responses', async () => {
     assert.equal(response.status, status);
     assert.doesNotMatch(await response.text(), /Private/);
   }
+});
+
+test('member administration is rate limited per user', async () => {
+  const { collection, single, limits } = await routes(admin);
+  await collection.GET();
+  await single.PATCH(...patch());
+  assert.deepEqual(limits, [['apiRead', adminId], ['apiWrite', adminId]]);
+  const limited = await routes(admin, 'limited');
+  assert.equal((await limited.collection.GET()).status, 429);
+  assert.equal((await limited.single.PATCH(...patch())).status, 429);
+  assert.deepEqual(limited.calls, []);
 });

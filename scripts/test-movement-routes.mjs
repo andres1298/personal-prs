@@ -15,13 +15,19 @@ class MovementConfirmationError extends Error {
   constructor(recordCount) { super('confirm'); this.recordCount = recordCount; }
 }
 
-async function load(path, access, failure) {
+async function load(path, access, failure, { limited = false } = {}) {
   const calls = [];
+  const limits = [];
+  const rateLimit = {
+    rateLimitResponse: async (policy, subject) => { limits.push([policy, subject]); return limited ? Response.json({ error: 'Demasiadas solicitudes.' }, { status: 429, headers: { 'Retry-After': '30' } }) : null; },
+  };
   const fail = () => { if (failure) throw failure; };
   const dependencies = {
     'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
     '../../../lib/server/auth': { getAccess: async () => access, hasSameOrigin },
     '../../../../lib/server/auth': { getAccess: async () => access, hasSameOrigin },
+    '../../../lib/server/rate-limit': rateLimit,
+    '../../../../lib/server/rate-limit': rateLimit,
     '../../../lib/server/movements': {
       MovementConflictError, MovementInputError,
       listMovements: async (id) => { calls.push(['list', id]); fail(); return [{ id: 'm' }]; },
@@ -42,11 +48,11 @@ async function load(path, access, failure) {
     });
   });
   await module.evaluate();
-  return { handlers: module.namespace, calls };
+  return { handlers: module.namespace, calls, limits };
 }
 
-const collection = (access, failure) => load('../src/app/api/movements/route.js', access, failure);
-const item = (access, failure) => load('../src/app/api/movements/[id]/route.js', access, failure);
+const collection = (access, failure, options) => load('../src/app/api/movements/route.js', access, failure, options);
+const item = (access, failure, options) => load('../src/app/api/movements/[id]/route.js', access, failure, options);
 const allowed = { user: { id: ownerId }, authorized: true };
 const send = (method, url, body, requestOrigin = origin) => new Request(`${origin}${url}`, {
   method, headers: { origin: requestOrigin, 'Content-Type': 'application/json' }, ...(body === undefined ? {} : { body: JSON.stringify(body) }),
@@ -127,4 +133,26 @@ test('errors map to statuses without private diagnostics', async () => {
     assert.equal(response.status, status);
     assert.doesNotMatch(JSON.stringify(await response.json()), /Private/);
   }
+});
+
+test('movement requests are rate limited per user with separate read and write budgets', async () => {
+  const list = await collection(allowed);
+  await list.handlers.GET();
+  await list.handlers.POST(send('POST', '/api/movements', { name: 'Thruster', measurementType: 'WEIGHT' }));
+  const single = await item(allowed);
+  await single.handlers.PATCH(send('PATCH', '/api/movements/m1', { hidden: true }), params());
+  await single.handlers.DELETE(send('DELETE', '/api/movements/m1'), params());
+  assert.deepEqual([...list.limits, ...single.limits], [['apiRead', ownerId], ['apiWrite', ownerId], ['apiWrite', ownerId], ['apiWrite', ownerId]]);
+  const limitedList = await collection(allowed, undefined, { limited: true });
+  const limitedItem = await item(allowed, undefined, { limited: true });
+  for (const response of [
+    await limitedList.handlers.GET(),
+    await limitedList.handlers.POST(send('POST', '/api/movements', { name: 'Thruster', measurementType: 'WEIGHT' })),
+    await limitedItem.handlers.PATCH(send('PATCH', '/api/movements/m1', { hidden: true }), params()),
+    await limitedItem.handlers.DELETE(send('DELETE', '/api/movements/m1'), params()),
+  ]) {
+    assert.equal(response.status, 429);
+    assert.equal(response.headers.get('Retry-After'), '30');
+  }
+  assert.deepEqual([...limitedList.calls, ...limitedItem.calls], []);
 });

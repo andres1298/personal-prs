@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../lib/server/auth';
-import { createRecord, listRecords, RecordInputError, toLegacyRecord } from '../../../lib/server/records';
+import { rateLimitResponse } from '../../../lib/server/rate-limit';
+import {
+  createRecord, listRecords, NOTES_MAX, RecordConflictError, RecordInputError, RecordLimitError, toLegacyRecord,
+} from '../../../lib/server/records';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,16 +12,18 @@ function json(body, status = 200) {
   return NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } });
 }
 
-async function requireAccess() {
+async function requireAccess(policy) {
   const access = await getAccess();
   if (!access.user) return { response: json({ error: 'Inicia sesión para acceder a tus registros.' }, 401) };
+  const limited = await rateLimitResponse(policy, access.user.id);
+  if (limited) return { response: limited };
   if (!access.authorized) return { response: json({ error: 'Tu cuenta todavía no tiene acceso.' }, 403) };
   return access;
 }
 
 export async function GET() {
   try {
-    const access = await requireAccess();
+    const access = await requireAccess('apiRead');
     if (access.response) return access.response;
     const records = await listRecords(access.user.id);
     return json({ records: records.map(toLegacyRecord) });
@@ -30,7 +35,7 @@ export async function GET() {
 export async function POST(request) {
   if (!hasSameOrigin(request)) return json({ error: 'Solicitud no permitida.' }, 403);
   try {
-    const access = await requireAccess();
+    const access = await requireAccess('apiWrite');
     if (access.response) return access.response;
     let input;
     try {
@@ -41,7 +46,7 @@ export async function POST(request) {
     if (!input || typeof input !== 'object' || Array.isArray(input) ||
         Object.keys(input).some((key) => !['move', 'value', 'date', 'rm', 'notes'].includes(key)) ||
         typeof input.move !== 'string' || typeof input.value !== 'number' || !Number.isFinite(input.value) ||
-        input.move.length > 100 || (input.notes != null && (typeof input.notes !== 'string' || input.notes.length > 5000))) {
+        input.move.length > 100 || (input.notes != null && (typeof input.notes !== 'string' || input.notes.length > NOTES_MAX))) {
       return json({ error: 'Revisa los datos del registro.' }, 400);
     }
     const record = await createRecord(access.user.id, {
@@ -53,7 +58,9 @@ export async function POST(request) {
     });
     return json({ record: toLegacyRecord(record) }, 201);
   } catch (error) {
-    if (error instanceof RecordInputError) return json({ error: 'Revisa el movimiento, valor, fecha y repeticiones.' }, 400);
+    if (error instanceof RecordLimitError) return json({ error: `Alcanzaste el límite de ${error.limit} registros de tu cuenta. No se pueden guardar más.` }, 409);
+    if (error instanceof RecordConflictError) return json({ error: 'Otro guardado ocurrió al mismo tiempo. Inténtalo de nuevo.' }, 409);
+    if (error instanceof RecordInputError) return json({ error: `Revisa el movimiento, valor, fecha y repeticiones. Las notas admiten hasta ${NOTES_MAX} caracteres.` }, 400);
     return json({ error: 'No se pudo guardar el registro. Inténtalo de nuevo.' }, 503);
   }
 }

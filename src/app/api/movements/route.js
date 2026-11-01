@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../lib/server/auth';
 import { createMovement, listMovements, MovementConflictError, MovementInputError } from '../../../lib/server/movements';
+import { rateLimitResponse } from '../../../lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,16 +10,18 @@ function json(body, status = 200) {
   return NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } });
 }
 
-async function requireAccess() {
+async function requireAccess(policy) {
   const access = await getAccess();
   if (!access.user) return { response: json({ error: 'Inicia sesión para acceder a tus movimientos.' }, 401) };
+  const limited = await rateLimitResponse(policy, access.user.id);
+  if (limited) return { response: limited };
   if (!access.authorized) return { response: json({ error: 'Tu cuenta todavía no tiene acceso.' }, 403) };
   return access;
 }
 
 export async function GET() {
   try {
-    const access = await requireAccess();
+    const access = await requireAccess('apiRead');
     if (access.response) return access.response;
     return json({ movements: await listMovements(access.user.id) });
   } catch {
@@ -29,7 +32,7 @@ export async function GET() {
 export async function POST(request) {
   if (!hasSameOrigin(request)) return json({ error: 'Solicitud no permitida.' }, 403);
   try {
-    const access = await requireAccess();
+    const access = await requireAccess('apiWrite');
     if (access.response) return access.response;
     let input;
     try {

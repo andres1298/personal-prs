@@ -3,6 +3,7 @@ import { getAccess, hasSameOrigin } from '../../../../lib/server/auth';
 import {
   deleteMovement, MovementConfirmationError, MovementForbiddenError, MovementInputError, MovementNotFoundError, setMovementHidden,
 } from '../../../../lib/server/movements';
+import { rateLimitResponse } from '../../../../lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -15,6 +16,8 @@ async function requireAccess(request) {
   if (!hasSameOrigin(request)) return { response: json({ error: 'Solicitud no permitida.' }, 403) };
   const access = await getAccess();
   if (!access.user) return { response: json({ error: 'Inicia sesión para continuar.' }, 401) };
+  const limited = await rateLimitResponse('apiWrite', access.user.id);
+  if (limited) return { response: limited };
   if (!access.authorized) return { response: json({ error: 'Tu cuenta todavía no tiene acceso.' }, 403) };
   return access;
 }

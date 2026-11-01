@@ -14,13 +14,22 @@ const validBatch = { records: [
 
 async function routes(access, failure) {
   const calls = [];
+  const limits = [];
   class RecordInputError extends Error {}
   class RecordConflictError extends Error {}
+  class RecordLimitError extends Error { constructor() { super('Private diagnostic'); this.limit = 5000; } }
   const dependencies = {
     'next/server': { NextResponse: { json: (body, options) => Response.json(body, options) } },
     '../../../../lib/server/auth': { getAccess: async () => access, hasSameOrigin },
+    '../../../../lib/server/rate-limit': {
+      rateLimitResponse: async (policy, subject) => {
+        limits.push([policy, subject]);
+        return failure === 'limited' ? Response.json({ error: 'Demasiadas solicitudes.' }, { status: 429, headers: { 'Retry-After': '30' } }) : null;
+      },
+    },
     '../../../../lib/server/records': {
       MAX_BULK_RECORDS: 153,
+      RecordLimitError,
       RecordInputError,
       RecordConflictError,
       createRecords: async (id, inputs) => {
@@ -28,6 +37,7 @@ async function routes(access, failure) {
         if (failure === 'input') throw new RecordInputError('Private diagnostic');
         if (failure === 'conflict') throw new RecordConflictError('Private diagnostic');
         if (failure === 'database') throw new Error('Private database diagnostic');
+        if (failure === 'quota') throw new RecordLimitError();
         return inputs;
       },
       toLegacyRecord: (record) => record,
@@ -42,7 +52,7 @@ async function routes(access, failure) {
     });
   });
   await module.evaluate();
-  return { handlers: module.namespace, calls };
+  return { handlers: module.namespace, calls, limits };
 }
 
 function post(body = validBatch, requestOrigin = origin) {
@@ -61,9 +71,10 @@ test('anonymous and unapproved sessions never reach persistence', async () => {
 });
 
 test('authorized batches are created with the verified server identity', async () => {
-  const { handlers, calls } = await routes({ user: { id: ownerId }, authorized: true });
+  const { handlers, calls, limits } = await routes({ user: { id: ownerId }, authorized: true });
   const response = await handlers.POST(post());
   assert.equal(response.status, 201);
+  assert.deepEqual(limits, [['apiWrite', ownerId]]);
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
   assert.equal((await response.json()).records.length, 2);
   assert.deepEqual(calls, [['createRecords', ownerId, [
@@ -91,10 +102,18 @@ test('cross-origin, malformed, oversized and injected payloads do not write', as
 });
 
 test('validation, conflict and database failures do not disclose private diagnostics', async () => {
-  for (const [failure, status] of [['input', 400], ['conflict', 409], ['database', 503]]) {
+  for (const [failure, status] of [['input', 400], ['conflict', 409], ['quota', 409], ['database', 503], ['limited', 429]]) {
     const { handlers } = await routes({ user: { id: ownerId }, authorized: true }, failure);
     const response = await handlers.POST(post());
     assert.equal(response.status, status);
     assert.doesNotMatch(await response.text(), /Private/);
   }
+});
+
+test('a full account explains the record quota and a rate-limited user never writes', async () => {
+  const quota = await routes({ user: { id: ownerId }, authorized: true }, 'quota');
+  assert.match((await (await quota.handlers.POST(post())).json()).error, /límite de 5000 registros/);
+  const limited = await routes({ user: { id: ownerId }, authorized: true }, 'limited');
+  assert.equal((await limited.handlers.POST(post())).status, 429);
+  assert.deepEqual(limited.calls, []);
 });

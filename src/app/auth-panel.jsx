@@ -6,6 +6,7 @@ const authErrors = {
   link_expired: 'El enlace de confirmación caducó. Si ya confirmaste tu correo, inicia sesión; si no, regístrate de nuevo para recibir otro.',
   link_invalid: 'El enlace de confirmación no es válido. Si ya confirmaste tu correo, inicia sesión; si no, regístrate de nuevo.',
   configuration: 'El acceso a tu cuenta todavía no está disponible.',
+  rate_limited: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
 };
 
 export function AuthShell({ title, subtitle, children }) {

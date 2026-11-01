@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../lib/server/auth';
 import { createInvitation, InvitationError, listPendingInvitations } from '../../../lib/server/invitations';
+import { rateLimitResponse } from '../../../lib/server/rate-limit';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -9,16 +10,18 @@ function json(body, status = 200) {
   return NextResponse.json(body, { status, headers: { 'Cache-Control': 'private, no-store' } });
 }
 
-async function requireAdmin() {
+async function requireAdmin(policy) {
   const access = await getAccess();
   if (!access.user) return { response: json({ error: 'Inicia sesión para continuar.' }, 401) };
+  const limited = await rateLimitResponse(policy, access.user.id);
+  if (limited) return { response: limited };
   if (!access.isAdmin) return { response: json({ error: 'Solo el administrador puede gestionar invitaciones.' }, 403) };
   return access;
 }
 
 export async function GET() {
   try {
-    const access = await requireAdmin();
+    const access = await requireAdmin('apiRead');
     if (access.response) return access.response;
     return json({ invitations: await listPendingInvitations(access.user.id) });
   } catch {
@@ -29,7 +32,7 @@ export async function GET() {
 export async function POST(request) {
   if (!hasSameOrigin(request)) return json({ error: 'Solicitud no permitida.' }, 403);
   try {
-    const access = await requireAdmin();
+    const access = await requireAdmin('apiWrite');
     if (access.response) return access.response;
     let input;
     try {
