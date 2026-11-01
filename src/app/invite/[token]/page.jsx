@@ -1,6 +1,8 @@
 import Link from 'next/link';
 import { AuthShell } from '../../auth-panel';
+import TurnstileWidget from '../../../components/turnstile-widget';
 import { findValidInvitation, MIN_PASSWORD_LENGTH } from '../../../lib/server/invitations';
+import { providerCaptchaSiteKey } from '../../../lib/server/turnstile';
 
 export const dynamic = 'force-dynamic';
 // The link token is a credential; keep its path out of cross-origin Referer headers.
@@ -11,6 +13,7 @@ const formErrors = {
   mismatch: 'Las contraseñas no coinciden.',
   weak_password: 'La contraseña debe tener al menos 8 caracteres.',
   email_taken: 'Ya existe una cuenta con este correo.',
+  captcha_failed: 'No pudimos verificar que eres una persona. Inténtalo de nuevo.',
 };
 
 export default async function InvitationPage({ params, searchParams }) {
@@ -25,6 +28,8 @@ export default async function InvitationPage({ params, searchParams }) {
     </AuthShell>;
   }
 
+  // Provider CAPTCHA mode only: the widget's hidden input carries the token the sign-in needs.
+  const captchaSiteKey = providerCaptchaSiteKey();
   return <AuthShell title={`Hola ${invitation.name}`} subtitle="Crea tu contraseña para entrar a Mis PRs.">
     {error && <p className="auth-message error" role="alert">{formErrors[error] ?? 'No se pudo crear la cuenta. Inténtalo de nuevo.'}</p>}
     <form className="auth-form" action="/auth/invite" method="post">
@@ -34,6 +39,7 @@ export default async function InvitationPage({ params, searchParams }) {
         <label className="field"><span>Contraseña</span><input name="password" type="password" minLength={MIN_PASSWORD_LENGTH} autoComplete="new-password" placeholder={`Mínimo ${MIN_PASSWORD_LENGTH} caracteres`} required /></label>
         <label className="field"><span>Repetir</span><input name="confirm" type="password" minLength={MIN_PASSWORD_LENGTH} autoComplete="new-password" placeholder="Repite la contraseña" required /></label>
       </div>
+      {captchaSiteKey && <TurnstileWidget siteKey={captchaSiteKey} />}
       <button className="filled-button">Crear cuenta</button>
     </form>
   </AuthShell>;

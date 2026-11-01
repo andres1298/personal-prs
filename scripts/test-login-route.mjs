@@ -7,9 +7,13 @@ import { hasSameOrigin } from '../src/lib/server/access-policy.js';
 const source = await readFile(new URL('../src/app/auth/login/route.js', import.meta.url), 'utf8');
 const origin = 'https://app.example.test';
 
-async function login({ error = null, configured = true } = {}) {
+async function login({ error = null, configured = true, mode = 'app' } = {}) {
   const calls = [];
   const dependencies = {
+    '../../../lib/server/turnstile': {
+      captchaMode: () => mode,
+      readCaptchaToken: (body) => String(body.get('cf-turnstile-response') ?? ''),
+    },
     'next/server': { NextResponse: { redirect: (url, status) => new Response(null, { status, headers: { Location: String(url) } }) } },
     '../../../lib/server/auth': {
       hasSameOrigin,
@@ -56,6 +60,33 @@ test('cross-origin and unconfigured logins never reach Auth', async () => {
   const unconfigured = await login({ configured: false });
   assert.equal((await unconfigured.POST(form({ email: 'a@b.co', password: 'long-password' }))).headers.get('Location'), `${origin}/app?authError=configuration`);
   assert.deepEqual([...crossOrigin.calls, ...unconfigured.calls], []);
+});
+
+test('app CAPTCHA mode signs in without a captcha token, even if the form sends one', async () => {
+  const { POST, calls } = await login();
+  await POST(form({ email: 'ana@example.test', password: 'long-password', 'cf-turnstile-response': 'token' }));
+  assert.deepEqual(calls, [{ email: 'ana@example.test', password: 'long-password' }]);
+});
+
+test('provider CAPTCHA mode forwards the token and maps provider rejections', async () => {
+  const { POST, calls } = await login({ mode: 'provider' });
+  const response = await POST(form({ email: 'ana@example.test', password: 'long-password', 'cf-turnstile-response': 'token' }));
+  assert.equal(response.headers.get('Location'), `${origin}/app`);
+  assert.deepEqual(calls, [{ email: 'ana@example.test', password: 'long-password', options: { captchaToken: 'token' } }]);
+
+  const missing = await login({ mode: 'provider' });
+  assert.equal((await missing.POST(form({ email: 'ana@example.test', password: 'long-password' }))).headers.get('Location'), `${origin}/app?authError=captcha_failed`);
+  assert.deepEqual(missing.calls, []);
+
+  const rejected = await login({ mode: 'provider', error: { code: 'captcha_failed', message: 'Private diagnostic' } });
+  assert.equal((await rejected.POST(form({ email: 'ana@example.test', password: 'long-password', 'cf-turnstile-response': 'used' }))).headers.get('Location'), `${origin}/app?authError=captcha_failed`);
+});
+
+test('the login form shows the Turnstile widget only when given a provider site key', async () => {
+  const loginForm = await readFile(new URL('../src/app/login-form.jsx', import.meta.url), 'utf8');
+  assert.match(loginForm, /\{captchaSiteKey && <TurnstileWidget/);
+  const page = await readFile(new URL('../src/app/app/page.jsx', import.meta.url), 'utf8');
+  assert.match(page, /captchaSiteKey=\{providerCaptchaSiteKey\(\)\}/);
 });
 
 test('no Google OAuth flow remains', () => {
