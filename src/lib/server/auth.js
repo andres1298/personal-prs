@@ -4,7 +4,7 @@ import { cookies } from 'next/headers';
 import { isAdminUser } from './access-policy.js';
 import { ensureAdminProfile, ensureMemberProfile, findProfile } from './records.js';
 
-export { hasSameOrigin } from './access-policy.js';
+export { expiredAuthCookies, hasSameOrigin } from './access-policy.js';
 
 export function hasAuthConfiguration() {
   return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY);
