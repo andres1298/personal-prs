@@ -1,0 +1,59 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+# The workflow only reads the repository; it never pushes, comments or deploys.
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  verify:
+    name: Install, test and build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      NEXT_TELEMETRY_DISABLED: 1
+    steps:
+      - name: Check out the repository
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          # Two commits give the parent needed to check whitespace in the incoming change.
+          fetch-depth: 2
+          persist-credentials: false
+
+      - name: Set up Node.js
+        uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run offline tests
+        run: npm test
+
+      - name: Validate the Prisma schema
+        run: npx prisma validate
+
+      - name: Build
+        run: npm run build
+
+      - name: Check whitespace
+        # On pull requests HEAD is the merge commit, so HEAD^ is the base branch; on pushes it is
+        # the previous commit. The second check covers files changed by install or build.
+        run: |
+          git diff --check HEAD^ HEAD
+          git diff --check
+
+      - name: Audit production dependencies
+        # Informational: new advisories should not block unrelated changes. Dependabot opens fixes.
+        continue-on-error: true
+        run: npm audit --omit=dev --audit-level=high
