@@ -32,15 +32,19 @@ The workout timer (AMRAP, EMOM, TABATA, FOR TIME), its sound cues and iOS limita
 
 ```bash
 npm run db:check
-node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-logout-route.mjs scripts/test-accept-route.mjs scripts/test-bulk-records.mjs scripts/test-bulk-record-route.mjs scripts/test-timer-engine.mjs scripts/test-plates.mjs
+npm test
 npm run build
 ```
 
-Access tests check default denial, admin and invited-profile access, single-use invitations, editable metadata and cross-origin mutations. They do not prove real sessions, complete database isolation or historical import.
+`npm test` runs every offline test in `scripts/test-*.mjs`; the database integration test (`npm run db:test`) is left out because it needs a disposable database. Access tests check default denial, admin and invited-profile access, single-use invitations, editable metadata and cross-origin mutations. They do not prove real sessions, complete database isolation or historical import.
+
+## Continuous integration
+
+`.github/workflows/ci.yml` runs on every pull request and on pushes to `main` with a read-only token and actions pinned by commit SHA: `npm ci`, `npm test`, `npx prisma validate`, `npm run build` and `git diff --check`, plus an informational `npm audit --omit=dev`. It needs no secrets or database. Dependabot (`.github/dependabot.yml`) proposes weekly npm and GitHub Actions updates, grouping minor and patch releases. The Node.js version for CI comes from `.nvmrc`.
 
 ## Vercel deployment
 
-Import the repository with the Next.js preset and Node.js 24. Use `npm ci` and `npm run build`. Configure the variables in [Auth setup](docs/AUTH.md) for the intended environment. Database credentials and the authorization list are server-only; only the project URL and publishable key may use `NEXT_PUBLIC_`.
+Import the repository with the Next.js preset and Node.js 24. `vercel.json` sets the install command to `npm ci`, so deployments install exactly the lockfile; do not override it in the dashboard. The build command is `npm run build`. Configure the variables in [Auth setup](docs/AUTH.md) for the intended environment. Database credentials and the authorization list are server-only; only the project URL and publishable key may use `NEXT_PUBLIC_`.
 
 Add the final HTTPS callback to Supabase Auth's redirect allowlist and redeploy after environment changes. Apply reviewed migrations separately from the build. See [mobile installation](docs/INSTALACION.md) after publication.
 
