@@ -5,7 +5,7 @@ import { findValidInvitation, MIN_PASSWORD_LENGTH } from '../../../lib/server/in
 export const dynamic = 'force-dynamic';
 // The link token is a credential; keep its path out of cross-origin Referer headers.
 // no-referrer would make browsers send Origin: null on the form post, failing the origin check.
-export const metadata = { referrer: 'same-origin' };
+export const metadata = { title: 'Invitación', referrer: 'same-origin', robots: { index: false, follow: false } };
 
 const formErrors = {
   mismatch: 'Las contraseñas no coinciden.',
@@ -21,7 +21,7 @@ export default async function InvitationPage({ params, searchParams }) {
   if (!invitation) {
     return <AuthShell title="Mis PRs">
       <p className="auth-message" role="status">Este link ya no es válido. Pide una nueva invitación.</p>
-      <Link className="plain-button wide" href="/">Ir al inicio</Link>
+      <Link className="plain-button wide" href="/app">Ir al inicio</Link>
     </AuthShell>;
   }
 

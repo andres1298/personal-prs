@@ -10,7 +10,7 @@ Accounts use Supabase email/password sessions stored in cookies. There are two w
 | `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` | Project publishable key | Public; never substitute a secret key |
 | `SUPABASE_SECRET_KEY` | Admin client that creates invited accounts | Server secret; never `NEXT_PUBLIC_` |
 | `SUPABASE_ADMIN_USER_IDS` | Comma-separated Auth UUIDs of administrators | Server only; empty means no administrators |
-| `SITE_URL` | Public origin placed in confirmation links. Optional: falls back to Vercel's production domain, then to the request origin | Server only |
+| `SITE_URL` | Public origin placed in confirmation links, canonical URLs, Open Graph, robots and sitemap. Optional: falls back to Vercel's production domain, then to the request origin | Server only |
 | `NEXT_PUBLIC_TURNSTILE_SITE_KEY` | Cloudflare Turnstile site key rendered in the sign-up form | Public configuration |
 | `TURNSTILE_SECRET_KEY` | Turnstile secret used to verify the CAPTCHA on the server; empty closes the form | Server secret |
 | `DATABASE_URL` | Prisma runtime connection; falls back to `POSTGRES_PRISMA_URL` | Server secret |
@@ -54,10 +54,10 @@ A disabled account keeps its Auth session but is treated as having no access on 
 
 Anyone can create an account; there is no shared code. Access still requires a confirmed email.
 
-1. A person opens **Crear cuenta** on the sign-in screen (`/register`), enters name, email and password (with a show/hide button), and solves Turnstile.
+1. A person opens **Crear cuenta** on the landing page or the sign-in screen (`/register`), enters name, email and password (with a show/hide button), and solves Turnstile.
 2. `POST /auth/register` checks the origin, validates the inputs (name up to 80 characters, password 8–72), verifies Turnstile on the server and only then calls `auth.signUp()` with the normal client, so Supabase's own limits and email confirmation apply. It never uses `auth.admin.createUser`. Without `TURNSTILE_SECRET_KEY` the form is closed.
 3. The answer is the same ("Revisa tu correo") whether or not the email already has an account.
-4. The email link opens `/auth/callback`, which verifies the token, signs the person in and sends them to `/`. Expired or invalid links return to the sign-in screen with an explanation; registering again with the same unconfirmed email sends a new link.
+4. The email link opens `/auth/callback`, which verifies the token, signs the person in and sends them to the app at `/app`. Expired or invalid links return to the sign-in screen with an explanation; registering again with the same unconfirmed email sends a new link.
 5. On first access after confirmation, `getAccess` creates the profile (name and email) for a confirmed, non-anonymous user. A disabled member keeps their profile, so confirming again or registering again never re-enables them.
 
 ### What protects an open sign-up

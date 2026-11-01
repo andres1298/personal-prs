@@ -56,7 +56,7 @@ test('mismatched passwords never reach the invitation service', async () => {
 test('accepted invitations sign in with the invited email', async () => {
   const { POST, calls } = await accept();
   const response = await POST(form(valid));
-  assert.equal(response.headers.get('Location'), `${origin}/`);
+  assert.equal(response.headers.get('Location'), `${origin}/app`);
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
   assert.deepEqual(calls, [['accept', token, 'long-password'], ['signIn', { email: 'ana@example.test', password: 'long-password' }]]);
 });

@@ -4,6 +4,8 @@ Mis PRs seguirá siendo una aplicación web: el icono de la pantalla de inicio a
 
 Antes de empezar, abre en tu teléfono el enlace HTTPS de Mis PRs que te hayan compartido. Necesitarás conexión para iniciar sesión, la primera carga de tus datos y guardar nuevos PRs.
 
+Puedes añadirla desde la página principal o desde la app (`/app`): el icono siempre abre la app, no la página de presentación.
+
 ## iPhone: Safari
 
 1. Abre el enlace en **Safari**.

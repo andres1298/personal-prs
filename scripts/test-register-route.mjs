@@ -163,28 +163,28 @@ const link = (query) => new Request(`${origin}/auth/callback?${query}`);
 test('a valid confirmation link signs the user in and opens the app', async () => {
   const { GET, calls } = await callback();
   const response = await GET(link('token_hash=abc&type=signup'));
-  assert.equal(response.headers.get('Location'), `${origin}/`);
+  assert.equal(response.headers.get('Location'), `${origin}/app`);
   assert.deepEqual(calls, [['verifyOtp', { token_hash: 'abc', type: 'signup' }]]);
   const pkce = await callback();
-  assert.equal((await pkce.GET(link('code=xyz'))).headers.get('Location'), `${origin}/`);
+  assert.equal((await pkce.GET(link('code=xyz'))).headers.get('Location'), `${origin}/app`);
   assert.deepEqual(pkce.calls, [['exchange', 'xyz']]);
 });
 
 test('expired and invalid links show clear messages', async () => {
   const expired = await callback({ error: { code: 'otp_expired' } });
-  assert.equal((await expired.GET(link('token_hash=abc&type=signup'))).headers.get('Location'), `${origin}/?authError=link_expired`);
+  assert.equal((await expired.GET(link('token_hash=abc&type=signup'))).headers.get('Location'), `${origin}/app?authError=link_expired`);
   const invalid = await callback({ error: { code: 'validation_failed' } });
-  assert.equal((await invalid.GET(link('token_hash=abc&type=signup'))).headers.get('Location'), `${origin}/?authError=link_invalid`);
+  assert.equal((await invalid.GET(link('token_hash=abc&type=signup'))).headers.get('Location'), `${origin}/app?authError=link_invalid`);
   const bounced = await callback();
-  assert.equal((await bounced.GET(link('error=access_denied&error_code=otp_expired'))).headers.get('Location'), `${origin}/?authError=link_expired`);
-  assert.equal((await bounced.GET(link(''))).headers.get('Location'), `${origin}/?authError=link_invalid`);
+  assert.equal((await bounced.GET(link('error=access_denied&error_code=otp_expired'))).headers.get('Location'), `${origin}/app?authError=link_expired`);
+  assert.equal((await bounced.GET(link(''))).headers.get('Location'), `${origin}/app?authError=link_invalid`);
   assert.deepEqual(bounced.calls, []);
 });
 
 test('only confirmation link types can sign someone in', async () => {
   const { GET, calls } = await callback();
   for (const type of ['recovery', 'magiclink', 'invite']) {
-    assert.equal((await GET(link(`token_hash=abc&type=${type}`))).headers.get('Location'), `${origin}/?authError=link_invalid`);
+    assert.equal((await GET(link(`token_hash=abc&type=${type}`))).headers.get('Location'), `${origin}/app?authError=link_invalid`);
   }
   assert.deepEqual(calls, []);
 });
