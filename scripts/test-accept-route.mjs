@@ -8,14 +8,18 @@ const source = await readFile(new URL('../src/app/auth/invite/route.js', import.
 const origin = 'https://app.example.test';
 const token = 'tok/en+1';
 
-async function accept(failure) {
+async function accept(failure, { mode = 'app', signInError = null } = {}) {
   const calls = [];
   class InvitationError extends Error { constructor(code) { super(code); this.code = code; } }
   const dependencies = {
     'next/server': { NextResponse: { redirect: (url, status) => new Response(null, { status, headers: { Location: String(url) } }) } },
     '../../../lib/server/auth': {
       hasSameOrigin,
-      createAuthClient: async () => ({ auth: { signInWithPassword: async (credentials) => { calls.push(['signIn', credentials]); return { error: null }; } } }),
+      createAuthClient: async () => ({ auth: { signInWithPassword: async (credentials) => { calls.push(['signIn', credentials]); return { error: signInError }; } } }),
+    },
+    '../../../lib/server/turnstile': {
+      captchaMode: () => mode,
+      readCaptchaToken: (body) => String(body.get('cf-turnstile-response') ?? ''),
     },
     '../../../lib/server/invitations': {
       InvitationError,
@@ -71,6 +75,27 @@ test('invitation errors return to the invitation page without diagnostics', asyn
   }
 });
 
+test('provider CAPTCHA mode forwards the token to the sign-in after accepting', async () => {
+  const { POST, calls } = await accept(undefined, { mode: 'provider' });
+  const response = await POST(form({ ...valid, 'cf-turnstile-response': 'token' }));
+  assert.equal(response.headers.get('Location'), `${origin}/app`);
+  assert.deepEqual(calls, [['accept', token, 'long-password'], ['signIn', { email: 'ana@example.test', password: 'long-password', options: { captchaToken: 'token' } }]]);
+});
+
+test('provider CAPTCHA mode without a token keeps the invitation unused', async () => {
+  const { POST, calls } = await accept(undefined, { mode: 'provider' });
+  const response = await POST(form(valid));
+  assert.equal(response.headers.get('Location'), back('?error=captcha_failed'));
+  assert.deepEqual(calls, []);
+});
+
+test('a rejected sign-in after the account was created sends the person to log in', async () => {
+  const { POST, calls } = await accept(undefined, { mode: 'provider', signInError: { code: 'captcha_failed', message: 'Private diagnostic' } });
+  const response = await POST(form({ ...valid, 'cf-turnstile-response': 'used' }));
+  assert.equal(response.headers.get('Location'), `${origin}/app?authError=account_created`);
+  assert.deepEqual(calls.map(([name]) => name), ['accept', 'signIn']);
+});
+
 test('cross-origin acceptance is rejected', async () => {
   const { POST, calls } = await accept();
   assert.equal((await POST(form(valid, 'https://other.example.test'))).status, 403);
@@ -82,4 +107,10 @@ test('the invitation page keeps the Origin header on its same-origin form post',
   const page = await readFile(new URL('../src/app/invite/[token]/page.jsx', import.meta.url), 'utf8');
   const policy = page.match(/referrer:\s*'([^']+)'/)?.[1];
   assert.ok(['same-origin', 'strict-origin', 'strict-origin-when-cross-origin'].includes(policy), `unexpected referrer policy ${policy}`);
+});
+
+test('the invitation page renders the Turnstile widget only in provider CAPTCHA mode', async () => {
+  const page = await readFile(new URL('../src/app/invite/[token]/page.jsx', import.meta.url), 'utf8');
+  assert.match(page, /const captchaSiteKey = providerCaptchaSiteKey\(\);/);
+  assert.match(page, /\{captchaSiteKey && <TurnstileWidget siteKey=\{captchaSiteKey\} \/>\}/);
 });

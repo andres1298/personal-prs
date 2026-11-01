@@ -2,6 +2,7 @@ import App from '../prs-app';
 import AuthPanel from '../auth-panel';
 import { getAccess, hasAuthConfiguration } from '../../lib/server/auth';
 import { hasPendingTour } from '../../lib/server/records';
+import { providerCaptchaSiteKey } from '../../lib/server/turnstile';
 
 export const dynamic = 'force-dynamic';
 // Sign-in and private records: reachable from the landing page but kept out of search results.
@@ -12,8 +13,8 @@ export default async function Home({ searchParams }) {
   if (demo === '1') return <App hasBackend={false} />;
   const configured = hasAuthConfiguration();
   const { user, authorized, isAdmin } = await getAccess();
-  if (!authorized) return <AuthPanel configured={configured} signedIn={Boolean(user)} authError={authError} />;
+  if (!authorized) return <AuthPanel configured={configured} signedIn={Boolean(user)} authError={authError} captchaSiteKey={providerCaptchaSiteKey()} />;
   // The tour is a convenience: if its state cannot be read, the app still opens without it.
   const tourPending = await hasPendingTour(user.id).catch(() => false);
-  return <App hasBackend={true} userId={user.id} isAdmin={isAdmin} tourPending={tourPending} />;
+  return <App hasBackend={true} userId={user.id} userEmail={user.email ?? ''} isAdmin={isAdmin} tourPending={tourPending} />;
 }

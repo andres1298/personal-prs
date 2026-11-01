@@ -42,7 +42,7 @@ function Banner({ loading, demo, error, stale, onRetry }) {
   return null;
 }
 
-function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, scope }) {
+function PrsApp({ hasBackend, userEmail = '', isAdmin = false, tourPending: newMember = false, scope }) {
   const alert = useAlert();
   const {
     records, loading: loadingRecords, error: recordsError, stale: recordsStale, synced, reload: reloadRecords, addRecord, addRecords,
@@ -204,7 +204,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
+      demo={!hasBackend} userEmail={userEmail} isAdmin={isAdmin} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
     <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
       onNew={() => setNewMovement({})} onHide={movements.setHidden} onDelete={deleteMovement} />
     <NewMovementSheet preset={newMovement} onClose={() => setNewMovement(null)} onCreate={movements.createMovement} />

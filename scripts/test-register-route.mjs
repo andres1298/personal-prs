@@ -1,12 +1,12 @@
 import assert from 'node:assert/strict';
 import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
+import * as nodeCrypto from 'node:crypto';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { hasSameOrigin } from '../src/lib/server/access-policy.js';
 
 const origin = 'https://app.example.test';
 const registerSource = await readFile(new URL('../src/app/auth/register/route.js', import.meta.url), 'utf8');
-const callbackSource = await readFile(new URL('../src/app/auth/callback/route.js', import.meta.url), 'utf8');
 
 async function load(source, dependencies) {
   const module = new SourceTextModule(source);
@@ -28,11 +28,12 @@ const nextServer = {
   },
 };
 
-async function register({ signUpError = null, turnstileOk = true, configured = true } = {}) {
+async function register({ signUpError = null, turnstileOk = true, configured = true, mode = 'app', siteKey = 'site-key' } = {}) {
   process.env.TURNSTILE_SECRET_KEY = configured ? 'turnstile-secret' : '';
   const signUps = [];
   const verifications = [];
   const { POST } = await load(registerSource, {
+    'node:crypto': nodeCrypto,
     'next/server': nextServer,
     '../../../lib/server/auth': {
       hasSameOrigin,
@@ -40,7 +41,9 @@ async function register({ signUpError = null, turnstileOk = true, configured = t
       createAuthClient: async () => ({ auth: { signUp: async (payload) => { signUps.push(payload); return { data: {}, error: signUpError }; } } }),
     },
     '../../../lib/server/turnstile': {
-      hasTurnstileConfiguration: () => Boolean(process.env.TURNSTILE_SECRET_KEY),
+      captchaMode: () => mode,
+      hasCaptchaConfiguration: (activeMode) => (activeMode === 'provider' ? Boolean(siteKey) : Boolean(process.env.TURNSTILE_SECRET_KEY)),
+      readCaptchaToken: (body) => String(body.get('cf-turnstile-response') ?? ''),
       verifyTurnstile: async (token, ip) => { verifications.push([token, ip]); return turnstileOk; },
     },
   });
@@ -48,7 +51,7 @@ async function register({ signUpError = null, turnstileOk = true, configured = t
 }
 
 function form(overrides = {}, requestOrigin = origin) {
-  const fields = { name: ' Ana ', email: ' Ana@Example.TEST ', password: 'long-password', 'cf-turnstile-response': 'token', ...overrides };
+  const fields = { name: ' Ana ', email: ' Ana@Example.TEST ', 'cf-turnstile-response': 'token', ...overrides };
   return new Request(`${origin}/auth/register`, { method: 'POST', headers: { origin: requestOrigin, 'x-real-ip': '203.0.113.7' }, body: new URLSearchParams(fields) });
 }
 
@@ -60,12 +63,34 @@ test('a valid sign-up calls signUp once with the normalized email and the confir
   assert.equal(response.headers.get('Cache-Control'), 'private, no-store');
   assert.deepEqual(verifications, [['token', '203.0.113.7']]);
   assert.equal(signUps.length, 1);
-  const [{ email, password, options }] = signUps;
+  const [{ email, options }] = signUps;
   assert.equal(email, 'ana@example.test');
-  assert.equal(password, 'long-password');
   assert.equal(options.emailRedirectTo, `${origin}/auth/callback`);
-  assert.equal(options.data.full_name, 'Ana');
   assert.deepEqual(options.data, { full_name: 'Ana' });
+  assert.equal('captchaToken' in options, false);
+});
+
+test('the account gets a random server-side password that no form field can supply', async () => {
+  const fields = { name: 'Ana', email: 'ana@example.test', password: 'attacker-chosen-1', confirm: 'attacker-chosen-1', 'cf-turnstile-response': 'token' };
+  const passwords = new Set();
+  for (let attempt = 0; attempt < 20; attempt += 1) {
+    const { POST, signUps } = await register();
+    assert.equal((await POST(form(fields))).status, 200);
+    const [{ password }] = signUps;
+    assert.ok(!Object.values(fields).includes(password), 'the password must not come from the form');
+    assert.ok(password.length >= 40 && password.length <= 72, `unexpected length ${password.length}`);
+    for (const pattern of [/[A-Z]/, /[a-z]/, /[0-9]/, /[^A-Za-z0-9]/]) assert.match(password, pattern);
+    passwords.add(password);
+  }
+  assert.equal(passwords.size, 20);
+});
+
+test('the sign-up form no longer asks for a password', async () => {
+  const page = await readFile(new URL('../src/app/register/register-form.jsx', import.meta.url), 'utf8');
+  assert.doesNotMatch(page, /name="password"|type=\{?["']password/);
+  assert.match(page, /name="name"/);
+  assert.match(page, /name="email"/);
+  assert.match(page, /TurnstileWidget/);
 });
 
 test('the confirmation link targets the public site, not the deployment that served the form', async () => {
@@ -74,7 +99,7 @@ test('the confirmation link targets the public site, not the deployment that ser
     delete process.env.SITE_URL;
     process.env.VERCEL_PROJECT_PRODUCTION_URL = 'app.example.test';
     const viaVercel = await register();
-    await viaVercel.POST(new Request('https://deployment-abc.vercel.app/auth/register', { method: 'POST', headers: { origin: 'https://deployment-abc.vercel.app' }, body: new URLSearchParams({ name: 'Ana', email: 'ana@example.test', password: 'long-password', 'cf-turnstile-response': 't' }) }));
+    await viaVercel.POST(new Request('https://deployment-abc.vercel.app/auth/register', { method: 'POST', headers: { origin: 'https://deployment-abc.vercel.app' }, body: new URLSearchParams({ name: 'Ana', email: 'ana@example.test', 'cf-turnstile-response': 't' }) }));
     assert.equal(viaVercel.signUps[0].options.emailRedirectTo, 'https://app.example.test/auth/callback');
     process.env.SITE_URL = 'https://custom.example.test/ignored/path';
     const explicit = await register();
@@ -116,7 +141,7 @@ test('an already registered email gets the same response as a new one', async ()
 test('invalid inputs are rejected without verifying the CAPTCHA', async () => {
   const cases = [
     [{ name: '' }, 'invalid_name'], [{ name: 'x'.repeat(81) }, 'invalid_name'],
-    [{ email: 'not-an-email' }, 'invalid_email'], [{ password: 'short' }, 'invalid_password'], [{ password: 'x'.repeat(73) }, 'invalid_password'],
+    [{ email: 'not-an-email' }, 'invalid_email'], [{ email: `${'a'.repeat(250)}@b.co` }, 'invalid_email'],
   ];
   for (const [overrides, error] of cases) {
     const { POST, signUps, verifications } = await register();
@@ -143,48 +168,29 @@ test('registration stays closed when Turnstile is not configured', async () => {
   assert.deepEqual(signUps, []);
 });
 
-async function callback(auth = {}) {
-  const calls = [];
-  const { GET } = await load(callbackSource, {
-    'next/server': nextServer,
-    '../../../lib/server/auth': {
-      hasAuthConfiguration: () => true,
-      createAuthClient: async () => ({ auth: {
-        verifyOtp: async (payload) => { calls.push(['verifyOtp', payload]); return { error: auth.error ?? null }; },
-        exchangeCodeForSession: async (code) => { calls.push(['exchange', code]); return { error: auth.error ?? null }; },
-      } }),
-    },
-  });
-  return { GET, calls };
-}
-
-const link = (query) => new Request(`${origin}/auth/callback?${query}`);
-
-test('a valid confirmation link signs the user in and opens the app', async () => {
-  const { GET, calls } = await callback();
-  const response = await GET(link('token_hash=abc&type=signup'));
-  assert.equal(response.headers.get('Location'), `${origin}/app`);
-  assert.deepEqual(calls, [['verifyOtp', { token_hash: 'abc', type: 'signup' }]]);
-  const pkce = await callback();
-  assert.equal((await pkce.GET(link('code=xyz'))).headers.get('Location'), `${origin}/app`);
-  assert.deepEqual(pkce.calls, [['exchange', 'xyz']]);
+test('provider mode forwards the token to signUp and never calls siteverify', async () => {
+  const { POST, signUps, verifications } = await register({ mode: 'provider', configured: false });
+  const response = await POST(form());
+  assert.equal(response.status, 200);
+  assert.deepEqual(verifications, []);
+  assert.equal(signUps.length, 1);
+  assert.equal(signUps[0].options.captchaToken, 'token');
+  assert.deepEqual(signUps[0].options.data, { full_name: 'Ana' });
 });
 
-test('expired and invalid links show clear messages', async () => {
-  const expired = await callback({ error: { code: 'otp_expired' } });
-  assert.equal((await expired.GET(link('token_hash=abc&type=signup'))).headers.get('Location'), `${origin}/app?authError=link_expired`);
-  const invalid = await callback({ error: { code: 'validation_failed' } });
-  assert.equal((await invalid.GET(link('token_hash=abc&type=signup'))).headers.get('Location'), `${origin}/app?authError=link_invalid`);
-  const bounced = await callback();
-  assert.equal((await bounced.GET(link('error=access_denied&error_code=otp_expired'))).headers.get('Location'), `${origin}/app?authError=link_expired`);
-  assert.equal((await bounced.GET(link(''))).headers.get('Location'), `${origin}/app?authError=link_invalid`);
-  assert.deepEqual(bounced.calls, []);
+test('provider mode rejects a missing token locally and maps the provider CAPTCHA error', async () => {
+  const missing = await register({ mode: 'provider' });
+  const response = await missing.POST(form({ 'cf-turnstile-response': '' }));
+  assert.deepEqual([response.status, await response.json()], [400, { ok: false, error: 'captcha_failed' }]);
+  assert.deepEqual(missing.signUps, []);
+  const rejected = await register({ mode: 'provider', signUpError: { code: 'captcha_failed', status: 400, message: 'Private diagnostic' } });
+  const failed = await rejected.POST(form());
+  assert.deepEqual([failed.status, await failed.json()], [400, { ok: false, error: 'captcha_failed' }]);
 });
 
-test('only confirmation link types can sign someone in', async () => {
-  const { GET, calls } = await callback();
-  for (const type of ['recovery', 'magiclink', 'invite']) {
-    assert.equal((await GET(link(`token_hash=abc&type=${type}`))).headers.get('Location'), `${origin}/app?authError=link_invalid`);
-  }
-  assert.deepEqual(calls, []);
+test('provider mode stays closed without the public site key', async () => {
+  const { POST, signUps, verifications } = await register({ mode: 'provider', siteKey: '' });
+  const response = await POST(form());
+  assert.equal(response.status, 503);
+  assert.deepEqual([signUps, verifications], [[], []]);
 });

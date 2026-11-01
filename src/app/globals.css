@@ -225,7 +225,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
 .list > div.row:not(:has(.row-body)) { padding-right: 16px; }
 .row-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .row-title { overflow-wrap: anywhere; display: flex; align-items: center; gap: 6px; font-weight: 700; font-size: 16px; }
-.row-subtitle { color: var(--ink2); font-size: 13px; font-weight: 500; line-height: 1.3; }
+.row-subtitle { color: var(--ink2); font-size: 13px; font-weight: 500; line-height: 1.3; overflow-wrap: anywhere; }
 .row-detail { color: var(--ink2); white-space: nowrap; font-variant-numeric: tabular-nums; display: flex; align-items: center; gap: 4px; font-weight: 600; font-size: 15px; }
 /* Values: expanded numbers with a small unit, and the RM as a tag. */
 .row-detail.value { color: var(--ink); font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 22px; letter-spacing: -.01em; text-transform: uppercase; gap: 0; }
@@ -867,6 +867,10 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .reveal-button { flex: none; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ink); font-size: 14px; font-weight: 800; }
 .turnstile-box { display: flex; justify-content: center; min-height: 65px; margin-bottom: 14px; }
 .auth-footnote { color: var(--ink2); font-size: 13px; }
+.auth-form .auth-footnote { margin: -6px 6px 14px; }
+.auth-session { display: grid; gap: 10px; margin-bottom: 14px; overflow-wrap: anywhere; }
+.auth-check { display: flex; align-items: flex-start; gap: 10px; font-size: 15px; font-weight: 700; }
+.auth-check input { flex: none; width: 20px; height: 20px; margin-top: 1px; accent-color: var(--inverse); }
 
 /* ---------- Guided tour ---------- */
 :root { --tour-dim: rgba(13, 13, 13, .55); }
