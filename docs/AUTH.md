@@ -72,7 +72,41 @@ In the Cloudflare dashboard open **Turnstile → Add widget**, add the productio
 
 ### Rate limiting
 
-Vercel Firewall rule on the `personal-prs` project: **Rate limit POST /auth/register and /auth/login** — fixed window, 60 s, 20 requests per IP, action Deny, matching `POST /auth/register` or `POST /auth/login`. The current Vercel plan allows a single rate-limit rule, so both routes share one budget (a second per-route rule returned "Rate limiting is not available for this plan"). If the plan changes, split it into stricter per-route rules (for example 5/min for register and 10/min for login). Turnstile, the code comparison and Supabase's own limits are the other layers; no in-app limiter exists.
+The app limits requests itself (`src/lib/server/rate-limit.js`). Vercel instances share no memory, so the counters live in Postgres (`RateLimitBucket`, migration `20261101120000_rate_limits`): one atomic upsert per request in a fixed window. Each row's key is a SHA-256 hash of the policy and the subject, so client IPs and user ids are never stored. About 1% of checks also delete expired rows.
+
+| Policy | Applies to | Subject | Limit |
+| --- | --- | --- | --- |
+| `login` | `POST /auth/login` | Client IP | 20 per 10 min |
+| `logout` | `POST /auth/logout` | Client IP | 30 per 10 min |
+| `inviteAccept` | `POST /auth/invite` | Client IP | 10 per 10 min |
+| `invitePage` | `GET /invite/[token]` | Client IP | 60 per 10 min |
+| `apiRead` | `GET` on every `/api/*` route | Verified user id | 120 per min |
+| `apiWrite` | `POST`, `PATCH` and `DELETE` on every `/api/*` route | Verified user id | 30 per min |
+
+The client IP comes from `x-real-ip` (or the first `x-forwarded-for` entry), which Vercel sets; requests without one share a single bucket. API limits apply after the session is verified and before any other work. When a limit is hit:
+
+- The API answers `429` with `Retry-After` and "Demasiadas solicitudes. Espera un momento e inténtalo de nuevo.", which the app shows in its alert.
+- Sign-in returns to `/app?authError=rate_limited`, shown as a rate limit, not as wrong credentials. A provider limit from Supabase (HTTP 429 or an `over_*_rate_limit` code) maps to the same message.
+- Invitation acceptance returns to the invitation page with the same message; the invitation page itself shows it instead of looking up the token. Sign-out answers `429`.
+
+**Fails open.** If the limiter cannot reach the table (for example, the migration is not applied yet or the database is unavailable), the request is allowed and the server logs only the error code, never the IP or user id. That keeps sign-in working during a migration; the layers below still apply. Apply the migration with `npm run db:migrate:deploy` before relying on these limits.
+
+Vercel Firewall rule on the `personal-prs` project, kept as the outer backstop: **Rate limit POST /auth/register and /auth/login**, a fixed window of 60 s, 20 requests per IP, action Deny, matching `POST /auth/register` or `POST /auth/login`. The current Vercel plan allows a single rate-limit rule, so both routes share one budget (a second per-route rule returned "Rate limiting is not available for this plan"). The firewall blocks floods before they reach a function or the database; the in-app limiter covers every other public auth and invitation route and the authenticated API. Turnstile and Supabase's own limits are the remaining layers. `/auth/register` and the confirmation callback get their in-app limits with the sign-up changes (#78, #79).
+
+## Quotas
+
+Each account has fixed quotas, so one account cannot grow the shared database or its cost without bound (`src/lib/server/records.js`):
+
+| Quota | Value | Behavior |
+| --- | --- | --- |
+| Records per account (`MAX_RECORDS_PER_ACCOUNT`) | 5000 | Saving answers `409` with "Alcanzaste el límite de 5000 registros de tu cuenta. No se pueden guardar más." |
+| Notes per record (`NOTES_MAX`) | 1000 characters | The form stops typing at 1000; the API rejects longer notes with `400` |
+| Records per quick upload (`MAX_BULK_RECORDS`) | 153 | Larger batches are rejected with `400` |
+| Custom movements per account | 30 | See [PRISMA.md](PRISMA.md) |
+
+The record quota is counted in the same serializable transaction as the insert, for single records and quick uploads (a batch counts its own size). Two concurrent saves cannot both take the last free slot: one fails with a serialization error, which answers `409` asking to try again. Nothing is written past the quota.
+
+**Database-size alert (to configure in the provider).** Quotas bound each account, not the number of accounts. In the Supabase dashboard, check **Reports → Database** for the current size and configure an alert on database size (or disk usage) at about 80% of the plan's included space, sent to the project owner. If the plan offers no configurable alert, review the size there weekly and keep spend caps on. Record where the alert lives in the issue, never its credentials.
 
 ## Recover a stuck invitation
 
