@@ -3,6 +3,8 @@ import { readFile } from 'node:fs/promises';
 import { test } from 'node:test';
 import { SourceTextModule, SyntheticModule } from 'node:vm';
 import { hasSameOrigin } from '../src/lib/server/access-policy.js';
+import * as passwordPolicy from '../src/lib/password-policy.js';
+import * as siteOrigin from '../src/lib/server/site-origin.js';
 
 const origin = 'https://app.example.test';
 const registerSource = await readFile(new URL('../src/app/auth/register/route.js', import.meta.url), 'utf8');
@@ -39,6 +41,8 @@ async function register({ signUpError = null, turnstileOk = true, configured = t
       hasAuthConfiguration: () => true,
       createAuthClient: async () => ({ auth: { signUp: async (payload) => { signUps.push(payload); return { data: {}, error: signUpError }; } } }),
     },
+    '../../../lib/server/site-origin': siteOrigin,
+    '../../../lib/password-policy': passwordPolicy,
     '../../../lib/server/turnstile': {
       hasTurnstileConfiguration: () => Boolean(process.env.TURNSTILE_SECRET_KEY),
       verifyTurnstile: async (token, ip) => { verifications.push([token, ip]); return turnstileOk; },
