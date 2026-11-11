@@ -1,6 +1,7 @@
 import 'server-only';
 import { randomUUID } from 'node:crypto';
 import { getPrisma } from './prisma.js';
+import { activeCoachIds } from './coaching.js';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 export const MAX_CUSTOM_MOVEMENTS = 30;
@@ -35,6 +36,8 @@ function movementDto(movement, profileId) {
     groupName: movement.groupName,
     measurementType: movement.measurementType,
     custom: movement.ownerId === profileId,
+    // Created by the member's coach: usable like a shared movement, but not theirs to delete or turn off.
+    fromCoach: movement.ownerId !== null && movement.ownerId !== profileId,
     hidden: (movement.hiddenBy?.length ?? 0) > 0,
   };
 }
@@ -66,15 +69,21 @@ function validatedKind(input) {
   return { category, measurementType: CATEGORY_TYPES[category] };
 }
 
-// Shared movements plus the member's own, each flagged with the member's hidden state.
+// Shared movements, the member's own and the ones their coach created, each flagged with the
+// member's hidden state. A name the member already uses wins over the coach's movement of the same name.
 export async function listMovements(authUserId) {
   const profileId = requireProfileId(authUserId);
-  const movements = await getPrisma().movement.findMany({
-    where: { OR: [{ ownerId: null }, { ownerId: profileId }] },
+  const prisma = getPrisma();
+  const coachIds = await activeCoachIds(profileId, prisma);
+  const movements = await prisma.movement.findMany({
+    where: { OR: [{ ownerId: null }, { ownerId: { in: [profileId, ...coachIds] } }] },
     include: { hiddenBy: { where: { profileId }, select: { profileId: true } } },
     orderBy: [{ category: 'asc' }, { groupName: 'asc' }, { name: 'asc' }],
   });
-  return movements.map((movement) => movementDto(movement, profileId));
+  const taken = new Set(movements.filter((movement) => movement.ownerId === null || movement.ownerId === profileId).map((movement) => movement.name.toLowerCase()));
+  return movements
+    .filter((movement) => movement.ownerId === null || movement.ownerId === profileId || !taken.has(movement.name.toLowerCase()))
+    .map((movement) => movementDto(movement, profileId));
 }
 
 export async function createMovement(authUserId, input) {

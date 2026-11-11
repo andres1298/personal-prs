@@ -61,7 +61,7 @@ test('members list exposes a record count and never record values', async () => 
   const members = await api.listMembers(` ${adminId.toUpperCase()} `);
   assert.deepEqual(members.map((member) => [member.email, member.isAdmin, member.recordCount]),
     [['admin@example.test', true, 1], ['ana@example.test', false, 2]]);
-  assert.deepEqual(Object.keys(members[1]).sort(), ['createdAt', 'disabledAt', 'email', 'id', 'isAdmin', 'name', 'recordCount']);
+  assert.deepEqual(Object.keys(members[1]).sort(), ['createdAt', 'disabledAt', 'email', 'id', 'isAdmin', 'isCoach', 'name', 'recordCount']);
   assert.doesNotMatch(JSON.stringify(members), /135|185|225/);
   assert.equal('records' in db.queries[0].select, false);
 });
@@ -96,6 +96,7 @@ async function routes(access, failure) {
     [`${prefix}lib/server/members`]: {
       MemberError,
       listMembers: async () => { calls.push(['list']); return [{ id: memberId, recordCount: 2 }]; },
+      setMemberCoach: async (id, coach) => { calls.push(['coach', id, coach]); },
       setMemberDisabled: async (actorId, id, disabled) => {
         calls.push(['set', actorId, id, disabled]);
         if (failure === 'admin') throw new MemberError('admin');
@@ -136,10 +137,21 @@ test('admins list members and toggle access with private responses', async () =>
   assert.deepEqual(calls, [['list'], ['set', adminId, memberId, true]]);
 });
 
+test('admins grant and remove the coach role, one change per request', async () => {
+  const { single, calls } = await routes(admin);
+  const granted = await single.PATCH(...patch({ coach: true }));
+  assert.deepEqual([granted.status, await granted.json()], [200, { coach: true }]);
+  assert.equal((await single.PATCH(...patch({ coach: false }))).status, 200);
+  assert.deepEqual(calls, [['coach', memberId, true], ['coach', memberId, false]]);
+  const denied = await routes(member);
+  assert.equal((await denied.single.PATCH(...patch({ coach: true }))).status, 403);
+  assert.deepEqual(denied.calls, []);
+});
+
 test('cross-origin and malformed updates are rejected before any service call', async () => {
   const { single, calls } = await routes(admin);
   assert.equal((await single.PATCH(...patch(undefined, 'https://other.example.test'))).status, 403);
-  for (const body of [null, [], {}, { disabled: 'true' }, { disabled: true, disabledById: adminId }]) {
+  for (const body of [null, [], {}, { disabled: 'true' }, { disabled: true, disabledById: adminId }, { coach: 'yes' }, { coach: true, disabled: false }]) {
     assert.equal((await single.PATCH(...patch(body))).status, 400);
   }
   assert.deepEqual(calls, []);

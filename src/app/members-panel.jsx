@@ -45,6 +45,17 @@ export default function MembersPanel() {
     finally { setBusyId(''); }
   }
 
+  async function toggleCoach(member) {
+    setBusyId(member.id); setError('');
+    try {
+      await request(`/api/members/${member.id}`, {
+        method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ coach: !member.isCoach }),
+      });
+      await refresh();
+    } catch (err) { setError(err.message); }
+    finally { setBusyId(''); }
+  }
+
   const active = members?.filter((member) => !member.disabledAt).length ?? 0;
 
   return <>
@@ -52,12 +63,15 @@ export default function MembersPanel() {
     {!members && !error && <p className="empty compact">Cargando…</p>}
     {members && <List header={`Usuarios · ${active} ${active === 1 ? 'activo' : 'activos'} de ${members.length}`}>
       {members.map((member) => <Row key={member.id} className={member.disabledAt ? 'off' : ''}
-        title={<>{member.name || member.email || 'Sin nombre'}{member.isAdmin && <small className="badge">admin</small>}</>}
+        title={<>{member.name || member.email || 'Sin nombre'}{member.isAdmin && <small className="badge">admin</small>}{member.isCoach && <small className="badge">coach</small>}</>}
         subtitle={<>
           {member.name && member.email && <>{member.email}<br /></>}
           {recordLabel(member.recordCount)} · desde {dateFormat.format(new Date(member.createdAt))}
           {member.disabledAt && ` · deshabilitado ${dateFormat.format(new Date(member.disabledAt))}`}
         </>}>
+        {!member.disabledAt && <button type="button" className="tinted-button small" disabled={busyId === member.id} onClick={() => toggleCoach(member)}>
+          {member.isCoach ? 'Quitar coach' : 'Hacer coach'}
+        </button>}
         {!member.isAdmin && <Switch checked={!member.disabledAt} disabled={busyId === member.id}
           label={`Acceso de ${member.name || member.email}`} onChange={() => toggle(member)} />}
       </Row>)}

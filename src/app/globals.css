@@ -952,3 +952,74 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
   .signal-plate { animation: none !important; opacity: 1; }
   .ring-waves { display: none; }
 }
+
+/* ---------- Plan: the athlete's programming ---------- */
+.tab { position: relative; }
+.tab-badge { position: absolute; top: 9px; right: calc(50% - 17px); width: 9px; height: 9px; border-radius: 50%; background: var(--b-coral); box-shadow: 0 0 0 2px var(--surface); }
+.tab[aria-current="page"] .tab-badge { display: none; }
+.week-strip { display: flex; align-items: stretch; gap: 4px; margin: 8px -6px 10px; }
+.week-arrow { flex: none; width: 30px; display: grid; place-items: center; color: var(--ink2); border-radius: 10px; }
+.week-arrow svg { width: 18px; height: 18px; }
+.week-arrow:disabled { opacity: .25; }
+.week-day {
+  flex: 1; min-width: 0; min-height: 68px; display: grid; justify-items: center; align-content: center; gap: 3px; padding: 6px 0; border-radius: 12px;
+  background: var(--surface); color: var(--ink); transition: background-color .25s, color .25s, transform .2s var(--ease);
+}
+.week-day small { font-size: 11px; font-weight: 800; color: var(--ink2); }
+.week-day b { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 17px; }
+.week-day[data-today="true"] { box-shadow: inset 0 0 0 2px var(--ink); }
+.week-day[aria-pressed="true"] { background: var(--inverse); color: var(--inverse-ink); }
+.week-day[aria-pressed="true"] small { color: inherit; opacity: .7; }
+.week-day:active { transform: scale(.95); }
+.week-mark { width: 14px; height: 14px; display: grid; place-items: center; border-radius: 50%; }
+.week-mark[data-state="planned"] { width: 8px; height: 8px; margin: 3px; background: var(--b-coral); }
+.week-mark[data-state="done"] { background: var(--b-green); color: var(--block-ink); }
+.week-mark svg { width: 9px; height: 9px; }
+.plan-date { margin: 0 4px 12px; color: var(--ink2); font-size: 13px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.plan-session { margin-bottom: 28px; }
+.plan-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 10px; margin: 0 2px 10px; }
+.plan-head h2 { font-size: clamp(20px, 6.4vw, 26px); overflow-wrap: anywhere; }
+.plan-tag { flex: none; padding: 4px 9px; border-radius: 8px; background: var(--c); color: var(--block-ink); font-size: 12px; font-weight: 800; }
+.plan-notes { margin: 0 2px 10px; color: var(--ink2); font-size: 15px; line-height: 1.4; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text; }
+.plan-block { margin-bottom: 12px; padding: 14px 16px 6px; border-radius: var(--radius); background: var(--surface); box-shadow: inset 5px 0 0 var(--b); }
+.plan-block-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
+.plan-block-head h3 { font-size: 17px; font-weight: 800; overflow-wrap: anywhere; }
+.plan-letter { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: var(--b); color: var(--block-ink); font-size: 16px; }
+.plan-item { padding: 10px 0; box-shadow: inset 0 1px 0 var(--line); }
+.plan-item-main { display: flex; align-items: center; gap: 10px; }
+.plan-item-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.plan-item-text b { font-size: 16px; font-weight: 800; overflow-wrap: anywhere; }
+.plan-item-text span { color: var(--ink2); font-size: 14px; font-weight: 600; }
+.plan-item-text .plan-rx { color: var(--ink); font-variant-numeric: tabular-nums; }
+.plan-item .plan-notes { margin: 6px 0 0; font-size: 14px; }
+.plan-weight {
+  flex: none; display: inline-flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 12px; border-radius: 12px;
+  background: var(--b); color: var(--block-ink); transition: transform .2s var(--ease);
+}
+.plan-weight span { font-size: 24px; }
+.plan-weight small { font-size: 12px; margin-left: 2px; }
+.plan-weight svg { width: 18px; height: 18px; }
+.plan-weight:active { transform: scale(.95); }
+.plan-missing { display: flex; align-items: center; gap: 6px; margin: 8px 0 0; padding: 0; color: var(--ink2); font-size: 14px; font-weight: 700; text-align: left; }
+button.plan-missing { min-height: 44px; color: var(--ink); text-decoration: underline; text-underline-offset: 3px; }
+.plan-missing svg { flex: none; width: 14px; height: 14px; }
+.plan-log { display: flex; gap: 8px; margin-top: 10px; }
+.plan-log.score { margin: 0; padding: 10px 0; box-shadow: inset 0 1px 0 var(--line); }
+.log-field { flex: 1; min-width: 0; display: flex; align-items: center; gap: 8px; min-height: 48px; padding: 0 12px; border-radius: 12px; background: var(--bg); font-size: 14px; font-weight: 800; }
+.log-field span { flex: none; color: var(--ink2); }
+.log-field input { flex: 1; min-width: 0; height: 44px; border: 0; outline: none; background: transparent; color: var(--ink); font-size: 18px; font-weight: 800; text-align: right; font-variant-numeric: tabular-nums; }
+.log-field input::placeholder { color: var(--ink3); font-weight: 600; font-size: 15px; }
+.log-field input[aria-invalid="true"] { color: var(--danger); }
+.log-field:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.filled-button.plan-done { margin: 4px 0 18px; }
+.filled-button.plan-done[data-done="true"] { background: var(--b-green); color: var(--block-ink); }
+.thread { display: grid; gap: 8px; }
+.bubble {
+  justify-self: start; max-width: 86%; margin: 0; padding: 10px 12px; border-radius: 14px 14px 14px 4px; background: var(--surface);
+  font-size: 15px; line-height: 1.35; white-space: pre-wrap; overflow-wrap: anywhere; -webkit-user-select: text; user-select: text;
+}
+.bubble[data-mine="true"] { justify-self: end; border-radius: 14px 14px 4px 14px; background: var(--inverse); color: var(--inverse-ink); }
+.bubble small { display: block; margin-top: 4px; font-size: 11px; font-weight: 600; opacity: .6; }
+.thread-form { display: flex; align-items: flex-end; gap: 8px; padding: 6px 6px 6px 14px; border-radius: 14px; background: var(--surface); }
+.thread-form textarea { flex: 1; min-width: 0; min-height: 40px; max-height: 120px; padding: 9px 0; border: 0; outline: none; resize: none; background: transparent; color: var(--ink); font: inherit; font-size: 16px; field-sizing: content; }
+.thread-form textarea::placeholder { color: var(--ink3); }

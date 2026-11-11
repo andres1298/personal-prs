@@ -13,7 +13,7 @@
     "db:migrate:deploy": "prisma migrate deploy",
     "db:migrate:status": "prisma migrate status",
     "db:seed": "prisma db seed",
-    "db:test": "node --conditions=react-server --env-file-if-exists=.env.local scripts/test-prisma.mjs"
+    "db:test": "node --conditions=react-server --env-file-if-exists=.env.local scripts/test-prisma.mjs && node --conditions=react-server --env-file-if-exists=.env.local scripts/test-coaching-db.mjs"
   },
   "dependencies": {
     "@prisma/adapter-pg": "7.10.0",

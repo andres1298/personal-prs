@@ -63,7 +63,9 @@ function fakeDatabase({ records = [], hidden = [], failCreateAt = null, serializ
 
 async function service(options) {
   const db = fakeDatabase(options);
-  const dependencies = { 'server-only': {}, './prisma.js': { getPrisma: () => db } };
+  const dependencies = { 'server-only': {}, './prisma.js': { getPrisma: () => db },
+    // No coach in these tests: only shared and own movements are in reach.
+    './coaching.js': { activeCoachIds: async () => [] } };
   const module = new SourceTextModule(source);
   await module.link((specifier) => {
     const exports = dependencies[specifier];

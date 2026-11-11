@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getAccess, hasSameOrigin } from '../../../../lib/server/auth';
-import { MemberError, setMemberDisabled } from '../../../../lib/server/members';
+import { MemberError, setMemberCoach, setMemberDisabled } from '../../../../lib/server/members';
 
 export const runtime = 'nodejs';
 export const dynamic = 'force-dynamic';
@@ -21,11 +21,16 @@ export async function PATCH(request, { params }) {
       if (body.length > 200) return json({ error: 'Solicitud inválida.' }, 400);
       input = JSON.parse(body);
     } catch { return json({ error: 'Solicitud inválida.' }, 400); }
-    if (!input || typeof input !== 'object' || Array.isArray(input) ||
-        Object.keys(input).some((key) => key !== 'disabled') || typeof input.disabled !== 'boolean') {
+    // Exactly one change per request: access ({ disabled }) or the coach role ({ coach }).
+    const keys = input && typeof input === 'object' && !Array.isArray(input) ? Object.keys(input) : [];
+    if (keys.length !== 1 || !['disabled', 'coach'].includes(keys[0]) || typeof input[keys[0]] !== 'boolean') {
       return json({ error: 'Solicitud inválida.' }, 400);
     }
     const { id } = await params;
+    if (keys[0] === 'coach') {
+      await setMemberCoach(id, input.coach);
+      return json({ coach: input.coach }, 200);
+    }
     await setMemberDisabled(access.user.id, id, input.disabled, process.env.SUPABASE_ADMIN_USER_IDS);
     return json({ disabled: input.disabled }, 200);
   } catch (error) {

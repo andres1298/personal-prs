@@ -6,6 +6,10 @@ import { ALL_PLATES } from '../lib/plates';
 import { readStored, useStoredState, useWakeLock, writeStored } from '../components/hooks';
 import useRecords from '../components/use-records';
 import useMovements from '../components/use-movements';
+import usePlan from '../components/plan/use-plan';
+import PlanView from '../components/plan/plan-view';
+import { today } from '../lib/catalog';
+import { DEFAULT_PCT } from '../lib/plates';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
 import SignalLoader from '../components/ui/signal-loader';
@@ -42,12 +46,16 @@ function Banner({ loading, demo, error, stale, onRetry }) {
   return null;
 }
 
-function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, scope }) {
+function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false, userId, tourPending: newMember = false, scope }) {
   const alert = useAlert();
   const {
     records, loading: loadingRecords, error: recordsError, stale: recordsStale, synced, reload: reloadRecords, addRecord, addRecords,
   } = useRecords(hasBackend, scope);
   const movements = useMovements(hasBackend, scope);
+  const plan = usePlan(hasBackend, scope);
+  // The server's answer at page load holds until the plan itself arrives, so the tab does not flicker.
+  const planEnabled = hasBackend && (plan.loaded ? Boolean(plan.coach) || plan.sessions.length > 0 : hasPlan || Boolean(plan.coach));
+  const planBadge = plan.sessions.some((session) => session.unread > 0 || (session.date === today() && !session.completedAt));
   const loading = loadingRecords || movements.loading;
   const error = recordsError || movements.error;
   const stale = recordsStale || movements.stale;
@@ -72,7 +80,8 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     ...(typeof patch === 'function' ? patch(current) : patch), ts: Date.now(),
   })), [updateEx]);
 
-  const tab = settings.tab;
+  // A stored plan tab falls back to Execute once the member no longer follows a plan.
+  const tab = settings.tab === 'plan' && !planEnabled ? 'exec' : settings.tab;
   const running = tab === 'exec' && ex.view === 'run';
   useWakeLock(running && settings.wake !== false);
   // Simple mode hides the tab bar while lifting.
@@ -88,6 +97,13 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   // Offer the quick upload once to accounts that have no records yet, after the tour.
   // The device copy can be out of date, so it waits for the server's answer.
   const tourPending = !tourReady || autoTour || tourOpen;
+  // A join link opened before signing in is kept on the device and resumed here.
+  useEffect(() => {
+    const code = hasBackend && readStored('prs_pending_join', null);
+    if (typeof code !== 'string') return;
+    writeStored('prs_pending_join', null);
+    window.location.assign(`/join/${encodeURIComponent(code)}`);
+  }, [hasBackend]);
   useEffect(() => {
     const key = `prs_quick_prompt_${scope}`;
     if (tourPending || !hasBackend || !synced || error || records.length || readStored(key, {}).seen) return;
@@ -173,6 +189,26 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     if (ex.move === name) setEx({ view: 'pick', move: null, free: false, base: 0, extra: [], minus: [] });
     return result;
   }
+  // A prescribed load opens on the barbell: on its movement when the percentage is of its own
+  // record, otherwise as a free calculation of the resolved weight.
+  function executeLoad({ movement, rm, pct, base, weight }) {
+    const patch = movement && pct <= 100
+      ? { ...selectMovePatch(records, movement), rm, base, pct }
+      : { view: 'run', free: true, move: null, base: weight, pct: 100, extra: [], minus: [], sel: 0, panel: 'load' };
+    updateSettings({ tab: 'exec' });
+    setEx(patch);
+    window.scrollTo({ top: 0 });
+  }
+  // Coach movements arrive with the plan, so joining or leaving one reloads the catalog.
+  async function joinPlan(code) {
+    const joined = await plan.join(code);
+    movements.reload();
+    return joined;
+  }
+  async function leavePlan() {
+    await plan.leave();
+    movements.reload();
+  }
   async function saveQuick(list) {
     await addRecords(list);
     setQuickOpen(false);
@@ -184,6 +220,9 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
   return <>
     <TimerPill />
     <main className="page" ref={page} data-focus={focus}>
+      {planEnabled && <section className="tab-view wrap" hidden={tab !== 'plan'}>
+        <PlanView plan={plan} records={records} userId={userId} active={tab === 'plan'} onExecute={executeLoad} onAddRecord={openForm} onSaveRecord={addRecord} />
+      </section>}
       <section className="tab-view wrap" hidden={tab !== 'exec'}>
         <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)}
           onOpenRecord={(move) => setDetail({ move })} />
@@ -195,7 +234,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
         <TimerView />
       </section>
     </main>
-    <TabBar tab={tab} onTab={goTab} onAdd={onAdd} hidden={focus} />
+    <TabBar tab={tab} onTab={goTab} onAdd={onAdd} hidden={focus} plan={planEnabled} planBadge={planBadge} />
     <EdgeSwipeBack target={page} enabled={screenDepth > 0 && !openLayers} onBack={screenBack} renderPrevious={previousScreen} />
 
     <MoveDetailSheet detail={detail} records={records} onClose={() => setDetail(null)}
@@ -204,7 +243,7 @@ function PrsApp({ hasBackend, isAdmin = false, tourPending: newMember = false, s
     <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
+      demo={!hasBackend} isAdmin={isAdmin} isCoach={isCoach} coach={plan.coach} onJoin={joinPlan} onLeave={leavePlan} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
     <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
       onNew={() => setNewMovement({})} onHide={movements.setHidden} onDelete={deleteMovement} />
     <NewMovementSheet preset={newMovement} onClose={() => setNewMovement(null)} onCreate={movements.createMovement} />

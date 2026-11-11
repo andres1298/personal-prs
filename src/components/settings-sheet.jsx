@@ -9,8 +9,9 @@ import { List, Row } from './ui/list';
 import { SegmentedControl, Switch, SymbolTile } from './ui/controls';
 import AdminPanel from '../app/admin-panel';
 import { clearCaches } from './hooks';
+import CoachSection from './plan/coach-section';
 
-export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin, onTour, onMyMovements }) {
+export default function SettingsSheet({ open, onClose, settings, updateSettings, demo, isAdmin, isCoach, coach, onJoin, onLeave, onTour, onMyMovements }) {
   const togglePlate = (plate) => updateSettings((s) => ({
     plates: s.plates.includes(plate) ? s.plates.filter((p) => p !== plate) : [...s.plates, plate],
   }));
@@ -45,6 +46,7 @@ export default function SettingsSheet({ open, onClose, settings, updateSettings,
       <Row leading={<SymbolTile color="--b-cyan"><Icon name="barbell" /></SymbolTile>} title="Mis movimientos"
         subtitle="Crea los tuyos o desactiva los del catálogo" chevron onClick={onMyMovements} />
     </List>}
+    {!demo && <CoachSection coach={coach} isCoach={isCoach} onJoin={onJoin} onLeave={onLeave} />}
     <List header="Cuenta">
       <Row leading={<SymbolTile color="--b-blue"><Icon name="person" /></SymbolTile>} title="Datos"
         subtitle={demo ? 'Datos de ejemplo · cambios solo en esta sesión' : 'Conectado a tu cuenta'} />

@@ -36,6 +36,8 @@ model Profile {
   disabledById       String?          @db.Uuid
   // Set when the member finishes or skips the guided tour; null means a new member.
   tourCompletedAt    DateTime?        @db.Timestamptz(3)
+  // Set by an admin: the member can coach other members from then on.
+  coachSince         DateTime?        @db.Timestamptz(3)
   createdAt          DateTime         @default(now()) @db.Timestamptz(3)
   updatedAt          DateTime         @updatedAt @db.Timestamptz(3)
   records            PersonalRecord[]
@@ -47,6 +49,15 @@ model Profile {
   disabledProfiles   Profile[]        @relation("ProfileDisabler")
   invitationsSent    Invitation[]     @relation("InvitationInviter")
   acceptedInvitation Invitation?      @relation("InvitationAcceptance")
+  athleteLinks       CoachAthlete[]   @relation("CoachLinkCoach")
+  coachLinks         CoachAthlete[]   @relation("CoachLinkAthlete")
+  trainingGroups     TrainingGroup[]
+  groupMemberships   GroupMember[]
+  coachInvites       CoachInvite[]
+  trainingSessions   TrainingSession[] @relation("SessionCoach")
+  assignedSessions   TrainingSession[] @relation("SessionAthlete")
+  sessionLogs        SessionLog[]
+  sessionComments    SessionComment[]
 }
 
 model Invitation {
@@ -116,4 +127,129 @@ model PersonalRecord {
   @@index([profileId, performedOn])
   @@index([profileId, movementId, repetitionMax, performedOn])
   @@index([movementId, measurementType])
+}
+
+// A coach and one of their athletes. The row stays after the link ends, so the coach
+// keeps a history of former athletes; data access always requires endedAt to be null.
+model CoachAthlete {
+  id        String    @id @default(uuid(7)) @db.Uuid
+  coachId   String    @db.Uuid
+  athleteId String    @db.Uuid
+  createdAt DateTime  @default(now()) @db.Timestamptz(3)
+  endedAt   DateTime? @db.Timestamptz(3)
+  // Who ended it: the athlete leaving or the coach removing them.
+  endedById String?   @db.Uuid
+  coach     Profile   @relation("CoachLinkCoach", fields: [coachId], references: [id], onDelete: Restrict)
+  athlete   Profile   @relation("CoachLinkAthlete", fields: [athleteId], references: [id], onDelete: Restrict)
+
+  // A partial unique index in the migration allows one active link per coach and athlete.
+  @@index([coachId, endedAt])
+  @@index([athleteId, endedAt])
+}
+
+model TrainingGroup {
+  id         String            @id @default(uuid(7)) @db.Uuid
+  coachId    String            @db.Uuid
+  name       String
+  // Block color token, e.g. "--b-blue".
+  color      String
+  // Reusable code athletes use to join; the coach can replace it at any time.
+  joinCode   String            @unique
+  archivedAt DateTime?         @db.Timestamptz(3)
+  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
+  coach      Profile           @relation(fields: [coachId], references: [id], onDelete: Restrict)
+  members    GroupMember[]
+  sessions   TrainingSession[]
+  invites    CoachInvite[]
+
+  @@index([coachId, archivedAt])
+}
+
+model GroupMember {
+  groupId   String        @db.Uuid
+  athleteId String        @db.Uuid
+  createdAt DateTime      @default(now()) @db.Timestamptz(3)
+  group     TrainingGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  athlete   Profile       @relation(fields: [athleteId], references: [id], onDelete: Cascade)
+
+  @@id([groupId, athleteId])
+  @@index([athleteId])
+}
+
+// Single-use link a coach sends to one person, who accepts it with their own account.
+model CoachInvite {
+  id           String         @id @default(uuid(7)) @db.Uuid
+  coachId      String         @db.Uuid
+  // SHA-256 of the link token; the token itself is never stored.
+  tokenHash    String         @unique
+  name         String
+  groupId      String?        @db.Uuid
+  expiresAt    DateTime       @db.Timestamptz(3)
+  acceptedAt   DateTime?      @db.Timestamptz(3)
+  acceptedById String?        @db.Uuid
+  revokedAt    DateTime?      @db.Timestamptz(3)
+  createdAt    DateTime       @default(now()) @db.Timestamptz(3)
+  coach        Profile        @relation(fields: [coachId], references: [id], onDelete: Restrict)
+  group        TrainingGroup? @relation(fields: [groupId], references: [id], onDelete: SetNull)
+
+  @@index([coachId, acceptedAt, revokedAt])
+}
+
+// One day of programming for a group or for one athlete (exactly one of the two; see the migration).
+model TrainingSession {
+  id          String           @id @default(uuid(7)) @db.Uuid
+  coachId     String           @db.Uuid
+  groupId     String?          @db.Uuid
+  athleteId   String?          @db.Uuid
+  date        DateTime         @db.Date
+  title       String?
+  notes       String?
+  // Blocks and their lines, validated by normalizeContent in src/lib/training.js.
+  content     Json
+  // Null while it is a draft only the coach sees.
+  publishedAt DateTime?        @db.Timestamptz(3)
+  createdAt   DateTime         @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime         @updatedAt @db.Timestamptz(3)
+  coach       Profile          @relation("SessionCoach", fields: [coachId], references: [id], onDelete: Restrict)
+  group       TrainingGroup?   @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  athlete     Profile?         @relation("SessionAthlete", fields: [athleteId], references: [id], onDelete: Restrict)
+  logs        SessionLog[]
+  comments    SessionComment[]
+
+  // One session per day and target; null targets are distinct, so each index covers its own kind.
+  @@unique([groupId, date])
+  @@unique([coachId, athleteId, date])
+  @@index([athleteId, date])
+}
+
+// What one athlete did in a session. It is kept as written when the coach edits the session later.
+model SessionLog {
+  sessionId   String          @db.Uuid
+  athleteId   String          @db.Uuid
+  // Results by line and block id, validated by normalizeResults in src/lib/training.js.
+  results     Json
+  completedAt DateTime?       @db.Timestamptz(3)
+  // Last time the athlete opened the comments; newer coach comments count as unread.
+  seenAt      DateTime?       @db.Timestamptz(3)
+  createdAt   DateTime        @default(now()) @db.Timestamptz(3)
+  updatedAt   DateTime        @updatedAt @db.Timestamptz(3)
+  session     TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  athlete     Profile         @relation(fields: [athleteId], references: [id], onDelete: Restrict)
+
+  @@id([sessionId, athleteId])
+  @@index([athleteId])
+}
+
+// A private thread per session and athlete, between that athlete and the coach.
+model SessionComment {
+  id        String          @id @default(uuid(7)) @db.Uuid
+  sessionId String          @db.Uuid
+  athleteId String          @db.Uuid
+  authorId  String          @db.Uuid
+  body      String
+  createdAt DateTime        @default(now()) @db.Timestamptz(3)
+  session   TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  author    Profile         @relation(fields: [authorId], references: [id], onDelete: Restrict)
+
+  @@index([sessionId, athleteId, createdAt])
 }

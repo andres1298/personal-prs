@@ -1,5 +1,6 @@
 import 'server-only';
 import { getPrisma } from './prisma.js';
+import { activeCoachIds } from './coaching.js';
 
 const uuidPattern = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 // Shared weight movements plus the custom movement limit, times the three repetition maximums.
@@ -34,14 +35,18 @@ function recordDto(record) {
   };
 }
 
-// A record may use a shared movement or one the member owns, found by id or by name,
-// and never one the member turned off.
+// A record may use a shared movement, one the member owns or one their coach created, found
+// by id or by name, and never one the member turned off. The member's own name wins over the coach's.
 async function findMovement(profileId, input) {
   const key = typeof input.movementId === 'string' ? { id: input.movementId }
     : typeof input.movementName === 'string' ? { name: input.movementName } : null;
   if (!key) throw new RecordInputError('Unknown movement.');
   const prisma = getPrisma();
-  const movement = await prisma.movement.findFirst({ where: { ...key, OR: [{ ownerId: null }, { ownerId: profileId }] } });
+  let movement = await prisma.movement.findFirst({ where: { ...key, OR: [{ ownerId: null }, { ownerId: profileId }] } });
+  if (!movement) {
+    const coachIds = await activeCoachIds(profileId, prisma);
+    if (coachIds.length) movement = await prisma.movement.findFirst({ where: { ...key, ownerId: { in: coachIds } } });
+  }
   if (!movement) throw new RecordInputError('Unknown movement.');
   const hidden = await prisma.hiddenMovement.findUnique({ where: { profileId_movementId: { profileId, movementId: movement.id } } });
   if (hidden) throw new RecordInputError('This movement is turned off.');
