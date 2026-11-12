@@ -7,6 +7,7 @@ import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
 import { LargeTitle } from '../ui/nav-bar';
 import { useTimer } from '../timer/timer-provider';
+import { formatClock } from '../../lib/timer-engine';
 import { describe as describeTimer, TEMPLATES } from '../timer/timer-views';
 
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
@@ -24,6 +25,15 @@ export function blockColor(block) {
   const first = block.items.find((item) => item.movement || item.parts?.length);
   const move = first?.movement ?? first?.parts?.[0]?.movement;
   return (move && moveInfo(move).group.color) || '--b-gray';
+}
+
+/** How the block is done, under its title: "3 rondas · Lo más rápido posible · límite 20:00", "Descanso 2:00 entre series". */
+export function blockSummary(block) {
+  return [
+    block.rounds > 1 && `${block.rounds} rondas`,
+    block.timer && describeTimer(block.timer),
+    block.rest && `Descanso ${formatClock(block.rest)} entre series`,
+  ].filter(Boolean).join(' · ');
 }
 
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -136,20 +146,8 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
       {session.group && <span className="plan-tag" style={{ '--c': `var(${session.group.color})` }}>{session.group.name}</span>}
     </header>
     {session.notes && <p className="plan-notes">{session.notes}</p>}
-    {session.content.blocks.map((block, index) => <section key={block.id} className="plan-block" style={{ '--b': `var(${blockColor(block)})` }}>
-      <header className="plan-block-head">
-        <span className="plan-letter display" aria-hidden="true">{String.fromCharCode(65 + index)}</span>
-        <div className="plan-block-title">
-          <h3>{block.title || `Bloque ${String.fromCharCode(65 + index)}`}</h3>
-          {block.timer && <p>{describeTimer(block.timer)}</p>}
-        </div>
-        {block.timer && <StartTimer config={block.timer} />}
-      </header>
-      {block.notes && <p className="plan-notes">{block.notes}</p>}
-      {block.items.map((item) => <PlanItem key={item.id} item={item} content={session.content} results={results} bestOf={bestOf} division={plan.division}
-        onChange={(patch) => setItem(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
-      {block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => setScore(block, value)} />}
-    </section>)}
+    {session.content.blocks.map((block, index) => <PlanBlock key={block.id} block={block} index={index} content={session.content} results={results}
+      bestOf={bestOf} division={plan.division} onItemChange={setItem} onScoreChange={setScore} onExecute={onExecute} onAddRecord={onAddRecord} />)}
     <button type="button" className="filled-button plan-done" data-done={done} disabled={saving} onClick={toggleDone}>
       <Icon name="check" weight={3} />{done ? `Completada · ${clock(session.completedAt)}` : 'Marcar como completada'}
     </button>
@@ -157,14 +155,42 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
   </article>;
 }
 
-// The coach's clock for the block, started on the app's own timer with one tap. It lives in the
-// block's header and takes the block's color, so the block reads as one piece.
-function StartTimer({ config }) {
-  const timer = useTimer();
-  return <button type="button" className="plan-timer-start" onClick={() => timer?.begin(config)}><Icon name="play" fill />Iniciar timer</button>;
+// One block of the session. The movements lead; the block's timer and the athlete's log sit in a
+// quiet row at its foot, and the log fields stay folded until asked for, or once something is logged.
+function PlanBlock({ block, index, content, results, bestOf, division, onItemChange, onScoreChange, onExecute, onAddRecord }) {
+  const letter = String.fromCharCode(65 + index);
+  const loggable = block.items.some((item) => item.log) || block.score !== 'none';
+  const logged = results.blocks[block.id] != null || block.items.some((item) => item.log && results.items[item.id]);
+  const [logging, setLogging] = useState(logged);
+  const open = loggable && logging;
+  return <section className="plan-block" style={{ '--b': `var(${blockColor(block)})` }}>
+    <header className="plan-block-head">
+      <span className="plan-letter display" aria-hidden="true">{letter}</span>
+      <div className="plan-block-title">
+        <h3>{block.title || `Bloque ${letter}`}</h3>
+        {blockSummary(block) && <p>{blockSummary(block)}</p>}
+      </div>
+    </header>
+    {block.notes && <p className="plan-notes">{block.notes}</p>}
+    {block.items.map((item) => <PlanItem key={item.id} item={item} content={content} results={results} bestOf={bestOf} division={division} logging={open}
+      onChange={(patch) => onItemChange(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
+    {open && block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => onScoreChange(block, value)} />}
+    {(block.timer || loggable) && <div className="plan-block-foot">
+      {block.timer && <StartTimer config={block.timer} />}
+      {loggable && <button type="button" className="plan-outline" aria-expanded={open} onClick={() => setLogging(!open)}>
+        <Icon name="pencil" weight={2.4} />{open ? 'Ocultar registro' : 'Registrar'}
+      </button>}
+    </div>}
+  </section>;
 }
 
-function PlanItem({ item, content, results, bestOf, division, onChange, onExecute, onAddRecord }) {
+// The coach's clock for the block, started on the app's own timer with one tap.
+function StartTimer({ config }) {
+  const timer = useTimer();
+  return <button type="button" className="plan-outline" onClick={() => timer?.begin(config)}><Icon name="play" fill />Iniciar timer</button>;
+}
+
+function PlanItem({ item, content, results, bestOf, division, logging, onChange, onExecute, onAddRecord }) {
   const load = resolveLoad(item, results, bestOf, division);
   const prescription = loadText(item, content);
   const volume = volumeText(item);
@@ -189,7 +215,7 @@ function PlanItem({ item, content, results, bestOf, division, onChange, onExecut
     {load.missing === 'division' && <p className="plan-missing">Chicos / chicas. Elige tu categoría en Ajustes para ver solo tu peso.</p>}
     {load.missing === 'item' && <p className="plan-missing">Registra primero el peso de la línea base para ver tu carga.</p>}
     {item.notes && <p className="plan-notes">{item.notes}</p>}
-    {item.log && <div className="plan-log">
+    {item.log && logging && <div className="plan-log">
       <LogField label="Peso" unit="lb" inputMode="decimal" value={result.weight} parse={(text) => parseValue(text, 'weight')} onChange={(weight) => onChange({ weight })} />
       <LogField label="Reps" unit="reps" inputMode="numeric" value={result.reps} parse={(text) => parseValue(text, 'reps')} onChange={(reps) => onChange({ reps })} />
     </div>}
