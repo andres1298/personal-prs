@@ -86,26 +86,36 @@
 .cal-cell[data-out="true"] .cal-add { box-shadow: none; }
 .cal-add svg { width: 20px; height: 20px; }
 
-/* ---------- Side panel ---------- */
-.drawer-root { position: fixed; inset: 0; z-index: 40; }
-.drawer-scrim { position: absolute; inset: 0; background: var(--scrim); animation: fade-in .25s; }
+/* ---------- Day editor: a full page, with the athlete's phone beside it on request ---------- */
 @keyframes fade-in { from { opacity: 0; } }
-@keyframes drawer-in { from { transform: translateX(40px); opacity: 0; } }
-.drawer {
-  position: absolute; top: 0; right: 0; bottom: 0; width: min(880px, 100%); display: flex; flex-direction: column; gap: 14px; padding: 22px 24px 0;
-  overflow-y: auto; overscroll-behavior: contain; background: var(--bg); box-shadow: -20px 0 60px rgba(0, 0, 0, .25); animation: drawer-in .3s var(--ease);
-}
-.drawer-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px; }
-.drawer-head h2 { font-size: clamp(22px, 3vw, 30px); }
-.drawer-head .nav-text { background: var(--surface); }
+.editor-page { display: grid; grid-template-columns: minmax(0, 920px); gap: 32px; align-items: start; animation: view-in .3s var(--ease); }
+.editor-page[data-preview="true"] { grid-template-columns: minmax(0, 1fr) 402px; }
+.editor-main { display: flex; flex-direction: column; gap: 16px; min-width: 0; min-height: calc(100dvh - 72px); }
+.editor-head { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 8px 16px; }
+.editor-head .nav-back { flex-basis: 100%; }
+.editor-head-title { flex: 1; min-width: 0; }
+.editor-head h1 { font-size: clamp(26px, 3.4vw, 40px); }
 .drawer-kicker { margin: 0 0 6px; color: var(--ink2); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
-.drawer > .segmented { flex: none; max-width: 420px; }
-.drawer-foot {
+.preview-toggle { min-height: 44px; background: var(--surface); }
+.preview-toggle[aria-pressed="true"] { background: var(--inverse); color: var(--inverse-ink); }
+.editor-main > .segmented { flex: none; max-width: 420px; }
+.editor-foot {
   position: sticky; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
-  margin: auto -24px 0; padding: 12px 24px calc(12px + var(--safe-bottom)); background: var(--bg); box-shadow: 0 -1px 0 var(--line);
+  margin-top: auto; padding: 12px 0 16px; background: var(--bg); box-shadow: 0 -1px 0 var(--line), 0 40px 0 var(--bg);
 }
-.drawer-foot-actions { display: flex; gap: 8px; margin-left: auto; }
-.drawer-foot .nav-text:not(.strong) { background: var(--surface); }
+.editor-foot-actions { display: flex; gap: 8px; margin-left: auto; }
+.editor-foot .nav-text:not(.strong) { background: var(--surface); }
+.editor-aside { position: sticky; top: 24px; display: grid; gap: 12px; justify-items: center; max-height: calc(100dvh - 48px); }
+.preview-bar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.preview-bar p { margin: 0; color: var(--ink2); font-size: 13px; line-height: 1.35; }
+.preview-bar b { color: var(--ink); }
+.preview-close { display: none; background: var(--surface); }
+.phone {
+  width: 100%; max-width: 402px; min-height: 0; overflow-y: auto; padding: 6px 16px 20px; border-radius: 34px; background: var(--bg);
+  box-shadow: inset 0 0 0 1px var(--line), 0 0 0 6px var(--inverse), var(--shadow); scrollbar-width: thin; -webkit-user-select: none; user-select: none;
+}
+.plan-preview .large-title { padding-right: 0; }
+.plan-preview .week-strip { margin-left: 0; margin-right: 0; }
 .editor-publish, .editor-log { display: inline-flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 700; }
 .editor-meta { display: grid; gap: 8px; }
 .editor-meta input, .editor-meta textarea, .editor-block > textarea, .inline-form input, .link-box input {
@@ -113,7 +123,7 @@
 }
 .editor-title { font-weight: 800; }
 .editor-preview { display: flex; align-items: center; gap: 10px; }
-.drawer > *, .editor-block > *, .line > * { min-width: 0; }
+.editor-main > *, .editor-block > *, .line > * { min-width: 0; }
 .editor-block { display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 16px; border-radius: var(--radius); background: var(--surface); }
 .editor-block-head { display: flex; align-items: center; gap: 6px; }
 .editor-block-head .plan-letter { --b: var(--b-blue); }
@@ -279,6 +289,16 @@
 .feed-text small { color: var(--ink2); font-size: 12px; }
 .feed-row .row-chevron { width: 14px; height: 14px; color: var(--ink3); }
 
+/* Without room for both, the preview takes the place of the form. */
+@media (max-width: 1180px) {
+  .editor-page[data-preview="true"] { grid-template-columns: minmax(0, 1fr); }
+  .editor-page[data-preview="true"] .editor-main > :not(.editor-head) { display: none; }
+  .editor-page[data-preview="true"] .editor-main { min-height: 0; }
+  .editor-aside { position: static; max-height: none; }
+  .preview-close { display: inline-flex; }
+  .phone { overflow: visible; }
+}
+
 /* ---------- Phones and narrow windows ---------- */
 @media (max-width: 860px) {
   .coach { grid-template-columns: minmax(0, 1fr); }
@@ -300,8 +320,10 @@
   .cal-cell[data-out="true"] { display: none; }
   .cal-add { flex-direction: row; min-height: 44px; background: var(--bg); box-shadow: none; }
   .cal-add span { opacity: 1; }
-  .drawer { padding: calc(var(--safe-top) + 14px) 14px 0; }
-  .drawer-foot { margin: auto -14px 0; padding-left: 14px; padding-right: 14px; }
+  .editor-foot { bottom: calc(68px + max(var(--safe-bottom), 10px)); }
+  .editor-head-title { flex-basis: 100%; }
+  .editor-head h1 { font-size: 24px; }
+
   .line-row { grid-template-columns: minmax(0, 1fr); }
   .block-score { justify-items: start; }
   .line[data-open="true"] { padding: 14px; }

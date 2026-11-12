@@ -9,6 +9,7 @@ import { useAlert } from '../ui/alert';
 import { SegmentedControl, Switch } from '../ui/controls';
 import Icon from '../ui/icon';
 import LineEditor, { Choice, DEFAULT_LOAD } from './line-editor';
+import { PlanPreview } from '../plan/plan-view';
 
 const SCORE_OPTIONS = [{ value: 'none', label: 'Nada' }, { value: 'time', label: 'Tiempo' }, { value: 'reps', label: 'Repeticiones' }, { value: 'weight', label: 'Peso' }];
 const letter = (index) => String.fromCharCode(65 + index);
@@ -24,10 +25,11 @@ function swap(list, index, direction) {
 }
 
 /**
- * Side panel to program one day for one target and to read what athletes did. Saving replaces
- * the day's session; results already logged stay as the athletes wrote them.
+ * Full page to program one day for one target and to read what athletes did. "Previsualizar"
+ * shows the day as the athlete's phone would, next to the form on a wide screen and instead of it
+ * on a narrow one. Saving replaces the day's session; results already logged stay as written.
  */
-export default function SessionEditor({ date, session, targetName, athletes, movements, initialTab, focusAthleteId, api, onSave, onDelete, onCopy, onClose }) {
+export default function SessionEditor({ date, session, targetName, group, athletes, movements, initialTab, focusAthleteId, api, onSave, onDelete, onCopy, onClose }) {
   const alert = useAlert();
   const [draft, setDraft] = useState(() => ({
     title: session?.title ?? '', notes: session?.notes ?? '', content: session?.content ?? { blocks: [] }, published: session?.published ?? true,
@@ -40,6 +42,15 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
   const [previewRecords, setPreviewRecords] = useState(null);
   // One line is open for editing at a time; the rest read as a summary.
   const [openId, setOpenId] = useState(null);
+  const [previewing, setPreviewing] = useState(false);
+  useEffect(() => { window.scrollTo({ top: 0 }); }, []);
+  // Leaving the site with unsaved work asks first, as leaving the page does.
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const warn = (event) => { event.preventDefault(); };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
 
   useEffect(() => {
     setPreviewRecords(null);
@@ -137,15 +148,26 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
   }
 
   const earlier = [];
-  return <div className="drawer-root">
-    <div className="drawer-scrim" onClick={close} aria-hidden="true" />
-    <section className="drawer" role="dialog" aria-modal="true" aria-label={`Sesión del ${longDate(date)}`}>
-      <header className="drawer-head">
-        <div>
+  // What the athlete would get if the day were saved now: lines without a name are left out.
+  const previewSession = {
+    id: 'preview', date, title: draft.title, notes: draft.notes, group: group ? { name: group.name, color: group.color } : null,
+    content: { blocks: draft.content.blocks.map((block) => ({ ...block, items: block.items.filter((item) => item.movement || item.label.trim()) })) },
+    results: { items: {}, blocks: {} }, completedAt: null, comments: [], unread: 0,
+  };
+  const previewName = athletes.find((athlete) => athlete.id === previewId)?.name;
+  const canPreview = tab === 'program';
+
+  return <div className="editor-page" data-preview={previewing && canPreview}>
+    <section className="editor-main" aria-label={`Sesión del ${longDate(date)}`}>
+      <header className="editor-head">
+        <button type="button" className="nav-back" onClick={close}><Icon name="chevronLeft" weight={2.8} /><span>Calendario</span></button>
+        <div className="editor-head-title">
           <p className="drawer-kicker">{targetName}</p>
-          <h2 className="display">{longDate(date)}</h2>
+          <h1 className="display">{longDate(date)}</h1>
         </div>
-        <button type="button" className="nav-text" onClick={close}>Cerrar</button>
+        {canPreview && <button type="button" className="nav-text preview-toggle" aria-pressed={previewing} onClick={() => setPreviewing(!previewing)}>
+          <Icon name="person" />{previewing ? 'Ocultar vista previa' : 'Previsualizar'}
+        </button>}
       </header>
       {session && <SegmentedControl label="Vista" value={tab} onChange={setTab}
         options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
@@ -211,18 +233,29 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
         </div>
       </>}
 
-      {tab === 'program' && <footer className="drawer-foot">
+      {tab === 'program' && <footer className="editor-foot">
         <label className="editor-publish">
           <Switch checked={draft.published} label="Publicada" onChange={(published) => change({ published })} />
           <span>{draft.published ? 'Publicada: tus atletas la ven' : 'Borrador: solo tú la ves'}</span>
         </label>
-        <span className="drawer-foot-actions">
+        <span className="editor-foot-actions">
           {session && <button type="button" className="nav-text danger" onClick={remove}>Borrar</button>}
           {session && <button type="button" className="nav-text" disabled={dirty} title={dirty ? 'Guarda antes de copiar' : undefined} onClick={onCopy}>Copiar día</button>}
           <button type="button" className="nav-text strong" disabled={saving || (!dirty && Boolean(session))} onClick={save}>{saving ? 'Guardando…' : 'Guardar'}</button>
         </span>
       </footer>}
     </section>
+
+    {previewing && canPreview && <aside className="editor-aside" aria-label="Vista previa">
+      <div className="preview-bar">
+        <p><b>Así lo verá {previewName ?? 'un atleta sin PRs registrados'}</b>{dirty ? ' · incluye lo que aún no guardas' : ''}</p>
+        <button type="button" className="nav-text preview-close" onClick={() => setPreviewing(false)}>Volver a editar</button>
+      </div>
+      <div className="phone">
+        <PlanPreview session={previewSession} records={previewRecords ?? []} />
+      </div>
+      {!draft.published && <p className="line-hint">Es un borrador: tus atletas no lo ven hasta que lo publiques.</p>}
+    </aside>}
   </div>;
 }
 

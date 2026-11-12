@@ -60,7 +60,7 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
   </>;
 }
 
-function SessionCard({ session, plan, records, userId, active, onExecute, onAddRecord, onSaveRecord }) {
+function SessionCard({ session, plan, records, userId, active, preview = false, onExecute, onAddRecord, onSaveRecord }) {
   const alert = useAlert();
   const [results, setResults] = useState(session.results);
   const [saving, setSaving] = useState(false);
@@ -137,7 +137,7 @@ function SessionCard({ session, plan, records, userId, active, onExecute, onAddR
     <button type="button" className="filled-button plan-done" data-done={done} disabled={saving} onClick={toggleDone}>
       <Icon name="check" weight={3} />{done ? `Completada · ${clock(session.completedAt)}` : 'Marcar como completada'}
     </button>
-    <Thread session={session} plan={plan} userId={userId} active={active} />
+    {!preview && <Thread session={session} plan={plan} userId={userId} active={active} />}
   </article>;
 }
 
@@ -235,4 +235,31 @@ function Thread({ session, plan, userId, active }) {
       <button className="pill-btn" disabled={sending || !text.trim()}>Enviar</button>
     </form>
   </section>;
+}
+
+const NO_PLAN = { saveLog: async () => {}, addComment: async () => {}, markSeen: () => {} };
+const noop = () => {};
+
+/**
+ * The plan as an athlete would see a session that is still being written: the week strip on its
+ * day and the session card, with loads resolved from `records`. It is a picture, not a working
+ * screen: nothing in it can be pressed.
+ */
+export function PlanPreview({ session, records }) {
+  const monday = weekStart(session.date);
+  return <div className="plan-preview" inert aria-label="Vista previa del atleta">
+    <header className="large-title"><p>Con tu coach</p><h1 className="display">Plan</h1></header>
+    <nav className="week-strip" aria-hidden="true">
+      <span className="week-arrow"><Icon name="chevronLeft" weight={2.6} /></span>
+      {weekDays(monday).map((date, index) => <span key={date} className="week-day" aria-pressed={date === session.date}>
+        <small>{DAY_LETTERS[index]}</small>
+        <b className="num">{Number(date.slice(8))}</b>
+        <i className="week-mark" data-state={date === session.date ? 'planned' : 'empty'} />
+      </span>)}
+      <span className="week-arrow"><Icon name="chevronRight" weight={2.6} /></span>
+    </nav>
+    <p className="plan-date">{longDate(session.date)}</p>
+    <SessionCard session={session} plan={NO_PLAN} records={records} userId="" active={false} preview
+      onExecute={noop} onAddRecord={noop} onSaveRecord={noop} />
+  </div>;
 }

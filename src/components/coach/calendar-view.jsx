@@ -104,6 +104,14 @@ export default function CalendarView({ overview, movements, target, focus, onTar
   }
 
   const editingSession = editing && byDate.get(editing.date);
+  // Programming a day takes the whole page; the calendar comes back when it closes.
+  if (editing && loaded) {
+    return <SessionEditor key={`${target.id}:${editing.date}`} date={editing.date} session={editingSession} targetName={targetName} group={group}
+      athletes={athletes} movements={movements} initialTab={editing.tab} focusAthleteId={editing.athleteId} api={api}
+      onSave={(draft) => put(editing.date, draft)} onDelete={() => remove(editingSession)}
+      onCopy={() => { setClipboard({ kind: 'day', date: editing.date, session: editingSession }); setEditing(null); }}
+      onClose={() => setEditing(null)} />;
+  }
   return <>
     <header className="coach-head">
       <h1 className="display">{monthLabel(month)}</h1>
@@ -171,10 +179,5 @@ export default function CalendarView({ overview, movements, target, focus, onTar
       })}
     </div>
 
-    {editing && loaded && <SessionEditor key={`${target.id}:${editing.date}`} date={editing.date} session={editingSession} targetName={targetName}
-      athletes={athletes} movements={movements} initialTab={editing.tab} focusAthleteId={editing.athleteId} api={api}
-      onSave={(draft) => put(editing.date, draft)} onDelete={() => remove(editingSession)}
-      onCopy={() => { setClipboard({ kind: 'day', date: editing.date, session: editingSession }); setEditing(null); }}
-      onClose={() => setEditing(null)} />}
   </>;
 }
