@@ -1,7 +1,9 @@
 // Training sessions shared by the coach's editor, the athlete's plan and the server
 // validation. Pure: no DOM and no database. Weights are in lb.
 //
-// content: { blocks: [{ id, title, notes, score, items: [item] }] }
+// content: { blocks: [{ id, title, notes, score, timer?, items: [item] }] }
+//   timer     optional workout clock the athlete starts from the block: a timer-engine config
+//             ({ type: 'amrap' | 'emom' | 'tabata' | 'fortime', ...its times and rounds })
 // item:    { id, movement, label, sets, reps, load: { type, value, base }, log, notes }
 //   movement  catalog name (links the athlete's records) or null for free text in `label`
 //   parts     optional, for a complex: [{ reps, movement }] in order; `label` holds its text ("1 Clean + 2 Split Jerk")
@@ -10,6 +12,8 @@
 //             or { kind: 'item', itemId } (the weight logged on an earlier line of the session)
 //   log       whether the athlete records what they did; 'max' lines always do
 // results: { items: { [itemId]: { weight?, reps? } }, blocks: { [blockId]: { value } } }
+
+import { normalizeConfig, TIMER_TYPES } from './timer-engine.js';
 
 export const LOAD_TYPES = ['none', 'weight', 'percent', 'max'];
 export const SCORE_TYPES = ['none', 'time', 'reps', 'weight'];
@@ -114,7 +118,12 @@ export function normalizeContent(input) {
       earlierItems.add(clean.id);
       return clean;
     });
-    return { id: blockId, title: text(block.title, LIMITS.title, 'Block title'), notes: text(block.notes, LIMITS.notes, 'Block notes'), score: block.score, items };
+    // The timer engine clamps times and rounds to what it can run.
+    if (block.timer != null && (!isObject(block.timer) || !TIMER_TYPES.includes(block.timer.type))) fail('Unknown timer type.');
+    return {
+      id: blockId, title: text(block.title, LIMITS.title, 'Block title'), notes: text(block.notes, LIMITS.notes, 'Block notes'), score: block.score,
+      ...(block.timer ? { timer: normalizeConfig(block.timer) } : {}), items,
+    };
   });
   return { blocks };
 }

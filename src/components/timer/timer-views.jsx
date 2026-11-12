@@ -24,7 +24,7 @@ const FIELDS = {
 };
 
 const span = (ms) => (ms < 60_000 ? `${ms / 1000} s` : formatClock(ms));
-const describe = (c) => ({
+export const describe = (c) => ({
   amrap: () => `Máximas rondas en ${formatClock(c.duration)}`,
   emom: () => `Cada ${span(c.interval)} por ${c.rounds} rondas`,
   tabata: () => `${span(c.work)} de trabajo y ${span(c.rest)} de descanso por ${c.rounds} rondas`,

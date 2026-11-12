@@ -171,6 +171,44 @@ export async function listActivity(coachId, now = new Date()) {
   ].sort((a, b) => b.at - a.at).slice(0, 50);
 }
 
+/**
+ * The raw material of the coach's progress panels between two dates: their current athletes,
+ * the published sessions, what those athletes logged and their records. Former athletes are
+ * left out entirely, like everywhere else.
+ */
+export async function getCoachStats(coachId, from, to) {
+  const id = requireId(coachId);
+  const prisma = getPrisma();
+  const dates = range(from, to);
+  const [links, groups] = await Promise.all([
+    prisma.coachAthlete.findMany({
+      where: { coachId: id, endedAt: null }, orderBy: { createdAt: 'asc' },
+      include: { athlete: { select: { id: true, displayName: true, email: true, groupMemberships: { where: { group: { coachId: id, archivedAt: null } }, select: { groupId: true } } } } },
+    }),
+    prisma.trainingGroup.findMany({ where: { coachId: id, archivedAt: null }, select: { id: true, name: true, color: true }, orderBy: { createdAt: 'asc' } }),
+  ]);
+  const athleteIds = links.map((link) => link.athleteId);
+  const [sessions, records] = await Promise.all([
+    prisma.trainingSession.findMany({
+      where: { coachId: id, date: dates, publishedAt: { not: null } }, orderBy: { date: 'asc' },
+      include: { logs: { where: { athleteId: { in: athleteIds } }, select: { athleteId: true, completedAt: true, results: true } } },
+    }),
+    prisma.personalRecord.findMany({
+      where: { profileId: { in: athleteIds } }, orderBy: { performedOn: 'asc' },
+      select: { profileId: true, value: true, performedOn: true, repetitionMax: true, movement: { select: { name: true } } },
+    }),
+  ]);
+  return {
+    athletes: links.map((link) => ({
+      id: link.athleteId, name: personName(link.athlete), since: day(link.createdAt), groupIds: link.athlete.groupMemberships.map((membership) => membership.groupId),
+    })),
+    groups,
+    sessions: sessions.map((session) => ({ id: session.id, date: day(session.date), title: session.title ?? '', groupId: session.groupId, athleteId: session.athleteId, content: session.content })),
+    logs: sessions.flatMap((session) => session.logs.map((log) => ({ sessionId: session.id, ...log }))),
+    records: records.map((record) => ({ athleteId: record.profileId, move: record.movement.name, value: Number(record.value), rm: record.repetitionMax, date: day(record.performedOn) })),
+  };
+}
+
 /* ---------- Athlete ---------- */
 
 // Published sessions of the athlete's current coaches and groups, plus any session they logged:

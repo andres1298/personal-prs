@@ -10,8 +10,12 @@ import { SegmentedControl, Switch } from '../ui/controls';
 import Icon from '../ui/icon';
 import LineEditor, { Choice, DEFAULT_LOAD } from './line-editor';
 import { PlanPreview } from '../plan/plan-view';
+import BlockTimer from './block-timer';
+import { normalizeConfig } from '../../lib/timer-engine';
+import { TEMPLATES } from '../timer/timer-views';
 
 const SCORE_OPTIONS = [{ value: 'none', label: 'Nada' }, { value: 'time', label: 'Tiempo' }, { value: 'reps', label: 'Repeticiones' }, { value: 'weight', label: 'Peso' }];
+const WOD_TYPES = ['amrap', 'emom', 'fortime', 'tabata'];
 const letter = (index) => String.fromCharCode(65 + index);
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -147,6 +151,12 @@ export default function SessionEditor({ date, session, targetName, group, athlet
     setOpenId(item.id);
   }
 
+  // A WOD starts from its kind: the clock comes configured and the score follows it.
+  const full = draft.content.blocks.length >= LIMITS.blocks;
+  const addWod = (type) => setBlocks((blocks) => [...blocks, newBlock({
+    title: TEMPLATES[type].name, timer: normalizeConfig({ type }), score: { amrap: 'reps', fortime: 'time' }[type] ?? 'none',
+  })]);
+
   const earlier = [];
   // What the athlete would get if the day were saved now: lines without a name are left out.
   const previewSession = {
@@ -214,6 +224,7 @@ export default function SessionEditor({ date, session, targetName, group, athlet
             <textarea rows={2} value={block.notes} maxLength={LIMITS.notes} aria-label={`Notas del bloque ${letter(blockIndex)}`}
               placeholder="Notas o descripción: «RPE 8», «21-15-9 de thrusters y pull-ups», descansos…"
               onChange={(event) => patchBlock(block.id, { notes: event.target.value })} />
+            <BlockTimer timer={block.timer} onChange={(timer) => patchBlock(block.id, { timer: timer ?? undefined })} />
             {rows}
             <footer className="editor-block-foot">
               <button type="button" className="tinted-button" disabled={block.items.length >= LIMITS.items}
@@ -226,10 +237,13 @@ export default function SessionEditor({ date, session, targetName, group, athlet
           </section>;
         })}
         <div className="editor-add">
-          <button type="button" className="tinted-button" disabled={draft.content.blocks.length >= LIMITS.blocks}
-            onClick={addStrengthBlock}><Icon name="barbell" />Bloque de fuerza</button>
-          <button type="button" className="tinted-button" disabled={draft.content.blocks.length >= LIMITS.blocks}
-            onClick={() => setBlocks((blocks) => [...blocks, newBlock({ title: 'WOD', score: 'time' })])}><Icon name="timer" />WOD o texto libre</button>
+          <span className="line-label">Agregar bloque</span>
+          <div>
+            <button type="button" className="tinted-button" disabled={full} onClick={addStrengthBlock}><Icon name="barbell" />Fuerza</button>
+            {WOD_TYPES.map((type) => <button type="button" key={type} className="tinted-button wod" disabled={full} style={{ '--c': `var(${TEMPLATES[type].color})` }}
+              onClick={() => addWod(type)}><i aria-hidden="true">{TEMPLATES[type].icon}</i>{TEMPLATES[type].name}</button>)}
+            <button type="button" className="tinted-button" disabled={full} onClick={() => setBlocks((blocks) => [...blocks, newBlock()])}><Icon name="pencil" />Texto libre</button>
+          </div>
         </div>
       </>}
 

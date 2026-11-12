@@ -6,6 +6,8 @@ import { addDays, itemName, loadText, recordCandidate, resolveLoad, volumeText, 
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
 import { LargeTitle } from '../ui/nav-bar';
+import { useTimer } from '../timer/timer-provider';
+import { describe as describeTimer, TEMPLATES } from '../timer/timer-views';
 
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const BLOCK_COLORS = ['--b-blue', '--b-pink', '--b-yellow', '--b-green', '--b-lilac', '--b-cyan', '--b-lime'];
@@ -130,6 +132,7 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
         <h3>{block.title || `Bloque ${String.fromCharCode(65 + index)}`}</h3>
       </header>
       {block.notes && <p className="plan-notes">{block.notes}</p>}
+      {block.timer && <BlockTimer config={block.timer} />}
       {block.items.map((item) => <PlanItem key={item.id} item={item} content={session.content} results={results} bestOf={bestOf}
         onChange={(patch) => setItem(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
       {block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => setScore(block, value)} />}
@@ -139,6 +142,17 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
     </button>
     {!preview && <Thread session={session} plan={plan} userId={userId} active={active} />}
   </article>;
+}
+
+// The coach's clock for the block, started on the app's own timer with one tap.
+function BlockTimer({ config }) {
+  const timer = useTimer();
+  const template = TEMPLATES[config.type];
+  return <div className="plan-timer" style={{ '--c': `var(${template.color})` }}>
+    <span className="plan-timer-icon" aria-hidden="true">{template.icon}</span>
+    <span className="plan-timer-text"><b className="display">{template.name}</b><small>{describeTimer(config)}</small></span>
+    <button type="button" className="plan-timer-start" onClick={() => timer?.begin(config)}><Icon name="play" fill />Iniciar timer</button>
+  </div>;
 }
 
 function PlanItem({ item, content, results, bestOf, onChange, onExecute, onAddRecord }) {

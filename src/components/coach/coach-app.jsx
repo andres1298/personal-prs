@@ -11,9 +11,11 @@ import SignalLoader from '../ui/signal-loader';
 import ActivityView from './activity-view';
 import CalendarView from './calendar-view';
 import PeopleView from './people-view';
+import ProgressView from './progress-view';
 
 const SECTIONS = [
   { value: 'calendar', label: 'Calendario', icon: 'calendar' },
+  { value: 'progress', label: 'Progreso', icon: 'chart' },
   { value: 'people', label: 'Atletas', icon: 'people' },
   { value: 'activity', label: 'Actividad', icon: 'bolt' },
 ];
@@ -80,8 +82,9 @@ function Workspace({ userId }) {
     setFocus({ date: session.date, athleteId: event.athleteId, key: Date.now() });
   };
 
+  // Stable, so the screens below do not reload their data every time this one renders.
+  const api = useMemo(() => ({ send, recordsOf, reloadOverview: loadOverview, reloadMovements: loadMovements }), [recordsOf, loadOverview, loadMovements]);
   if (!ready || (!overview && !error)) return <SignalLoader />;
-  const api = { send, recordsOf, reloadOverview: loadOverview, reloadMovements: loadMovements };
 
   return <div className="coach">
     <aside className="coach-side">
@@ -101,6 +104,7 @@ function Workspace({ userId }) {
       {error && <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={loadOverview}>Reintentar</button></div>}
       {overview && prefs.section === 'calendar' && <CalendarView overview={overview} movements={movements} target={target} focus={focus}
         onTarget={(next) => updatePrefs({ target: next })} onPeople={() => go('people')} api={api} />}
+      {overview && prefs.section === 'progress' && <ProgressView api={api} />}
       {overview && prefs.section === 'people' && <PeopleView overview={overview} api={api} />}
       {overview && prefs.section === 'activity' && <ActivityView events={events} onOpen={openSession} onReload={loadActivity} />}
     </main>

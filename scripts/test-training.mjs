@@ -47,6 +47,20 @@ test('a complex keeps its movements in order next to its text', () => {
   }
 });
 
+test('a block can carry the workout clock the athlete starts', () => {
+  const block = (timer) => normalizeContent({ blocks: [newBlock({ title: 'WOD', score: 'time', timer })] }).blocks[0];
+  assert.deepEqual(block({ type: 'fortime', cap: 21 * 60_000, junk: 1 }).timer, { type: 'fortime', cap: 1_260_000 });
+  assert.deepEqual(block({ type: 'emom', interval: 180_000, rounds: 3 }).timer, { type: 'emom', interval: 180_000, rounds: 3 });
+  // Missing or out-of-range values fall back to what the timer can run.
+  assert.deepEqual(block({ type: 'amrap' }).timer, { type: 'amrap', duration: 720_000 });
+  assert.deepEqual(block({ type: 'tabata', work: 1, rest: 10_000, rounds: 999 }).timer, { type: 'tabata', work: 5_000, rest: 10_000, rounds: 50 });
+  assert.equal('timer' in block(null), false);
+  assert.equal('timer' in block(undefined), false);
+  for (const bad of ['amrap', { type: 'stopwatch' }, []]) invalid({ blocks: [newBlock({ timer: bad })] });
+  const copy = cloneContent({ blocks: [block({ type: 'amrap', duration: 600_000 })] });
+  assert.deepEqual(copy.blocks[0].timer, { type: 'amrap', duration: 600_000 });
+});
+
 test('invalid content is rejected', () => {
   const { content, max } = sample();
   invalid(null);
