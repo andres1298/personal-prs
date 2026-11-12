@@ -145,7 +145,7 @@ export default function LineEditor({ item, earlier, names, weightNames, preview,
 
   const needsBase = load.type === 'percent' && load.base.kind === 'pr' && !item.movement && !load.base.movement;
   const meta = [
-    item.sets && `${item.sets} ${item.sets === 1 ? 'serie' : 'series'}`,
+    item.sets > 1 && `${item.sets} series`,
     (item.log || load.type === 'max') && 'El atleta anota',
     item.notes,
   ].filter(Boolean);
@@ -191,10 +191,10 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
     <div className="line-options-row">
       <Field label="Series de esta línea">
         <div className="stepper-field">
-          <button type="button" aria-label="Una serie menos" disabled={!item.sets} onClick={() => onChange({ sets: item.sets > 1 ? item.sets - 1 : null })}><Icon name="minus" weight={2.8} /></button>
+          <button type="button" aria-label="Una serie menos" disabled={!item.sets} onClick={() => onChange({ sets: item.sets > 2 ? item.sets - 1 : null })}><Icon name="minus" weight={2.8} /></button>
           <input inputMode="numeric" value={item.sets ?? ''} placeholder="–" aria-label="Series"
             onChange={(event) => onChange({ sets: /^\d{1,2}$/.test(event.target.value) && Number(event.target.value) > 0 ? Number(event.target.value) : null })} />
-          <button type="button" aria-label="Una serie más" disabled={item.sets >= 99} onClick={() => onChange({ sets: (item.sets ?? 0) + 1 })}><Icon name="plus" weight={2.8} /></button>
+          <button type="button" aria-label="Una serie más" disabled={item.sets >= 99} onClick={() => onChange({ sets: (item.sets ?? 1) + 1 })}><Icon name="plus" weight={2.8} /></button>
         </div>
       </Field>
       {usesWeight && <Field label="Máximo del día">

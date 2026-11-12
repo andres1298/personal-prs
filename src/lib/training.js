@@ -101,7 +101,8 @@ function normalizeItem(input, seen, earlierItems) {
   const parts = movement ? null : normalizeParts(input.parts);
   return {
     id: itemId, movement, label, ...(parts ? { parts } : {}),
-    sets: input.sets == null ? null : numberIn(Math.trunc(input.sets), 1, 99, 'Sets'),
+    // One set is the same as none: only two or more are worth saying.
+    sets: input.sets == null || Math.trunc(input.sets) === 1 ? null : numberIn(Math.trunc(input.sets), 1, 99, 'Sets'),
     reps: text(input.reps, LIMITS.reps, 'Reps'),
     load,
     log: load.type === 'max' || input.log === true,
@@ -189,10 +190,11 @@ export const allItems = (content) => content.blocks.flatMap((block) => block.ite
 export const itemName = (item) => item.movement || item.label;
 export const hasLogging = (content) => content.blocks.some((block) => block.score !== 'none' || block.items.some((item) => item.log));
 
-/** "5 × 3", "3 series", "8 reps" or '' from a line's sets and reps. */
+/** "5 × 3", "3 series", "8 reps" or '' from a line's sets and reps. A single set says nothing and is left out. */
 export function volumeText(item) {
-  if (item.sets && item.reps) return `${item.sets} × ${item.reps}`;
-  if (item.sets) return `${item.sets} ${item.sets === 1 ? 'serie' : 'series'}`;
+  const sets = item.sets > 1 ? item.sets : null;
+  if (sets && item.reps) return `${sets} × ${item.reps}`;
+  if (sets) return `${sets} series`;
   return item.reps ? `${item.reps} ${/^\d+$/.test(item.reps) ? (item.reps === '1' ? 'rep' : 'reps') : ''}`.trim() : '';
 }
 
