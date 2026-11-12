@@ -8,30 +8,32 @@ const authErrors = {
   configuration: 'El acceso a tu cuenta todavía no está disponible.',
 };
 
-// One side of a loaded barbell, in the plates' own colors: [token, height %].
-const PLATES = [['--p45', 100], ['--p45', 100], ['--p25', 84], ['--p10', 64], ['--p5', 48], ['--p2', 38]];
-
 /**
- * The frame of every signed-out screen: a color block with the title and a loaded barbell, and
- * the form under it. `tone` is the block's color token; each screen keeps its own.
+ * The frame of every signed-out screen, in the landing page's voice: the app icon and one link
+ * on top, then a small label, a left-aligned title with its last line marked in a block color,
+ * a short lead and the form. `title` breaks into lines at "\n"; `tone` is the mark's color token.
  */
-export function AuthShell({ title, subtitle, tone = '--b-yellow', children }) {
+export function AuthShell({ eyebrow, title, subtitle, tone = '--b-yellow', action, children }) {
+  const lines = title.split('\n');
   return <main className="auth-page" style={{ '--c': `var(${tone})` }}>
-    <header className="auth-hero">
-      <p className="auth-brand"><Image src="/icon-192.png" width={36} height={36} alt="" priority />Mis PRs</p>
-      <div className="auth-barbell" aria-hidden="true">
-        {PLATES.map(([color, height], index) => <i key={index} style={{ '--p': `var(${color})`, '--h': `${height}%`, '--i': index }} />)}
-        <span />
-      </div>
-      <h1 className="display">{title}</h1>
-      {subtitle && <p className="auth-lead">{subtitle}</p>}
+    <header className="auth-top">
+      <Link href="/" aria-label="Mis PRs, inicio"><Image src="/icon-192.png" width={40} height={40} alt="" priority /></Link>
+      {action && <Link className="auth-pill" href={action.href}>{action.label}</Link>}
     </header>
+    <div className="auth-copy">
+      {eyebrow && <p className="auth-eyebrow"><i aria-hidden="true" />{eyebrow}</p>}
+      <h1 className="display">{lines.map((line, index) => <span key={index} className={index === lines.length - 1 ? 'auth-mark' : undefined}>{line}</span>)}</h1>
+      {subtitle && <p className="auth-lead">{subtitle}</p>}
+    </div>
     <div className="auth-body">{children}</div>
   </main>;
 }
 
+const arrow = <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
+
 export default function AuthPanel({ configured, signedIn, authError }) {
-  return <AuthShell title="Entrar" subtitle="Tus marcas, tu plan y la barra lista para cargar.">
+  return <AuthShell eyebrow="Bienvenido de vuelta" title={'Entra a\ntu barra.'} subtitle="Tus marcas, tu plan y los discos de cada serie."
+    action={configured && !signedIn ? { href: '/register', label: 'Crear cuenta' } : null}>
     {authError && <p className="auth-message error" role="alert">{authErrors[authError] ?? 'No se pudo iniciar sesión. Inténtalo de nuevo.'}</p>}
     {signedIn ? <>
       <p className="auth-message" role="status">Tu cuenta todavía no tiene acceso. Si acabas de registrarte, confirma tu correo desde el enlace que te enviamos; si no, solicita una invitación al administrador.</p>
@@ -41,12 +43,10 @@ export default function AuthPanel({ configured, signedIn, authError }) {
         <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="username" placeholder="correo@ejemplo.com" required /></label>
         <label className="field"><span>Contraseña</span><input name="password" type="password" autoComplete="current-password" placeholder="Tu contraseña" required /></label>
       </div>
-      <button className="filled-button">Entrar</button>
+      <button className="filled-button">Entrar{arrow}</button>
     </form>
       : <p className="auth-message" role="status">El acceso a tu cuenta todavía no está disponible.</p>}
-    <div className="auth-links">
-      {configured && !signedIn && <Link className="auth-link" href="/register"><b>Crear cuenta</b><small>Gratis, con tu correo</small></Link>}
-      <Link className="auth-link" href="/app?demo=1"><b>Ver un ejemplo</b><small>Sin cuenta ni registros guardados</small></Link>
-    </div>
+    <Link className="auth-outline" href="/app?demo=1">Abrir la demo</Link>
+    <p className="auth-footnote">La demo usa datos de ejemplo y no guarda nada en tu cuenta.</p>
   </AuthShell>;
 }

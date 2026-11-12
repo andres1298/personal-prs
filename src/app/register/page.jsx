@@ -1,4 +1,3 @@
-import Link from 'next/link';
 import { AuthShell } from '../auth-panel';
 import RegisterForm from './register-form';
 
@@ -11,8 +10,8 @@ export const metadata = {
 
 export default function RegisterPage() {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
-  return <AuthShell title="Crear cuenta" subtitle="Guarda tus PRs y sigue el plan de tu coach." tone="--b-green">
+  return <AuthShell eyebrow="Cuenta nueva" title={'Crea tu\ncuenta.'} subtitle="Guarda tus PRs y sigue el plan de tu coach. Es gratis."
+    action={{ href: '/app', label: 'Entrar' }}>
     <RegisterForm siteKey={siteKey} />
-    <div className="auth-links"><Link className="auth-link" href="/app"><b>Ya tengo cuenta</b><small>Entrar con mi correo</small></Link></div>
   </AuthShell>;
 }
