@@ -143,11 +143,11 @@ export default function SessionEditor({ date, session, targetName, group, athlet
     : { ...block, items: block.items.map((item) => (item.id === itemId ? { ...item, ...patch } : item)) })));
 
   // A new line, at the end or right after the line where Enter was pressed, takes the block's
-  // sets (Series) or its reps (For Time), ready to type its movement.
+  // rep scheme (For Time), ready to type its movement.
   function addLine(block, at = block.items.length) {
     if (block.items.length >= LIMITS.items) return;
     const format = formatOf(block);
-    const item = newItem({ sets: format === 'sets' ? commonValue(block.items, 'sets') : null, reps: format === 'fortime' ? commonValue(block.items, 'reps') ?? '' : '' });
+    const item = newItem({ reps: format === 'fortime' ? commonValue(block.items, 'reps') ?? '' : '' });
     patchBlock(block.id, { items: [...block.items.slice(0, at), item, ...block.items.slice(at)] });
     setOpenId(null);
     setFocusId(item.id);
@@ -202,7 +202,7 @@ export default function SessionEditor({ date, session, targetName, group, athlet
         {draft.content.blocks.map((block, blockIndex) => {
           const rows = block.items.map((item) => {
             const row = <LineEditor key={item.id} item={item} earlier={[...earlier]} names={names} weightNames={weightNames}
-              timed={TIMED.includes(formatOf(block))} blockSets={formatOf(block) === 'sets' ? commonValue(block.items, 'sets') : null} autoFocus={focusId === item.id}
+              timed={TIMED.includes(formatOf(block))} autoFocus={focusId === item.id}
               preview={previewId ? resolveLoad(item, null, bestOf, previewDivision) : null} open={openId === item.id}
               onOpen={() => setOpenId(item.id)} onClose={() => setOpenId(null)}
               onChange={(patch) => patchItem(block.id, item.id, patch)}
@@ -226,16 +226,22 @@ export default function SessionEditor({ date, session, targetName, group, athlet
                 onClick={() => setBlocks((blocks) => blocks.filter((other) => other.id !== block.id))}><Icon name="xmark" /></button>
             </header>
             <BlockFormat block={block} onChange={(patch) => patchBlock(block.id, patch)} />
-            {rows.length > 0 && <div className="line-columns" aria-hidden="true"><span>Reps</span><span>Movimiento</span><span>Peso · lb / chicas</span></div>}
-            {rows}
-            <footer className="editor-block-foot">
-              <button type="button" className="tinted-button" disabled={block.items.length >= LIMITS.items}
+            <div className="block-lines" data-rounds={block.rounds > 1}>
+              {block.rounds > 1 && <p className="block-rounds"><Icon name="repeat" weight={2.4} />Todo se repite <b>{block.rounds} rondas</b></p>}
+              {rows.length > 0 && <div className="line-columns" aria-hidden="true"><span>Reps</span><span>Movimiento</span><span>Peso lb · chicos / chicas</span></div>}
+              {rows}
+              <button type="button" className="line-add" disabled={block.items.length >= LIMITS.items}
                 onClick={() => addLine(block)}><Icon name="plus" weight={2.8} />Agregar línea</button>
-              <textarea rows={1} value={block.notes} maxLength={LIMITS.notes} aria-label={`Nota del bloque ${letter(blockIndex)}`}
-                placeholder="Nota del bloque (opcional): «los impares son squat cleans»…"
-                onChange={(event) => patchBlock(block.id, { notes: event.target.value })} />
+            </div>
+            <footer className="editor-block-foot">
+              <label className="block-note">
+                <span className="line-label">Nota del bloque</span>
+                <textarea rows={2} value={block.notes} maxLength={LIMITS.notes} aria-label={`Nota del bloque ${letter(blockIndex)}`}
+                  placeholder="Opcional. P. ej. «las rondas de 15 y 5 son squat cleans»"
+                  onChange={(event) => patchBlock(block.id, { notes: event.target.value })} />
+              </label>
               <div className="block-score">
-                <span className="line-label">Al terminar el bloque, el atleta anota</span>
+                <span className="line-label">Al terminar, el atleta anota</span>
                 <Choice label="Resultado del bloque" size="small" options={SCORE_OPTIONS} value={block.score} onChange={(score) => patchBlock(block.id, { score })} />
               </div>
             </footer>

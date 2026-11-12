@@ -27,12 +27,11 @@ export function blockColor(block) {
   return (move && moveInfo(move).group.color) || '--b-gray';
 }
 
-/** How the block is done, under its title: "3 rondas · Lo más rápido posible · límite 20:00", "Descanso 2:00 entre series". */
+/** How the block is done, under its title: "Lo más rápido posible · límite 20:00", "Descanso 2:00 entre rondas". */
 export function blockSummary(block) {
   return [
-    block.rounds > 1 && `${block.rounds} rondas`,
     block.timer && describeTimer(block.timer),
-    block.rest && `Descanso ${formatClock(block.rest)} entre series`,
+    block.rest && `Descanso ${formatClock(block.rest)} entre ${block.rounds > 1 ? 'rondas' : 'series'}`,
   ].filter(Boolean).join(' · ');
 }
 
@@ -172,6 +171,8 @@ function PlanBlock({ block, index, content, results, bestOf, division, onItemCha
       </div>
     </header>
     {block.notes && <p className="plan-notes">{block.notes}</p>}
+    {/* Rounds are the block's: everything below is repeated together, so it is said once, above it. */}
+    {block.rounds > 1 && <p className="plan-rounds"><Icon name="repeat" weight={2.4} />{block.rounds} rondas de:</p>}
     {block.items.map((item) => <PlanItem key={item.id} item={item} content={content} results={results} bestOf={bestOf} division={division} logging={open}
       onChange={(patch) => onItemChange(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
     {open && block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => onScoreChange(block, value)} />}
