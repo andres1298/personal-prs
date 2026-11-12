@@ -8,7 +8,7 @@ import {
 import { useAlert } from '../ui/alert';
 import { SegmentedControl, Switch } from '../ui/controls';
 import Icon from '../ui/icon';
-import LineEditor, { Choice } from './line-editor';
+import LineEditor, { Choice, DEFAULT_LOAD } from './line-editor';
 
 const SCORE_OPTIONS = [{ value: 'none', label: 'Nada' }, { value: 'time', label: 'Tiempo' }, { value: 'reps', label: 'Repeticiones' }, { value: 'weight', label: 'Peso' }];
 const letter = (index) => String.fromCharCode(65 + index);
@@ -71,10 +71,21 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
 
   async function save() {
     // Lines left without a name are dropped instead of blocking the save.
-    const content = { blocks: draft.content.blocks.map((block) => ({ ...block, items: block.items.filter((item) => item.movement || item.label.trim()) })) };
+    // So are the parts of a complex that never got their movement.
+    const content = { blocks: draft.content.blocks.map((block) => ({
+      ...block,
+      items: block.items.filter((item) => item.movement || item.label.trim())
+        .map((item) => (item.parts ? { ...item, parts: item.parts.filter((part) => part.movement) } : item)),
+    })) };
     const incomplete = content.blocks.flatMap((block) => block.items).find((item) => ['weight', 'percent'].includes(item.load.type) && !(item.load.value > 0));
     if (incomplete) {
       await alert({ title: 'Falta una carga', message: `Escribe ${incomplete.load.type === 'percent' ? 'el porcentaje' : 'el peso'} de «${itemName(incomplete)}» o cambia su tipo de carga.` });
+      return;
+    }
+    const baseless = content.blocks.flatMap((block) => block.items)
+      .find((item) => item.load.type === 'percent' && item.load.base.kind === 'pr' && !item.movement && !item.load.base.movement);
+    if (baseless) {
+      await alert({ title: 'Falta la base del porcentaje', message: `«${itemName(baseless)}» no tiene récord propio. Elige de qué movimiento se calcula su porcentaje, o cambia su tipo de carga.` });
       return;
     }
     if (session?.logged > 0 && !(await alert({
@@ -115,12 +126,12 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
 
   // A new line opens right away, ready to pick its movement.
   function addLine(block) {
-    const item = newItem();
+    const item = newItem({ load: DEFAULT_LOAD });
     patchBlock(block.id, { items: [...block.items, item] });
     setOpenId(item.id);
   }
   function addStrengthBlock() {
-    const item = newItem();
+    const item = newItem({ load: DEFAULT_LOAD });
     setBlocks((blocks) => [...blocks, newBlock({ items: [item] })]);
     setOpenId(item.id);
   }

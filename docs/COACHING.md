@@ -29,6 +29,7 @@ One session per day and target (a group or one athlete), on any date, past ones 
 
 - **Blocks** have a title, notes (for example "RPE 8") and an optional score the athlete records: time, repetitions or weight.
 - **Lines** have a movement from the catalog or free text, sets, reps, a load and whether the athlete logs weight and reps. The coach decides per line; lines that are not logged are informative.
+- A **complex** is a line whose `parts` list its movements in order with their reps ("1 Clean + 2 Split Jerk"). It has no record of its own, so its percentage is of one of its movements' records, or the coach creates it as a movement so athletes keep its record.
 - **Loads**: none, a weight in lb, a percentage, or a maximum of the day. A percentage is of the athlete's 1RM, 3RM or 5RM of the line's movement or of another movement (a pull at 110 % of the clean), or of the weight logged earlier that day on another line (back-off sets after a heavy single). Loads resolve on the athlete's device from their own records and round to 5 lb.
 
 Movements the coach creates are shared with their athletes, who can keep records on them; this is how a complex gets its own 1RM.
@@ -39,7 +40,7 @@ Each session has a private comment thread per athlete. New coach comments and an
 
 ## Calendar
 
-The coach's calendar shows one target per month. Opening a day, or **Programar hoy**, edits it in a side panel with a second view for results. The day reads as a list of line summaries and one line is edited at a time: the movement is picked by category (or searched across the catalog, or typed as free text), and the load, its base and the block's score are chosen with buttons. Movements that are not lifted carry no load. Days and whole weeks can be copied and pasted; a pasted copy keeps the source's draft or published state and gets fresh ids.
+The coach's calendar shows one target per month. Opening a day, or **Programar hoy**, edits it in a side panel with a second view for results. The day reads as a list of line summaries and one line is edited at a time: the movement is picked in two steps, a category first (each lift family, a complex, cardio, benchmarks, gymnastics or free text) and then one of its movements, or searched by name across the catalog. The rest of the form appears once the line has a movement. The load, its base and the block's score are chosen with buttons; a new line starts as a percentage and "Sin carga" is the last option. Movements that are not lifted carry no load. Days and whole weeks can be copied and pasted; a pasted copy keeps the source's draft or published state and gets fresh ids.
 
 ## Not in this version
 

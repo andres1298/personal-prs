@@ -4,6 +4,7 @@
 // content: { blocks: [{ id, title, notes, score, items: [item] }] }
 // item:    { id, movement, label, sets, reps, load: { type, value, base }, log, notes }
 //   movement  catalog name (links the athlete's records) or null for free text in `label`
+//   parts     optional, for a complex: [{ reps, movement }] in order; `label` holds its text ("1 Clean + 2 Split Jerk")
 //   load.type 'none' | 'weight' (lb) | 'percent' | 'max' (work up to the heaviest of the day)
 //   load.base for 'percent': { kind: 'pr', movement, rm } (movement null = the line's own)
 //             or { kind: 'item', itemId } (the weight logged on an earlier line of the session)
@@ -13,7 +14,7 @@
 export const LOAD_TYPES = ['none', 'weight', 'percent', 'max'];
 export const SCORE_TYPES = ['none', 'time', 'reps', 'weight'];
 export const BASE_RMS = [1, 3, 5];
-export const LIMITS = { blocks: 12, items: 20, title: 80, notes: 2000, label: 80, reps: 16, comment: 2000 };
+export const LIMITS = { blocks: 12, items: 20, title: 80, notes: 2000, label: 80, reps: 16, comment: 2000, parts: 6 };
 
 const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const round5 = (x) => Math.round(x / 5) * 5;
@@ -60,6 +61,22 @@ function normalizeLoad(input, earlierItems) {
   return { type, value, base: { kind: 'pr', movement: text(base.movement, LIMITS.label, 'Base movement') || null, rm: base.rm } };
 }
 
+// A complex lists at least two movements; fewer is not a complex and the field is dropped.
+function normalizeParts(input) {
+  if (input == null) return null;
+  if (!Array.isArray(input) || input.length > LIMITS.parts) fail('A complex lists up to six movements.');
+  const parts = input.map((part) => {
+    if (!isObject(part)) fail('A complex part must be an object.');
+    const movement = text(part.movement, LIMITS.label, 'Complex movement');
+    if (!movement) fail('A complex part needs a movement.');
+    return { reps: numberIn(Math.trunc(part.reps), 1, 99, 'Complex reps'), movement };
+  });
+  return parts.length >= 2 ? parts : null;
+}
+
+/** "1 Clean + 2 Split Jerk" from a complex's parts. */
+export const complexLabel = (parts) => parts.map((part) => `${part.reps} ${part.movement}`).join(' + ');
+
 function normalizeItem(input, seen, earlierItems) {
   if (!isObject(input)) fail('A line must be an object.');
   const itemId = id(input.id, 'Line id');
@@ -70,8 +87,9 @@ function normalizeItem(input, seen, earlierItems) {
   if (!movement && !label) fail('A line needs a movement or a label.');
   const load = normalizeLoad(input.load, earlierItems);
   if (load.type === 'percent' && load.base.kind === 'pr' && !load.base.movement && !movement) fail('A percentage needs a movement.');
+  const parts = movement ? null : normalizeParts(input.parts);
   return {
-    id: itemId, movement, label,
+    id: itemId, movement, label, ...(parts ? { parts } : {}),
     sets: input.sets == null ? null : numberIn(Math.trunc(input.sets), 1, 99, 'Sets'),
     reps: text(input.reps, LIMITS.reps, 'Reps'),
     load,

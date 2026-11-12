@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  addDays, addMonths, cloneContent, hasLogging, isDate, loadText, monthWeeks, newBlock, newItem, normalizeContent,
+  addDays, addMonths, cloneContent, complexLabel, hasLogging, isDate, loadText, monthWeeks, newBlock, newItem, normalizeContent,
   normalizeResults, recordCandidate, resolveLoad, TrainingInputError, volumeText, weekStart,
 } from '../src/lib/training.js';
 
@@ -28,6 +28,23 @@ test('content is cleaned: text trimmed, a daily maximum is always logged, unknow
   assert.equal(clean.blocks[1].items[0].notes, 'Tempo 3-1-1');
   assert.deepEqual(clean.blocks[1].items[0].load, squat.load);
   assert.deepEqual(normalizeContent(clean), clean);
+});
+
+test('a complex keeps its movements in order next to its text', () => {
+  const parts = [{ reps: 1, movement: 'Clean' }, { reps: 2.9, movement: ' Split Jerk ', junk: true }];
+  const complex = newItem({ label: complexLabel(parts), parts, sets: 3, load: percent(85, pr('Clean & Jerk')) });
+  const [clean] = normalizeContent({ blocks: [newBlock({ items: [complex] })] }).blocks[0].items;
+  assert.deepEqual(clean.parts, [{ reps: 1, movement: 'Clean' }, { reps: 2, movement: 'Split Jerk' }]);
+  assert.equal(complexLabel(clean.parts), '1 Clean + 2 Split Jerk');
+  assert.deepEqual(normalizeContent(cloneContent({ blocks: [newBlock({ items: [clean] })] })).blocks[0].items[0].parts, clean.parts);
+  // One movement is not a complex, and a catalog movement never carries parts.
+  const dropped = (patch) => 'parts' in normalizeContent({ blocks: [newBlock({ items: [newItem(patch)] })] }).blocks[0].items[0];
+  assert.equal(dropped({ label: 'x', parts: [{ reps: 1, movement: 'Clean' }] }), false);
+  assert.equal(dropped({ movement: 'Clean', parts }), false);
+  assert.equal(dropped({ label: 'x' }), false);
+  for (const bad of ['Clean', [{ reps: 0, movement: 'Clean' }, { reps: 1, movement: 'Jerk' }], [{ reps: 1 }, { reps: 1, movement: 'Jerk' }], Array(7).fill({ reps: 1, movement: 'Clean' })]) {
+    invalid({ blocks: [newBlock({ items: [newItem({ label: 'x', parts: bad })] })] });
+  }
 });
 
 test('invalid content is rejected', () => {
