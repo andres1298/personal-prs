@@ -24,6 +24,12 @@ enum MovementCategory {
   GYMNASTICS
 }
 
+// Which of a session's fixed weights an athlete loads when the coach wrote one for each.
+enum Division {
+  MEN
+  WOMEN
+}
+
 model Profile {
   // Supabase Auth identity; Auth tables remain externally managed.
   // Rows are created only by accepting an invitation or by admin bootstrap.
@@ -36,6 +42,8 @@ model Profile {
   disabledById       String?          @db.Uuid
   // Set when the member finishes or skips the guided tour; null means a new member.
   tourCompletedAt    DateTime?        @db.Timestamptz(3)
+  // Chosen at sign-up and editable in Settings; null until the member picks one.
+  division           Division?
   // Set by an admin: the member can coach other members from then on.
   coachSince         DateTime?        @db.Timestamptz(3)
   createdAt          DateTime         @default(now()) @db.Timestamptz(3)

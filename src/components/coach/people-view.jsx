@@ -80,7 +80,7 @@ export default function PeopleView({ overview, api }) {
         {!athletes.length && <p className="panel-note">Todavía no tienes atletas. Comparte el código de un grupo o crea un link personal.</p>}
         {athletes.map((athlete) => <div className="person" key={athlete.id}>
           <button type="button" className="person-head" aria-expanded={open === athlete.id} onClick={() => setOpen(open === athlete.id ? null : athlete.id)}>
-            <span className="person-text"><b>{athlete.name}</b><small>{athlete.email && athlete.email !== athlete.name ? `${athlete.email} · ` : ''}desde {dateFormat.format(new Date(athlete.since))}</small></span>
+            <span className="person-text"><b>{athlete.name}</b><small>{athlete.email && athlete.email !== athlete.name ? `${athlete.email} · ` : ''}{athlete.division ? `pesos de ${athlete.division === 'WOMEN' ? 'chicas' : 'chicos'} · ` : 'sin categoría de pesos · '}desde {dateFormat.format(new Date(athlete.since))}</small></span>
             <Icon name="chevronDown" weight={2.4} />
           </button>
           {open === athlete.id && <div className="person-body">

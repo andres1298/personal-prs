@@ -103,6 +103,21 @@ export async function completeTour(authUserId, now = new Date()) {
   await getPrisma().profile.updateMany({ where: { id: requireProfileId(authUserId), tourCompletedAt: null }, data: { tourCompletedAt: now } });
 }
 
+const DIVISIONS = ['MEN', 'WOMEN'];
+export class ProfileInputError extends Error {}
+
+/** 'MEN', 'WOMEN' or null while the member has not chosen. */
+export async function getDivision(authUserId) {
+  const profile = await getPrisma().profile.findUnique({ where: { id: requireProfileId(authUserId) }, select: { division: true } });
+  return profile?.division ?? null;
+}
+
+export async function setDivision(authUserId, division) {
+  if (!DIVISIONS.includes(division)) throw new ProfileInputError('Division must be MEN or WOMEN.');
+  await getPrisma().profile.update({ where: { id: requireProfileId(authUserId) }, data: { division }, select: { id: true } });
+  return division;
+}
+
 export async function ensureAdminProfile(user) {
   const id = requireProfileId(user?.id);
   const email = typeof user.email === 'string' ? user.email.trim().toLowerCase() : null;
@@ -117,7 +132,9 @@ export async function ensureMemberProfile(user) {
   const email = typeof user.email === 'string' ? user.email.trim().toLowerCase() : null;
   const fullName = user.user_metadata?.full_name;
   const displayName = typeof fullName === 'string' ? fullName.trim().slice(0, 80) || null : null;
-  await getPrisma().profile.upsert({ where: { id }, create: { id, email, displayName }, update: {}, select: { id: true } });
+  // Sign-up metadata is written by the browser, so only the two known values are taken.
+  const division = DIVISIONS.includes(user.user_metadata?.division) ? user.user_metadata.division : null;
+  await getPrisma().profile.upsert({ where: { id }, create: { id, email, displayName, division }, update: {}, select: { id: true } });
 }
 
 export async function upsertProfile(authUserId, displayName = null) {

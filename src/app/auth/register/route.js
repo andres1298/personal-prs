@@ -37,7 +37,10 @@ function validatedInput(form) {
   if (!name || name.length > 80) return { error: 'invalid_name' };
   if (email.length > 254 || !emailPattern.test(email)) return { error: 'invalid_email' };
   if (password.length < MIN_PASSWORD_LENGTH || password.length > MAX_PASSWORD_LENGTH) return { error: 'invalid_password' };
-  return { name, email, password };
+  // Which of a coach's fixed weights the member loads; it can be changed later in Settings.
+  const division = String(form.get('division') ?? '');
+  if (!['MEN', 'WOMEN'].includes(division)) return { error: 'invalid_division' };
+  return { name, email, password, division };
 }
 
 export async function POST(request) {
@@ -58,7 +61,7 @@ export async function POST(request) {
     password: input.password,
     options: {
       emailRedirectTo: `${siteOrigin(request)}/auth/callback`,
-      data: { full_name: input.name },
+      data: { full_name: input.name, division: input.division },
     },
   });
   if (!error) return json(CHECK_EMAIL);

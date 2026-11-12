@@ -48,7 +48,7 @@ async function register({ signUpError = null, turnstileOk = true, configured = t
 }
 
 function form(overrides = {}, requestOrigin = origin) {
-  const fields = { name: ' Ana ', email: ' Ana@Example.TEST ', password: 'long-password', 'cf-turnstile-response': 'token', ...overrides };
+  const fields = { name: ' Ana ', email: ' Ana@Example.TEST ', password: 'long-password', division: 'WOMEN', 'cf-turnstile-response': 'token', ...overrides };
   return new Request(`${origin}/auth/register`, { method: 'POST', headers: { origin: requestOrigin, 'x-real-ip': '203.0.113.7' }, body: new URLSearchParams(fields) });
 }
 
@@ -65,7 +65,7 @@ test('a valid sign-up calls signUp once with the normalized email and the confir
   assert.equal(password, 'long-password');
   assert.equal(options.emailRedirectTo, `${origin}/auth/callback`);
   assert.equal(options.data.full_name, 'Ana');
-  assert.deepEqual(options.data, { full_name: 'Ana' });
+  assert.deepEqual(options.data, { full_name: 'Ana', division: 'WOMEN' });
 });
 
 test('the confirmation link targets the public site, not the deployment that served the form', async () => {
@@ -74,7 +74,7 @@ test('the confirmation link targets the public site, not the deployment that ser
     delete process.env.SITE_URL;
     process.env.VERCEL_PROJECT_PRODUCTION_URL = 'app.example.test';
     const viaVercel = await register();
-    await viaVercel.POST(new Request('https://deployment-abc.vercel.app/auth/register', { method: 'POST', headers: { origin: 'https://deployment-abc.vercel.app' }, body: new URLSearchParams({ name: 'Ana', email: 'ana@example.test', password: 'long-password', 'cf-turnstile-response': 't' }) }));
+    await viaVercel.POST(new Request('https://deployment-abc.vercel.app/auth/register', { method: 'POST', headers: { origin: 'https://deployment-abc.vercel.app' }, body: new URLSearchParams({ name: 'Ana', email: 'ana@example.test', password: 'long-password', division: 'MEN', 'cf-turnstile-response': 't' }) }));
     assert.equal(viaVercel.signUps[0].options.emailRedirectTo, 'https://app.example.test/auth/callback');
     process.env.SITE_URL = 'https://custom.example.test/ignored/path';
     const explicit = await register();
@@ -116,7 +116,7 @@ test('an already registered email gets the same response as a new one', async ()
 test('invalid inputs are rejected without verifying the CAPTCHA', async () => {
   const cases = [
     [{ name: '' }, 'invalid_name'], [{ name: 'x'.repeat(81) }, 'invalid_name'],
-    [{ email: 'not-an-email' }, 'invalid_email'], [{ password: 'short' }, 'invalid_password'], [{ password: 'x'.repeat(73) }, 'invalid_password'],
+    [{ email: 'not-an-email' }, 'invalid_email'], [{ password: 'short' }, 'invalid_password'], [{ password: 'x'.repeat(73) }, 'invalid_password'], [{ division: '' }, 'invalid_division'], [{ division: 'OTHER' }, 'invalid_division'],
   ];
   for (const [overrides, error] of cases) {
     const { POST, signUps, verifications } = await register();

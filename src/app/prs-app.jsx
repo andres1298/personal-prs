@@ -141,17 +141,27 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
     setTimeout(() => setTourOpen(true), 380);
   };
 
-  // Back goes from PRs or Timer to Execute, then up Execute's screens: working screen, group, picker.
+  // Members who follow a plan open on it, once per visit; afterwards the tab they pick is kept.
+  const home = planEnabled && plan.coach ? 'plan' : 'exec';
+  const homed = useRef(false);
+  useEffect(() => {
+    if (!ready || home !== 'plan' || homed.current) return;
+    homed.current = true;
+    updateSettings({ tab: 'plan' });
+  }, [ready, home, updateSettings]);
+
+  // Back goes up Execute's screens (working screen, group, picker) and from any other tab to the home tab:
+  // the plan for members who follow one, Execute for everyone else, who pass through its screens on the way.
   // While the tour runs it moves between screens itself, so the depth it found stays in place.
   const execDepth = ex.view === 'run' ? (ex.free ? 1 : 2) : ex.view === 'moves' ? 1 : 0;
-  const liveDepth = execDepth + (tab === 'exec' ? 0 : 1);
+  const inExec = tab === 'exec' && execDepth > 0;
+  const liveDepth = home === 'exec' ? execDepth + (tab === 'exec' ? 0 : 1) : (tab === 'exec' ? execDepth : 0) + (tab === home ? 0 : 1);
   const tourDepth = useRef(liveDepth);
   if (!tourOpen) tourDepth.current = liveDepth;
   const screenDepth = tourOpen ? tourDepth.current : liveDepth;
   const screenBack = () => {
-    if (tab !== 'exec') updateSettings({ tab: 'exec' });
-    else if (ex.view === 'run') setEx({ view: ex.free ? 'pick' : 'moves' });
-    else if (ex.view === 'moves') setEx({ view: 'pick' });
+    if (inExec) setEx({ view: ex.view === 'run' && !ex.free ? 'moves' : 'pick' });
+    else if (tab !== home) updateSettings({ tab: home });
     window.scrollTo({ top: 0 });
   };
   useHistoryBack(screenDepth, screenBack, ready && connected);
@@ -159,8 +169,10 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
   const page = useRef(null);
   // The screen going back would show, drawn under the edge swipe.
   const previousScreen = () => <section className="wrap">
-    <ExecuteView ex={tab === 'exec' ? { ...ex, view: ex.view === 'run' && !ex.free ? 'moves' : 'pick' } : ex} setEx={() => {}}
-      settings={settings} records={records} banner={banner} onOpenSettings={() => {}} />
+    {home === 'plan' && !inExec
+      ? <PlanView plan={plan} records={records} userId={userId} active={false} onExecute={() => {}} onAddRecord={() => {}} onSaveRecord={() => {}} />
+      : <ExecuteView ex={tab === 'exec' ? { ...ex, view: ex.view === 'run' && !ex.free ? 'moves' : 'pick' } : ex} setEx={() => {}}
+        settings={settings} records={records} banner={banner} onOpenSettings={() => {}} />}
   </section>;
 
   const goTab = (next) => {
@@ -243,7 +255,7 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
     <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} isCoach={isCoach} coach={plan.coach} onJoin={joinPlan} onLeave={leavePlan} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
+      demo={!hasBackend} isAdmin={isAdmin} isCoach={isCoach} coach={plan.coach} division={plan.division} onDivision={plan.setDivision} onJoin={joinPlan} onLeave={leavePlan} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
     <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
       onNew={() => setNewMovement({})} onHide={movements.setHidden} onDelete={deleteMovement} />
     <NewMovementSheet preset={newMovement} onClose={() => setNewMovement(null)} onCreate={movements.createMovement} />

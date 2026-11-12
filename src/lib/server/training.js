@@ -171,6 +171,37 @@ export async function listActivity(coachId, now = new Date()) {
   ].sort((a, b) => b.at - a.at).slice(0, 50);
 }
 
+/**
+ * The raw material of the coach's progress panels between two dates: their current athletes,
+ * the published sessions and what those athletes logged. Former athletes are left out
+ * entirely, like everywhere else.
+ */
+export async function getCoachStats(coachId, from, to) {
+  const id = requireId(coachId);
+  const prisma = getPrisma();
+  const dates = range(from, to);
+  const [links, groups] = await Promise.all([
+    prisma.coachAthlete.findMany({
+      where: { coachId: id, endedAt: null }, orderBy: { createdAt: 'asc' },
+      include: { athlete: { select: { id: true, displayName: true, email: true, groupMemberships: { where: { group: { coachId: id, archivedAt: null } }, select: { groupId: true } } } } },
+    }),
+    prisma.trainingGroup.findMany({ where: { coachId: id, archivedAt: null }, select: { id: true, name: true, color: true }, orderBy: { createdAt: 'asc' } }),
+  ]);
+  const athleteIds = links.map((link) => link.athleteId);
+  const sessions = await prisma.trainingSession.findMany({
+    where: { coachId: id, date: dates, publishedAt: { not: null } }, orderBy: { date: 'asc' },
+    include: { logs: { where: { athleteId: { in: athleteIds } }, select: { athleteId: true, completedAt: true, results: true } } },
+  });
+  return {
+    athletes: links.map((link) => ({
+      id: link.athleteId, name: personName(link.athlete), since: day(link.createdAt), groupIds: link.athlete.groupMemberships.map((membership) => membership.groupId),
+    })),
+    groups,
+    sessions: sessions.map((session) => ({ id: session.id, date: day(session.date), title: session.title ?? '', groupId: session.groupId, athleteId: session.athleteId, content: session.content })),
+    logs: sessions.flatMap((session) => session.logs.map((log) => ({ sessionId: session.id, ...log }))),
+  };
+}
+
 /* ---------- Athlete ---------- */
 
 // Published sessions of the athlete's current coaches and groups, plus any session they logged:

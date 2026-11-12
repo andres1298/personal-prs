@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  addDays, addMonths, cloneContent, hasLogging, isDate, loadText, monthWeeks, newBlock, newItem, normalizeContent,
+  addDays, addMonths, cloneContent, complexLabel, hasLogging, isDate, loadText, monthWeeks, newBlock, newItem, normalizeContent,
   normalizeResults, recordCandidate, resolveLoad, TrainingInputError, volumeText, weekStart,
 } from '../src/lib/training.js';
 
@@ -28,6 +28,37 @@ test('content is cleaned: text trimmed, a daily maximum is always logged, unknow
   assert.equal(clean.blocks[1].items[0].notes, 'Tempo 3-1-1');
   assert.deepEqual(clean.blocks[1].items[0].load, squat.load);
   assert.deepEqual(normalizeContent(clean), clean);
+});
+
+test('a complex keeps its movements in order next to its text', () => {
+  const parts = [{ reps: 1, movement: 'Clean' }, { reps: 2.9, movement: ' Split Jerk ', junk: true }];
+  const complex = newItem({ label: complexLabel(parts), parts, sets: 3, load: percent(85, pr('Clean & Jerk')) });
+  const [clean] = normalizeContent({ blocks: [newBlock({ items: [complex] })] }).blocks[0].items;
+  assert.deepEqual(clean.parts, [{ reps: 1, movement: 'Clean' }, { reps: 2, movement: 'Split Jerk' }]);
+  assert.equal(complexLabel(clean.parts), '1 Clean + 2 Split Jerk');
+  assert.deepEqual(normalizeContent(cloneContent({ blocks: [newBlock({ items: [clean] })] })).blocks[0].items[0].parts, clean.parts);
+  // One movement is not a complex, and a catalog movement never carries parts.
+  const dropped = (patch) => 'parts' in normalizeContent({ blocks: [newBlock({ items: [newItem(patch)] })] }).blocks[0].items[0];
+  assert.equal(dropped({ label: 'x', parts: [{ reps: 1, movement: 'Clean' }] }), false);
+  assert.equal(dropped({ movement: 'Clean', parts }), false);
+  assert.equal(dropped({ label: 'x' }), false);
+  for (const bad of ['Clean', [{ reps: 0, movement: 'Clean' }, { reps: 1, movement: 'Jerk' }], [{ reps: 1 }, { reps: 1, movement: 'Jerk' }], Array(7).fill({ reps: 1, movement: 'Clean' })]) {
+    invalid({ blocks: [newBlock({ items: [newItem({ label: 'x', parts: bad })] })] });
+  }
+});
+
+test('a block can carry the workout clock the athlete starts', () => {
+  const block = (timer) => normalizeContent({ blocks: [newBlock({ title: 'WOD', score: 'time', timer })] }).blocks[0];
+  assert.deepEqual(block({ type: 'fortime', cap: 21 * 60_000, junk: 1 }).timer, { type: 'fortime', cap: 1_260_000 });
+  assert.deepEqual(block({ type: 'emom', interval: 180_000, rounds: 3 }).timer, { type: 'emom', interval: 180_000, rounds: 3 });
+  // Missing or out-of-range values fall back to what the timer can run.
+  assert.deepEqual(block({ type: 'amrap' }).timer, { type: 'amrap', duration: 720_000 });
+  assert.deepEqual(block({ type: 'tabata', work: 1, rest: 10_000, rounds: 999 }).timer, { type: 'tabata', work: 5_000, rest: 10_000, rounds: 50 });
+  assert.equal('timer' in block(null), false);
+  assert.equal('timer' in block(undefined), false);
+  for (const bad of ['amrap', { type: 'stopwatch' }, []]) invalid({ blocks: [newBlock({ timer: bad })] });
+  const copy = cloneContent({ blocks: [block({ type: 'amrap', duration: 600_000 })] });
+  assert.deepEqual(copy.blocks[0].timer, { type: 'amrap', duration: 600_000 });
 });
 
 test('invalid content is rejected', () => {
@@ -78,6 +109,21 @@ test('a percentage resolves from the athlete records or from an earlier line, ro
   assert.deepEqual(resolveLoad(backOff, { items: { [max.id]: { weight: 172 } }, blocks: {} }, bestOf), { weight: 145, base: 172, missing: null });
   assert.deepEqual(resolveLoad(max, null, bestOf), { weight: null, base: null, missing: null });
   assert.deepEqual(resolveLoad(newItem({ label: 'x', load: { type: 'weight', value: 95, base: null } }), null, bestOf), { weight: 95, base: null, missing: null });
+});
+
+test('a fixed weight can differ for men and women, and resolves by the athlete division', () => {
+  const both = normalizeContent({ blocks: [newBlock({ items: [newItem({ label: 'Thruster', load: { type: 'weight', value: 95, women: 65 } })] })] }).blocks[0].items[0];
+  assert.deepEqual(both.load, { type: 'weight', value: 95, women: 65, base: null });
+  assert.equal(loadText(both, { blocks: [] }), '95 / 65 lb');
+  assert.deepEqual(['MEN', 'WOMEN', null, 'OTHER'].map((division) => resolveLoad(both, null, () => null, division)), [
+    { weight: 95, base: null, missing: null }, { weight: 65, base: null, missing: null },
+    { weight: null, base: null, missing: 'division' }, { weight: null, base: null, missing: 'division' },
+  ]);
+  // One weight is for everyone, whatever the division.
+  const one = normalizeContent({ blocks: [newBlock({ items: [newItem({ label: 'Thruster', load: { type: 'weight', value: 95, women: null } })] })] }).blocks[0].items[0];
+  assert.equal('women' in one.load, false);
+  assert.deepEqual(resolveLoad(one, null, () => null), { weight: 95, base: null, missing: null });
+  invalid({ blocks: [newBlock({ items: [newItem({ label: 'x', load: { type: 'weight', value: 95, women: -1 } })] })] });
 });
 
 test('prescriptions read as the coach wrote them', () => {

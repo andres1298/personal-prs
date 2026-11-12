@@ -4,16 +4,18 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { request } from '../../app/admin-request';
 import { buildCatalog, setCatalog } from '../../lib/catalog';
-import { useStoredState } from '../hooks';
+import { clearCaches, useStoredState } from '../hooks';
 import { AlertProvider } from '../ui/alert';
 import Icon from '../ui/icon';
 import SignalLoader from '../ui/signal-loader';
 import ActivityView from './activity-view';
 import CalendarView from './calendar-view';
 import PeopleView from './people-view';
+import ProgressView from './progress-view';
 
 const SECTIONS = [
   { value: 'calendar', label: 'Calendario', icon: 'calendar' },
+  { value: 'progress', label: 'Progreso', icon: 'chart' },
   { value: 'people', label: 'Atletas', icon: 'people' },
   { value: 'activity', label: 'Actividad', icon: 'bolt' },
 ];
@@ -80,8 +82,9 @@ function Workspace({ userId }) {
     setFocus({ date: session.date, athleteId: event.athleteId, key: Date.now() });
   };
 
+  // Stable, so the screens below do not reload their data every time this one renders.
+  const api = useMemo(() => ({ send, recordsOf, reloadOverview: loadOverview, reloadMovements: loadMovements }), [recordsOf, loadOverview, loadMovements]);
   if (!ready || (!overview && !error)) return <SignalLoader />;
-  const api = { send, recordsOf, reloadOverview: loadOverview, reloadMovements: loadMovements };
 
   return <div className="coach">
     <aside className="coach-side">
@@ -92,12 +95,16 @@ function Workspace({ userId }) {
           {section.value === 'activity' && unseen > 0 && prefs.section !== 'activity' && <i className="coach-count num">{unseen}</i>}
         </button>)}
       </nav>
-      <Link className="coach-exit" href="/app"><Icon name="chevronLeft" weight={2.6} /><span>Mi app</span></Link>
+      <Link className="coach-exit" href="/app?personal=1"><Icon name="barbell" /><span>Mi entrenamiento</span></Link>
+      <form className="coach-logout" action="/auth/logout" method="post" onSubmit={clearCaches}>
+        <button className="coach-exit"><Icon name="logout" /><span>Cerrar sesión</span></button>
+      </form>
     </aside>
     <main className="coach-main">
       {error && <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={loadOverview}>Reintentar</button></div>}
       {overview && prefs.section === 'calendar' && <CalendarView overview={overview} movements={movements} target={target} focus={focus}
         onTarget={(next) => updatePrefs({ target: next })} onPeople={() => go('people')} api={api} />}
+      {overview && prefs.section === 'progress' && <ProgressView api={api} />}
       {overview && prefs.section === 'people' && <PeopleView overview={overview} api={api} />}
       {overview && prefs.section === 'activity' && <ActivityView events={events} onOpen={openSession} onReload={loadActivity} />}
     </main>

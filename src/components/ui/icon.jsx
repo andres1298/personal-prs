@@ -6,6 +6,8 @@ const STROKE = {
   trophy: <><path d="M8 21h8M12 17v4M7 3.5h10V9a5 5 0 0 1-10 0z" /><path d="M17 5h3v2a3 3 0 0 1-3 3M7 5H4v2a3 3 0 0 0 3 3" /></>,
   timer: <><circle cx="12" cy="13.5" r="7.5" /><path d="M12 9.5v4l2.5 2M9.5 2.5h5" /></>,
   plus: <path d="M12 5v14M5 12h14" />,
+  eye: <><path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7-10-7-10-7z" /><circle cx="12" cy="12" r="3" /></>,
+  eyeOff: <><path d="M9.9 5.2A10.4 10.4 0 0 1 12 5c6.4 0 10 7 10 7a17.6 17.6 0 0 1-2.6 3.6M6.2 6.6A17.2 17.2 0 0 0 2 12s3.6 7 10 7a10 10 0 0 0 5.4-1.6" /><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2M3 3l18 18" /></>,
   minus: <path d="M5 12h14" />,
   arrowRight: <path d="M5 12h14M13 6l6 6-6 6" />,
   chevronLeft: <path d="m15 4.5-7.5 7.5 7.5 7.5" />,

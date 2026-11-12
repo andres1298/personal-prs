@@ -2,12 +2,14 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Icon from '../../components/ui/icon';
+import PasswordField from '../../components/ui/password-field';
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
 const messages = {
   invalid_name: 'Escribe tu nombre (máximo 80 caracteres).',
   invalid_email: 'Escribe un correo válido.',
+  invalid_division: 'Elige con qué pesos entrenas.',
   invalid_password: 'La contraseña debe tener entre 8 y 72 caracteres.',
   captcha_failed: 'No pudimos verificar que eres una persona. Inténtalo de nuevo.',
   rate_limited: 'Demasiados intentos. Espera unos minutos e inténtalo de nuevo.',
@@ -33,7 +35,6 @@ export default function RegisterForm({ siteKey }) {
   const widget = useRef(null);
   const widgetId = useRef(null);
   const [token, setToken] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState('');
@@ -90,12 +91,14 @@ export default function RegisterForm({ siteKey }) {
     <div className="list form-group">
       <label className="field"><span>Nombre</span><input name="name" autoComplete="name" maxLength={80} placeholder="Tu nombre" required /></label>
       <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="username" placeholder="correo@ejemplo.com" required /></label>
-      <label className="field">
-        <span>Contraseña</span>
-        <input name="password" type={showPassword ? 'text' : 'password'} minLength={8} maxLength={72} autoComplete="new-password" placeholder="Mínimo 8 caracteres" required />
-        <button type="button" className="reveal-button" aria-pressed={showPassword} onClick={() => setShowPassword((shown) => !shown)}>{showPassword ? 'Ocultar' : 'Mostrar'}</button>
-      </label>
+      <PasswordField minLength={8} maxLength={72} autoComplete="new-password" placeholder="8 o más caracteres" />
     </div>
+    <fieldset className="division-field">
+      <legend>¿Con qué pesos entrenas?</legend>
+      <label><input type="radio" name="division" value="MEN" required /><span>Chicos</span></label>
+      <label><input type="radio" name="division" value="WOMEN" required /><span>Chicas</span></label>
+      <p>Cuando tu coach programe un peso para chicos y otro para chicas, verás el tuyo. Puedes cambiarlo en Ajustes.</p>
+    </fieldset>
     <div ref={widget} className="turnstile-box" />
     <button className="filled-button" disabled={busy || !token}>{busy ? 'Creando…' : 'Crear cuenta'}</button>
   </form>;

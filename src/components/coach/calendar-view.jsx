@@ -104,6 +104,14 @@ export default function CalendarView({ overview, movements, target, focus, onTar
   }
 
   const editingSession = editing && byDate.get(editing.date);
+  // Programming a day takes the whole page; the calendar comes back when it closes.
+  if (editing && loaded) {
+    return <SessionEditor key={`${target.id}:${editing.date}`} date={editing.date} session={editingSession} targetName={targetName} group={group}
+      athletes={athletes} movements={movements} initialTab={editing.tab} focusAthleteId={editing.athleteId} api={api}
+      onSave={(draft) => put(editing.date, draft)} onDelete={() => remove(editingSession)}
+      onCopy={() => { setClipboard({ kind: 'day', date: editing.date, session: editingSession }); setEditing(null); }}
+      onClose={() => setEditing(null)} />;
+  }
   return <>
     <header className="coach-head">
       <h1 className="display">{monthLabel(month)}</h1>
@@ -119,6 +127,9 @@ export default function CalendarView({ overview, movements, target, focus, onTar
             </optgroup>}
           </select>
         </label>
+        <button type="button" className="pill-btn program-today" onClick={() => { setMonth(now.slice(0, 7)); setEditing({ date: now }); }}>
+          <Icon name="pencil" />{byDate.has(now) && month === now.slice(0, 7) ? 'Editar hoy' : 'Programar hoy'}
+        </button>
         <span className="month-nav">
           <button type="button" className="icon-button" aria-label="Mes anterior" onClick={() => setMonth(addMonths(month, -1))}><Icon name="chevronLeft" weight={2.6} /></button>
           <button type="button" className="nav-text" disabled={month === now.slice(0, 7)} onClick={() => setMonth(now.slice(0, 7))}>Hoy</button>
@@ -127,6 +138,7 @@ export default function CalendarView({ overview, movements, target, focus, onTar
       </div>
     </header>
     {error && <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={load}>Reintentar</button></div>}
+    <p className="coach-lead">Programas para <b>{targetName}</b>. Elige un día del calendario para escribir su sesión.</p>
     {clipboard && <p className="clipboard" role="status">
       <Icon name="check" weight={3} />
       {clipboard.kind === 'day' ? `Día ${shortDate(clipboard.date)} copiado: elige «Pegar» en otro día.` : `Semana del ${shortDate(clipboard.monday)} copiada: elige «Pegar semana» en otra.`}
@@ -159,7 +171,7 @@ export default function CalendarView({ overview, movements, target, focus, onTar
                 {allItems(session.content).length === 0 && !lines.length && session.notes && <span>{session.notes}</span>}
                 <em>{session.published ? (athletes.length ? `${session.completed}/${athletes.length} completaron` : 'Publicada') : 'Borrador'}</em>
               </button> : <button type="button" className="cal-add" aria-label={`Programar el ${shortDate(date)}`} onClick={() => setEditing({ date })}>
-                <Icon name="plus" weight={2.6} />
+                <Icon name="plus" weight={2.6} /><span>Programar</span>
               </button>}
             </div>;
           })}
@@ -167,10 +179,5 @@ export default function CalendarView({ overview, movements, target, focus, onTar
       })}
     </div>
 
-    {editing && loaded && <SessionEditor key={`${target.id}:${editing.date}`} date={editing.date} session={editingSession} targetName={targetName}
-      athletes={athletes} movements={movements} initialTab={editing.tab} focusAthleteId={editing.athleteId} api={api}
-      onSave={(draft) => put(editing.date, draft)} onDelete={() => remove(editingSession)}
-      onCopy={() => { setClipboard({ kind: 'day', date: editing.date, session: editingSession }); setEditing(null); }}
-      onClose={() => setEditing(null)} />}
   </>;
 }

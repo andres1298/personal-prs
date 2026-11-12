@@ -1,20 +1,24 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { bestRecord, formatValue, moveInfo } from '../../lib/catalog';
 import {
-  allItems, BASE_RMS, itemName, LIMITS, loadText, newBlock, newItem, resolveLoad, volumeText,
+  allItems, itemName, LIMITS, newBlock, newItem, resolveLoad, volumeText,
 } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import { SegmentedControl, Switch } from '../ui/controls';
 import Icon from '../ui/icon';
+import LineEditor, { Choice, DEFAULT_LOAD } from './line-editor';
+import { blockColor, PlanPreview } from '../plan/plan-view';
+import BlockTimer from './block-timer';
+import { normalizeConfig } from '../../lib/timer-engine';
+import { TEMPLATES } from '../timer/timer-views';
 
-const LOAD_OPTIONS = [['none', 'Sin carga'], ['weight', 'Peso (lb)'], ['percent', 'Porcentaje'], ['max', 'Máximo del día']];
-const SCORE_OPTIONS = [['none', 'Sin resultado'], ['time', 'Tiempo'], ['reps', 'Repeticiones'], ['weight', 'Peso']];
+const SCORE_OPTIONS = [{ value: 'none', label: 'Nada' }, { value: 'time', label: 'Tiempo' }, { value: 'reps', label: 'Repeticiones' }, { value: 'weight', label: 'Peso' }];
+const WOD_TYPES = ['amrap', 'emom', 'fortime', 'tabata'];
 const letter = (index) => String.fromCharCode(65 + index);
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
-const numberOrNull = (text) => (text.trim() === '' || !Number.isFinite(Number(text.replace(',', '.'))) ? null : Number(text.replace(',', '.')));
 
 function swap(list, index, direction) {
   const next = [...list];
@@ -25,10 +29,11 @@ function swap(list, index, direction) {
 }
 
 /**
- * Side panel to program one day for one target and to read what athletes did. Saving replaces
- * the day's session; results already logged stay as the athletes wrote them.
+ * Full page to program one day for one target and to read what athletes did. "Previsualizar"
+ * shows the day as the athlete's phone would, next to the form on a wide screen and instead of it
+ * on a narrow one. Saving replaces the day's session; results already logged stay as written.
  */
-export default function SessionEditor({ date, session, targetName, athletes, movements, initialTab, focusAthleteId, api, onSave, onDelete, onCopy, onClose }) {
+export default function SessionEditor({ date, session, targetName, group, athletes, movements, initialTab, focusAthleteId, api, onSave, onDelete, onCopy, onClose }) {
   const alert = useAlert();
   const [draft, setDraft] = useState(() => ({
     title: session?.title ?? '', notes: session?.notes ?? '', content: session?.content ?? { blocks: [] }, published: session?.published ?? true,
@@ -39,7 +44,17 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
   // Whose numbers the percentages show: the only athlete of a 1:1 day, or one picked from the group.
   const [previewId, setPreviewId] = useState(athletes.length === 1 ? athletes[0].id : '');
   const [previewRecords, setPreviewRecords] = useState(null);
-  const listId = useId();
+  // One line is open for editing at a time; the rest read as a summary.
+  const [openId, setOpenId] = useState(null);
+  const [previewing, setPreviewing] = useState(false);
+  useEffect(() => { window.scrollTo({ top: 0 }); }, []);
+  // Leaving the site with unsaved work asks first, as leaving the page does.
+  useEffect(() => {
+    if (!dirty) return undefined;
+    const warn = (event) => { event.preventDefault(); };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [dirty]);
 
   useEffect(() => {
     setPreviewRecords(null);
@@ -54,6 +69,7 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
   const patchBlock = (id, patch) => setBlocks((blocks) => blocks.map((block) => (block.id === id ? { ...block, ...patch } : block)));
   const names = useMemo(() => movements.filter((movement) => !movement.hidden).map((movement) => movement.name), [movements]);
   const weightNames = useMemo(() => names.filter((name) => moveInfo(name).type === 'weight'), [names]);
+  const previewDivision = athletes.find((athlete) => athlete.id === previewId)?.division ?? null;
   const bestOf = (movement, rm) => (previewRecords ? bestRecord(previewRecords, movement, rm)?.value ?? null : null);
 
   async function close() {
@@ -71,10 +87,21 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
 
   async function save() {
     // Lines left without a name are dropped instead of blocking the save.
-    const content = { blocks: draft.content.blocks.map((block) => ({ ...block, items: block.items.filter((item) => item.movement || item.label.trim()) })) };
+    // So are the parts of a complex that never got their movement.
+    const content = { blocks: draft.content.blocks.map((block) => ({
+      ...block,
+      items: block.items.filter((item) => item.movement || item.label.trim())
+        .map((item) => (item.parts ? { ...item, parts: item.parts.filter((part) => part.movement) } : item)),
+    })) };
     const incomplete = content.blocks.flatMap((block) => block.items).find((item) => ['weight', 'percent'].includes(item.load.type) && !(item.load.value > 0));
     if (incomplete) {
       await alert({ title: 'Falta una carga', message: `Escribe ${incomplete.load.type === 'percent' ? 'el porcentaje' : 'el peso'} de «${itemName(incomplete)}» o cambia su tipo de carga.` });
+      return;
+    }
+    const baseless = content.blocks.flatMap((block) => block.items)
+      .find((item) => item.load.type === 'percent' && item.load.base.kind === 'pr' && !item.movement && !item.load.base.movement);
+    if (baseless) {
+      await alert({ title: 'Falta la base del porcentaje', message: `«${itemName(baseless)}» no tiene récord propio. Elige de qué movimiento se calcula su porcentaje, o cambia su tipo de carga.` });
       return;
     }
     if (session?.logged > 0 && !(await alert({
@@ -113,16 +140,45 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
   const patchItem = (blockId, itemId, patch) => setBlocks((blocks) => blocks.map((block) => (block.id !== blockId ? block
     : { ...block, items: block.items.map((item) => (item.id === itemId ? { ...item, ...patch } : item)) })));
 
+  // A new line opens right away, ready to pick its movement.
+  function addLine(block) {
+    const item = newItem({ load: DEFAULT_LOAD });
+    patchBlock(block.id, { items: [...block.items, item] });
+    setOpenId(item.id);
+  }
+  function addStrengthBlock() {
+    const item = newItem({ load: DEFAULT_LOAD });
+    setBlocks((blocks) => [...blocks, newBlock({ items: [item] })]);
+    setOpenId(item.id);
+  }
+
+  // A WOD starts from its kind: the clock comes configured and the score follows it.
+  const full = draft.content.blocks.length >= LIMITS.blocks;
+  const addWod = (type) => setBlocks((blocks) => [...blocks, newBlock({
+    title: TEMPLATES[type].name, timer: normalizeConfig({ type }), score: { amrap: 'reps', fortime: 'time' }[type] ?? 'none',
+  })]);
+
   const earlier = [];
-  return <div className="drawer-root">
-    <div className="drawer-scrim" onClick={close} aria-hidden="true" />
-    <section className="drawer" role="dialog" aria-modal="true" aria-label={`Sesión del ${longDate(date)}`}>
-      <header className="drawer-head">
-        <div>
+  // What the athlete would get if the day were saved now: lines without a name are left out.
+  const previewSession = {
+    id: 'preview', date, title: draft.title, notes: draft.notes, group: group ? { name: group.name, color: group.color } : null,
+    content: { blocks: draft.content.blocks.map((block) => ({ ...block, items: block.items.filter((item) => item.movement || item.label.trim()) })) },
+    results: { items: {}, blocks: {} }, completedAt: null, comments: [], unread: 0,
+  };
+  const previewName = athletes.find((athlete) => athlete.id === previewId)?.name;
+  const canPreview = tab === 'program';
+
+  return <div className="editor-page" data-preview={previewing && canPreview}>
+    <section className="editor-main" aria-label={`Sesión del ${longDate(date)}`}>
+      <header className="editor-head">
+        <button type="button" className="nav-back" onClick={close}><Icon name="chevronLeft" weight={2.8} /><span>Calendario</span></button>
+        <div className="editor-head-title">
           <p className="drawer-kicker">{targetName}</p>
-          <h2 className="display">{longDate(date)}</h2>
+          <h1 className="display">{longDate(date)}</h1>
         </div>
-        <button type="button" className="nav-text" onClick={close}>Cerrar</button>
+        {canPreview && <button type="button" className="nav-text preview-toggle" aria-pressed={previewing} onClick={() => setPreviewing(!previewing)}>
+          <Icon name="person" />{previewing ? 'Ocultar vista previa' : 'Previsualizar'}
+        </button>}
       </header>
       {session && <SegmentedControl label="Vista" value={tab} onChange={setTab}
         options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
@@ -142,11 +198,11 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
           </label>}
         </div>
 
-        <datalist id={listId}>{names.map((name) => <option key={name} value={name} />)}</datalist>
         {draft.content.blocks.map((block, blockIndex) => {
           const rows = block.items.map((item) => {
-            const row = <ItemRow key={item.id} item={item} content={draft.content} earlier={[...earlier]} listId={listId} names={names} weightNames={weightNames}
-              preview={previewId ? resolveLoad(item, null, bestOf) : null}
+            const row = <LineEditor key={item.id} item={item} content={draft.content} earlier={[...earlier]} weightNames={weightNames}
+              preview={previewId ? resolveLoad(item, null, bestOf, previewDivision) : null} open={openId === item.id}
+              onOpen={() => setOpenId(item.id)} onClose={() => setOpenId(null)}
               onChange={(patch) => patchItem(block.id, item.id, patch)}
               onMove={(direction) => patchBlock(block.id, { items: swap(block.items, block.items.indexOf(item), direction) })}
               onRemove={() => patchBlock(block.id, { items: block.items.filter((other) => other.id !== item.id) })}
@@ -154,7 +210,7 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
             earlier.push(item);
             return row;
           });
-          return <section className="editor-block" key={block.id}>
+          return <section className="editor-block" key={block.id} style={{ '--b': `var(${blockColor(block)})` }}>
             <header className="editor-block-head">
               <span className="plan-letter display" aria-hidden="true">{letter(blockIndex)}</span>
               <input value={block.title} maxLength={LIMITS.title} placeholder={`Bloque ${letter(blockIndex)} · p. ej. Fuerza, WOD, Accesorios`}
@@ -169,114 +225,52 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
             <textarea rows={2} value={block.notes} maxLength={LIMITS.notes} aria-label={`Notas del bloque ${letter(blockIndex)}`}
               placeholder="Notas o descripción: «RPE 8», «21-15-9 de thrusters y pull-ups», descansos…"
               onChange={(event) => patchBlock(block.id, { notes: event.target.value })} />
+            <BlockTimer timer={block.timer} onChange={(timer) => patchBlock(block.id, { timer: timer ?? undefined })} />
             {rows}
             <footer className="editor-block-foot">
               <button type="button" className="tinted-button" disabled={block.items.length >= LIMITS.items}
-                onClick={() => patchBlock(block.id, { items: [...block.items, newItem()] })}><Icon name="plus" weight={2.8} />Línea</button>
-              <label>
-                <span>El atleta anota</span>
-                <select value={block.score} onChange={(event) => patchBlock(block.id, { score: event.target.value })}>
-                  {SCORE_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
-              </label>
+                onClick={() => addLine(block)}><Icon name="plus" weight={2.8} />Agregar línea</button>
+              <div className="block-score">
+                <span className="line-label">Al terminar el bloque, el atleta anota</span>
+                <Choice label="Resultado del bloque" size="small" options={SCORE_OPTIONS} value={block.score} onChange={(score) => patchBlock(block.id, { score })} />
+              </div>
             </footer>
           </section>;
         })}
         <div className="editor-add">
-          <button type="button" className="tinted-button" disabled={draft.content.blocks.length >= LIMITS.blocks}
-            onClick={() => setBlocks((blocks) => [...blocks, newBlock({ items: [newItem()] })])}><Icon name="barbell" />Bloque de fuerza</button>
-          <button type="button" className="tinted-button" disabled={draft.content.blocks.length >= LIMITS.blocks}
-            onClick={() => setBlocks((blocks) => [...blocks, newBlock({ title: 'WOD', score: 'time' })])}><Icon name="timer" />WOD o texto libre</button>
+          <span className="line-label">Agregar bloque</span>
+          <div>
+            <button type="button" className="tinted-button" disabled={full} onClick={addStrengthBlock}><Icon name="barbell" />Fuerza</button>
+            {WOD_TYPES.map((type) => <button type="button" key={type} className="tinted-button wod" disabled={full} style={{ '--c': `var(${TEMPLATES[type].color})` }}
+              onClick={() => addWod(type)}><i aria-hidden="true">{TEMPLATES[type].icon}</i>{TEMPLATES[type].name}</button>)}
+            <button type="button" className="tinted-button" disabled={full} onClick={() => setBlocks((blocks) => [...blocks, newBlock()])}><Icon name="pencil" />Texto libre</button>
+          </div>
         </div>
       </>}
 
-      {tab === 'program' && <footer className="drawer-foot">
+      {tab === 'program' && <footer className="editor-foot">
         <label className="editor-publish">
           <Switch checked={draft.published} label="Publicada" onChange={(published) => change({ published })} />
           <span>{draft.published ? 'Publicada: tus atletas la ven' : 'Borrador: solo tú la ves'}</span>
         </label>
-        <span className="drawer-foot-actions">
+        <span className="editor-foot-actions">
           {session && <button type="button" className="nav-text danger" onClick={remove}>Borrar</button>}
           {session && <button type="button" className="nav-text" disabled={dirty} title={dirty ? 'Guarda antes de copiar' : undefined} onClick={onCopy}>Copiar día</button>}
           <button type="button" className="nav-text strong" disabled={saving || (!dirty && Boolean(session))} onClick={save}>{saving ? 'Guardando…' : 'Guardar'}</button>
         </span>
       </footer>}
     </section>
-  </div>;
-}
 
-function ItemRow({ item, content, earlier, listId, names, weightNames, preview, onChange, onMove, onRemove, onCreateMovement }) {
-  const { load } = item;
-  const name = item.movement ?? item.label;
-  // A typed name that matches the catalog links the athlete's records; anything else stays free text.
-  const setName = (text) => {
-    const match = names.find((candidate) => candidate.toLowerCase() === text.trim().toLowerCase());
-    onChange(match ? { movement: match, label: '' } : { movement: null, label: text });
-  };
-  const setLoad = (patch) => onChange({ load: { ...load, ...patch } });
-  const setType = (type) => {
-    if (type === 'percent') setLoad({ type, value: load.type === 'percent' ? load.value : 75, base: { kind: 'pr', movement: null, rm: 1 } });
-    else setLoad({ type, value: type === 'weight' && load.type === 'weight' ? load.value : null, base: null });
-  };
-  const baseValue = load.base?.kind === 'item' ? `item:${load.base.itemId}` : `pr:${load.base?.rm ?? 1}`;
-  const setBase = (value) => {
-    const [kind, key] = value.split(':');
-    setLoad({ base: kind === 'item' ? { kind: 'item', itemId: key } : { kind: 'pr', movement: load.base?.kind === 'pr' ? load.base.movement : null, rm: Number(key) } });
-  };
-  // Lines the athlete logs a weight on can be the base of a later percentage ("85 % of today's heavy single").
-  const baseLines = earlier.filter((other) => other.log || other.load.type === 'max');
-  const needsMovement = load.type === 'percent' && load.base.kind === 'pr' && !item.movement && !load.base.movement;
-
-  return <div className="editor-item">
-    <div className="editor-item-main">
-      <input className="editor-move" list={listId} value={name} maxLength={LIMITS.label} placeholder="Movimiento o texto libre"
-        aria-label="Movimiento" onChange={(event) => setName(event.target.value)} />
-      <input className="editor-num" inputMode="numeric" value={item.sets ?? ''} placeholder="Series" aria-label="Series"
-        onChange={(event) => onChange({ sets: /^\d{1,2}$/.test(event.target.value) && Number(event.target.value) > 0 ? Number(event.target.value) : null })} />
-      <span aria-hidden="true">×</span>
-      <input className="editor-num wide" value={item.reps} maxLength={LIMITS.reps} placeholder="Reps" aria-label="Repeticiones"
-        onChange={(event) => onChange({ reps: event.target.value })} />
-      <select aria-label="Tipo de carga" value={load.type} onChange={(event) => setType(event.target.value)}>
-        {LOAD_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-      </select>
-      {(load.type === 'weight' || load.type === 'percent') && <label className="editor-value">
-        <input inputMode="decimal" value={load.value ?? ''} aria-label={load.type === 'weight' ? 'Peso en libras' : 'Porcentaje'}
-          onChange={(event) => setLoad({ value: numberOrNull(event.target.value) })} />
-        <span>{load.type === 'weight' ? 'lb' : '%'}</span>
-      </label>}
-      {load.type === 'percent' && <select aria-label="Base del porcentaje" value={baseValue} onChange={(event) => setBase(event.target.value)}>
-        {BASE_RMS.map((rm) => <option key={rm} value={`pr:${rm}`}>de su {rm}RM</option>)}
-        {baseLines.map((other) => <option key={other.id} value={`item:${other.id}`}>del peso de hoy en «{itemName(other)}»</option>)}
-      </select>}
-      {load.type === 'percent' && load.base.kind === 'pr' && <select aria-label="Movimiento base" value={load.base.movement ?? ''}
-        onChange={(event) => setLoad({ base: { ...load.base, movement: event.target.value || null } })}>
-        <option value="">del mismo movimiento</option>
-        {weightNames.filter((candidate) => candidate !== item.movement).map((candidate) => <option key={candidate} value={candidate}>de {candidate}</option>)}
-      </select>}
-      <span className="editor-item-tools">
-        <button type="button" className="icon-button" aria-label="Subir línea" onClick={() => onMove(-1)}><Icon name="arrowUp" /></button>
-        <button type="button" className="icon-button" aria-label="Bajar línea" onClick={() => onMove(1)}><Icon name="arrowDown" /></button>
-        <button type="button" className="icon-button danger" aria-label="Quitar línea" onClick={onRemove}><Icon name="xmark" /></button>
-      </span>
-    </div>
-    <div className="editor-item-sub">
-      <label className="editor-log">
-        <Switch checked={item.log || load.type === 'max'} disabled={load.type === 'max'} label="El atleta anota peso y reps" onChange={(log) => onChange({ log })} />
-        <span>El atleta anota peso y reps</span>
-      </label>
-      <input className="editor-note" value={item.notes} maxLength={LIMITS.notes} placeholder="Nota de la línea (tempo, descanso, RPE…)"
-        aria-label="Nota de la línea" onChange={(event) => onChange({ notes: event.target.value })} />
-    </div>
-    {!item.movement && item.label.trim() && <p className="editor-hint">
-      Texto libre: no se enlaza con los PRs.{' '}
-      <button type="button" onClick={onCreateMovement}>Crear «{item.label.trim()}» como movimiento</button>
-    </p>}
-    {needsMovement && <p className="editor-hint warn">Un porcentaje necesita un movimiento del catálogo o un movimiento base.</p>}
-    {preview && load.type === 'percent' && <p className="editor-hint">
-      {preview.weight != null ? <>→ <b className="num">{preview.weight} lb</b> ({loadText(item, content)}, base {preview.base} lb)</>
-        : preview.missing === 'pr' ? 'Este atleta todavía no tiene ese PR: verá el porcentaje y un aviso para registrarlo.'
-          : 'Se calcula cuando el atleta anote la línea base.'}
-    </p>}
+    {previewing && canPreview && <aside className="editor-aside" aria-label="Vista previa">
+      <div className="preview-bar">
+        <p><b>Así lo verá {previewName ?? 'un atleta sin PRs registrados'}</b>{dirty ? ' · incluye lo que aún no guardas' : ''}</p>
+        <button type="button" className="nav-text preview-close" onClick={() => setPreviewing(false)}>Volver a editar</button>
+      </div>
+      <div className="phone">
+        <PlanPreview session={previewSession} records={previewRecords ?? []} division={previewDivision} />
+      </div>
+      {!draft.published && <p className="line-hint">Es un borrador: tus atletas no lo ven hasta que lo publiques.</p>}
+    </aside>}
   </div>;
 }
 

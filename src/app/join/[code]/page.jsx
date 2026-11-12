@@ -12,7 +12,7 @@ export default async function JoinPage({ params }) {
   const { code } = await params;
   const target = await describeJoin(code);
   if (!target) {
-    return <AuthShell title="Mis PRs">
+    return <AuthShell tone="--b-blue" title="Mis PRs">
       <p className="auth-message" role="status">Este link o código ya no es válido. Pide uno nuevo a tu coach.</p>
       <Link className="plain-button wide" href="/app">Ir al inicio</Link>
     </AuthShell>;
@@ -20,7 +20,7 @@ export default async function JoinPage({ params }) {
   const { user, authorized } = await getAccess();
   const current = authorized ? await getCoaching(user.id) : null;
   const subtitle = `${target.coachName} te invita a seguir su plan de entrenamiento${target.groupName ? ` en el grupo ${target.groupName}` : ''}.`;
-  return <AuthShell title="Invitación" subtitle={subtitle}>
+  return <AuthShell tone="--b-blue" title="Invitación" subtitle={subtitle}>
     <JoinPanel code={code} signedIn={authorized} own={authorized && target.coachId === user.id}
       otherCoach={current && current.id !== target.coachId ? current.name : null} coachName={target.coachName} />
   </AuthShell>;
