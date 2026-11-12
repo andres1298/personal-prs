@@ -1,3 +1,4 @@
+import { redirect } from 'next/navigation';
 import App from '../prs-app';
 import AuthPanel from '../auth-panel';
 import { getAccess, hasAuthConfiguration } from '../../lib/server/auth';
@@ -10,7 +11,7 @@ export const dynamic = 'force-dynamic';
 export const metadata = { title: 'Entrar', robots: { index: false, follow: true } };
 
 export default async function Home({ searchParams }) {
-  const { demo, authError } = await searchParams;
+  const { demo, authError, personal } = await searchParams;
   if (demo === '1') return <App hasBackend={false} />;
   const configured = hasAuthConfiguration();
   const { user, authorized, isAdmin } = await getAccess();
@@ -20,5 +21,7 @@ export default async function Home({ searchParams }) {
   const [tourPending, coach, plan] = await Promise.all([
     hasPendingTour(user.id).catch(() => false), isCoach(user.id).catch(() => false), hasPlan(user.id).catch(() => false),
   ]);
+  // A coach's home is their workspace; `?personal=1` opens their own training instead.
+  if (coach && personal !== '1') redirect('/coach');
   return <App hasBackend={true} userId={user.id} isAdmin={isAdmin} isCoach={coach} hasPlan={plan} tourPending={tourPending} />;
 }

@@ -1,20 +1,19 @@
 'use client';
 
-import { useEffect, useId, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { bestRecord, formatValue, moveInfo } from '../../lib/catalog';
 import {
-  allItems, BASE_RMS, itemName, LIMITS, loadText, newBlock, newItem, resolveLoad, volumeText,
+  allItems, itemName, LIMITS, newBlock, newItem, resolveLoad, volumeText,
 } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import { SegmentedControl, Switch } from '../ui/controls';
 import Icon from '../ui/icon';
+import LineEditor, { Choice } from './line-editor';
 
-const LOAD_OPTIONS = [['none', 'Sin carga'], ['weight', 'Peso (lb)'], ['percent', 'Porcentaje'], ['max', 'Máximo del día']];
-const SCORE_OPTIONS = [['none', 'Sin resultado'], ['time', 'Tiempo'], ['reps', 'Repeticiones'], ['weight', 'Peso']];
+const SCORE_OPTIONS = [{ value: 'none', label: 'Nada' }, { value: 'time', label: 'Tiempo' }, { value: 'reps', label: 'Repeticiones' }, { value: 'weight', label: 'Peso' }];
 const letter = (index) => String.fromCharCode(65 + index);
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
-const numberOrNull = (text) => (text.trim() === '' || !Number.isFinite(Number(text.replace(',', '.'))) ? null : Number(text.replace(',', '.')));
 
 function swap(list, index, direction) {
   const next = [...list];
@@ -39,7 +38,8 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
   // Whose numbers the percentages show: the only athlete of a 1:1 day, or one picked from the group.
   const [previewId, setPreviewId] = useState(athletes.length === 1 ? athletes[0].id : '');
   const [previewRecords, setPreviewRecords] = useState(null);
-  const listId = useId();
+  // One line is open for editing at a time; the rest read as a summary.
+  const [openId, setOpenId] = useState(null);
 
   useEffect(() => {
     setPreviewRecords(null);
@@ -113,6 +113,18 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
   const patchItem = (blockId, itemId, patch) => setBlocks((blocks) => blocks.map((block) => (block.id !== blockId ? block
     : { ...block, items: block.items.map((item) => (item.id === itemId ? { ...item, ...patch } : item)) })));
 
+  // A new line opens right away, ready to pick its movement.
+  function addLine(block) {
+    const item = newItem();
+    patchBlock(block.id, { items: [...block.items, item] });
+    setOpenId(item.id);
+  }
+  function addStrengthBlock() {
+    const item = newItem();
+    setBlocks((blocks) => [...blocks, newBlock({ items: [item] })]);
+    setOpenId(item.id);
+  }
+
   const earlier = [];
   return <div className="drawer-root">
     <div className="drawer-scrim" onClick={close} aria-hidden="true" />
@@ -142,11 +154,11 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
           </label>}
         </div>
 
-        <datalist id={listId}>{names.map((name) => <option key={name} value={name} />)}</datalist>
         {draft.content.blocks.map((block, blockIndex) => {
           const rows = block.items.map((item) => {
-            const row = <ItemRow key={item.id} item={item} content={draft.content} earlier={[...earlier]} listId={listId} names={names} weightNames={weightNames}
-              preview={previewId ? resolveLoad(item, null, bestOf) : null}
+            const row = <LineEditor key={item.id} item={item} content={draft.content} earlier={[...earlier]} weightNames={weightNames}
+              preview={previewId ? resolveLoad(item, null, bestOf) : null} open={openId === item.id}
+              onOpen={() => setOpenId(item.id)} onClose={() => setOpenId(null)}
               onChange={(patch) => patchItem(block.id, item.id, patch)}
               onMove={(direction) => patchBlock(block.id, { items: swap(block.items, block.items.indexOf(item), direction) })}
               onRemove={() => patchBlock(block.id, { items: block.items.filter((other) => other.id !== item.id) })}
@@ -172,19 +184,17 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
             {rows}
             <footer className="editor-block-foot">
               <button type="button" className="tinted-button" disabled={block.items.length >= LIMITS.items}
-                onClick={() => patchBlock(block.id, { items: [...block.items, newItem()] })}><Icon name="plus" weight={2.8} />Línea</button>
-              <label>
-                <span>El atleta anota</span>
-                <select value={block.score} onChange={(event) => patchBlock(block.id, { score: event.target.value })}>
-                  {SCORE_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-                </select>
-              </label>
+                onClick={() => addLine(block)}><Icon name="plus" weight={2.8} />Agregar línea</button>
+              <div className="block-score">
+                <span className="line-label">Al terminar el bloque, el atleta anota</span>
+                <Choice label="Resultado del bloque" size="small" options={SCORE_OPTIONS} value={block.score} onChange={(score) => patchBlock(block.id, { score })} />
+              </div>
             </footer>
           </section>;
         })}
         <div className="editor-add">
           <button type="button" className="tinted-button" disabled={draft.content.blocks.length >= LIMITS.blocks}
-            onClick={() => setBlocks((blocks) => [...blocks, newBlock({ items: [newItem()] })])}><Icon name="barbell" />Bloque de fuerza</button>
+            onClick={addStrengthBlock}><Icon name="barbell" />Bloque de fuerza</button>
           <button type="button" className="tinted-button" disabled={draft.content.blocks.length >= LIMITS.blocks}
             onClick={() => setBlocks((blocks) => [...blocks, newBlock({ title: 'WOD', score: 'time' })])}><Icon name="timer" />WOD o texto libre</button>
         </div>
@@ -202,81 +212,6 @@ export default function SessionEditor({ date, session, targetName, athletes, mov
         </span>
       </footer>}
     </section>
-  </div>;
-}
-
-function ItemRow({ item, content, earlier, listId, names, weightNames, preview, onChange, onMove, onRemove, onCreateMovement }) {
-  const { load } = item;
-  const name = item.movement ?? item.label;
-  // A typed name that matches the catalog links the athlete's records; anything else stays free text.
-  const setName = (text) => {
-    const match = names.find((candidate) => candidate.toLowerCase() === text.trim().toLowerCase());
-    onChange(match ? { movement: match, label: '' } : { movement: null, label: text });
-  };
-  const setLoad = (patch) => onChange({ load: { ...load, ...patch } });
-  const setType = (type) => {
-    if (type === 'percent') setLoad({ type, value: load.type === 'percent' ? load.value : 75, base: { kind: 'pr', movement: null, rm: 1 } });
-    else setLoad({ type, value: type === 'weight' && load.type === 'weight' ? load.value : null, base: null });
-  };
-  const baseValue = load.base?.kind === 'item' ? `item:${load.base.itemId}` : `pr:${load.base?.rm ?? 1}`;
-  const setBase = (value) => {
-    const [kind, key] = value.split(':');
-    setLoad({ base: kind === 'item' ? { kind: 'item', itemId: key } : { kind: 'pr', movement: load.base?.kind === 'pr' ? load.base.movement : null, rm: Number(key) } });
-  };
-  // Lines the athlete logs a weight on can be the base of a later percentage ("85 % of today's heavy single").
-  const baseLines = earlier.filter((other) => other.log || other.load.type === 'max');
-  const needsMovement = load.type === 'percent' && load.base.kind === 'pr' && !item.movement && !load.base.movement;
-
-  return <div className="editor-item">
-    <div className="editor-item-main">
-      <input className="editor-move" list={listId} value={name} maxLength={LIMITS.label} placeholder="Movimiento o texto libre"
-        aria-label="Movimiento" onChange={(event) => setName(event.target.value)} />
-      <input className="editor-num" inputMode="numeric" value={item.sets ?? ''} placeholder="Series" aria-label="Series"
-        onChange={(event) => onChange({ sets: /^\d{1,2}$/.test(event.target.value) && Number(event.target.value) > 0 ? Number(event.target.value) : null })} />
-      <span aria-hidden="true">×</span>
-      <input className="editor-num wide" value={item.reps} maxLength={LIMITS.reps} placeholder="Reps" aria-label="Repeticiones"
-        onChange={(event) => onChange({ reps: event.target.value })} />
-      <select aria-label="Tipo de carga" value={load.type} onChange={(event) => setType(event.target.value)}>
-        {LOAD_OPTIONS.map(([value, label]) => <option key={value} value={value}>{label}</option>)}
-      </select>
-      {(load.type === 'weight' || load.type === 'percent') && <label className="editor-value">
-        <input inputMode="decimal" value={load.value ?? ''} aria-label={load.type === 'weight' ? 'Peso en libras' : 'Porcentaje'}
-          onChange={(event) => setLoad({ value: numberOrNull(event.target.value) })} />
-        <span>{load.type === 'weight' ? 'lb' : '%'}</span>
-      </label>}
-      {load.type === 'percent' && <select aria-label="Base del porcentaje" value={baseValue} onChange={(event) => setBase(event.target.value)}>
-        {BASE_RMS.map((rm) => <option key={rm} value={`pr:${rm}`}>de su {rm}RM</option>)}
-        {baseLines.map((other) => <option key={other.id} value={`item:${other.id}`}>del peso de hoy en «{itemName(other)}»</option>)}
-      </select>}
-      {load.type === 'percent' && load.base.kind === 'pr' && <select aria-label="Movimiento base" value={load.base.movement ?? ''}
-        onChange={(event) => setLoad({ base: { ...load.base, movement: event.target.value || null } })}>
-        <option value="">del mismo movimiento</option>
-        {weightNames.filter((candidate) => candidate !== item.movement).map((candidate) => <option key={candidate} value={candidate}>de {candidate}</option>)}
-      </select>}
-      <span className="editor-item-tools">
-        <button type="button" className="icon-button" aria-label="Subir línea" onClick={() => onMove(-1)}><Icon name="arrowUp" /></button>
-        <button type="button" className="icon-button" aria-label="Bajar línea" onClick={() => onMove(1)}><Icon name="arrowDown" /></button>
-        <button type="button" className="icon-button danger" aria-label="Quitar línea" onClick={onRemove}><Icon name="xmark" /></button>
-      </span>
-    </div>
-    <div className="editor-item-sub">
-      <label className="editor-log">
-        <Switch checked={item.log || load.type === 'max'} disabled={load.type === 'max'} label="El atleta anota peso y reps" onChange={(log) => onChange({ log })} />
-        <span>El atleta anota peso y reps</span>
-      </label>
-      <input className="editor-note" value={item.notes} maxLength={LIMITS.notes} placeholder="Nota de la línea (tempo, descanso, RPE…)"
-        aria-label="Nota de la línea" onChange={(event) => onChange({ notes: event.target.value })} />
-    </div>
-    {!item.movement && item.label.trim() && <p className="editor-hint">
-      Texto libre: no se enlaza con los PRs.{' '}
-      <button type="button" onClick={onCreateMovement}>Crear «{item.label.trim()}» como movimiento</button>
-    </p>}
-    {needsMovement && <p className="editor-hint warn">Un porcentaje necesita un movimiento del catálogo o un movimiento base.</p>}
-    {preview && load.type === 'percent' && <p className="editor-hint">
-      {preview.weight != null ? <>→ <b className="num">{preview.weight} lb</b> ({loadText(item, content)}, base {preview.base} lb)</>
-        : preview.missing === 'pr' ? 'Este atleta todavía no tiene ese PR: verá el porcentaje y un aviso para registrarlo.'
-          : 'Se calcula cuando el atleta anote la línea base.'}
-    </p>}
   </div>;
 }
 

@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { request } from '../../app/admin-request';
 import { buildCatalog, setCatalog } from '../../lib/catalog';
-import { useStoredState } from '../hooks';
+import { clearCaches, useStoredState } from '../hooks';
 import { AlertProvider } from '../ui/alert';
 import Icon from '../ui/icon';
 import SignalLoader from '../ui/signal-loader';
@@ -92,7 +92,10 @@ function Workspace({ userId }) {
           {section.value === 'activity' && unseen > 0 && prefs.section !== 'activity' && <i className="coach-count num">{unseen}</i>}
         </button>)}
       </nav>
-      <Link className="coach-exit" href="/app"><Icon name="chevronLeft" weight={2.6} /><span>Mi app</span></Link>
+      <Link className="coach-exit" href="/app?personal=1"><Icon name="barbell" /><span>Mi entrenamiento</span></Link>
+      <form className="coach-logout" action="/auth/logout" method="post" onSubmit={clearCaches}>
+        <button className="coach-exit"><Icon name="logout" /><span>Cerrar sesión</span></button>
+      </form>
     </aside>
     <main className="coach-main">
       {error && <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={loadOverview}>Reintentar</button></div>}
