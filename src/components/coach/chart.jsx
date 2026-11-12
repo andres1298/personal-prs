@@ -8,7 +8,7 @@ export const SERIES_COLORS = ['--b-blue', '--b-pink', '--b-green', '--b-yellow',
 
 /**
  * A Chart.js chart drawn with the app's tokens. `build({ token })` returns { type, data, options };
- * it runs again when `deps` change. Bars and points come in one after another unless the device
+ * it runs again when `deps` change. `height` is a minimum: the chart grows to fill its card. Bars and points come in one after another unless the device
  * asks for reduced motion. `summary` is the text alternative for screen readers.
  */
 export default function Chart({ build, deps, height = 260, summary }) {
@@ -45,5 +45,5 @@ export default function Chart({ build, deps, height = 260, summary }) {
     return () => { active = false; chart?.destroy(); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
-  return <div className="chart-box" style={{ height }}><canvas ref={canvas} role="img" aria-label={summary} /></div>;
+  return <div className="chart-box" style={{ minHeight: height }}><canvas ref={canvas} role="img" aria-label={summary} /></div>;
 }

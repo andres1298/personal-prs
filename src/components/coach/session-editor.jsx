@@ -9,7 +9,7 @@ import { useAlert } from '../ui/alert';
 import { SegmentedControl, Switch } from '../ui/controls';
 import Icon from '../ui/icon';
 import LineEditor, { Choice, DEFAULT_LOAD } from './line-editor';
-import { PlanPreview } from '../plan/plan-view';
+import { blockColor, PlanPreview } from '../plan/plan-view';
 import BlockTimer from './block-timer';
 import { normalizeConfig } from '../../lib/timer-engine';
 import { TEMPLATES } from '../timer/timer-views';
@@ -209,7 +209,7 @@ export default function SessionEditor({ date, session, targetName, group, athlet
             earlier.push(item);
             return row;
           });
-          return <section className="editor-block" key={block.id}>
+          return <section className="editor-block" key={block.id} style={{ '--b': `var(${blockColor(block)})` }}>
             <header className="editor-block-head">
               <span className="plan-letter display" aria-hidden="true">{letter(blockIndex)}</span>
               <input value={block.title} maxLength={LIMITS.title} placeholder={`Bloque ${letter(blockIndex)} · p. ej. Fuerza, WOD, Accesorios`}

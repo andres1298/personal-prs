@@ -1,9 +1,8 @@
 // What a coach reads from their athletes' work: who did what was programmed, which loads
-// they used and how their records move. Pure: everything derives from the data of
-// /api/coach/stats — { athletes, sessions, logs, records } — and plain YYYY-MM-DD dates.
+// they used and what they scored. Pure: everything derives from the data of
+// /api/coach/stats — { athletes, sessions, logs } — and plain YYYY-MM-DD dates.
 //   athlete: { id, name, groupIds, since }       session: { id, date, title, groupId, athleteId, content }
 //   log:     { sessionId, athleteId, completedAt, results }
-//   record:  { athleteId, move, value, rm, date } (rm is null for time and repetition records)
 import { addDays, allItems, itemName, weekStart } from './training.js';
 
 const logKey = (sessionId, athleteId) => `${sessionId}:${athleteId}`;
@@ -81,56 +80,6 @@ export function attendance(index, athletes, days, today) {
   });
 }
 
-const weightRecords = (records, athleteId, move, rm) => records
-  .filter((record) => record.athleteId === athleteId && record.move === move && record.rm === rm)
-  .sort((a, b) => a.date.localeCompare(b.date));
-
-/** An athlete's best for a movement over time: one point each time the record went up. */
-export function bestSeries(records, athleteId, move, rm = 1) {
-  const points = [];
-  for (const record of weightRecords(records, athleteId, move, rm)) {
-    if (!points.length || record.value > points.at(-1).value) points.push({ date: record.date, value: record.value });
-  }
-  return points;
-}
-
-/**
- * How each of an athlete's 1RMs moved between two dates: the best before `from` (or the first one
- * inside the period) against the best up to `to`. Movements without a record by `to` are left out.
- */
-export function growthOf(records, athleteId, from, to, rm = 1) {
-  const moves = [...new Set(records.filter((record) => record.athleteId === athleteId && record.rm === rm).map((record) => record.move))];
-  return moves.map((move) => {
-    const series = bestSeries(records, athleteId, move, rm).filter((point) => point.date <= to);
-    if (!series.length) return null;
-    const start = (series.filter((point) => point.date < from).at(-1) ?? series[0]).value;
-    const end = series.at(-1).value;
-    return { move, start, end, change: end - start, pct: start ? (end - start) / start : 0 };
-  }).filter(Boolean).sort((a, b) => b.pct - a.pct || a.move.localeCompare(b.move));
-}
-
-/** Average 1RM growth of an athlete across the movements they have a record for, or null. */
-export function averageGrowth(records, athleteId, from, to) {
-  const growth = growthOf(records, athleteId, from, to);
-  return growth.length ? growth.reduce((sum, entry) => sum + entry.pct, 0) / growth.length : null;
-}
-
-/** Records set inside the period that beat the athlete's earlier best, newest first. */
-export function newRecords(records, athleteIds, from, to) {
-  const wanted = new Set(athleteIds);
-  const best = new Map();
-  const found = [];
-  for (const record of [...records].filter((entry) => entry.rm != null && wanted.has(entry.athleteId)).sort((a, b) => a.date.localeCompare(b.date))) {
-    const key = `${record.athleteId}:${record.move}:${record.rm}`;
-    const previous = best.get(key) ?? null;
-    if (previous == null || record.value > previous) {
-      best.set(key, record.value);
-      if (record.date >= from && record.date <= to) found.push({ ...record, previous });
-    }
-  }
-  return found.reverse();
-}
-
 /** Every weight athletes logged on lines of a catalog movement, oldest first. */
 export function loggedLoads(index, athletes, { from, to }) {
   const loads = [];
@@ -171,4 +120,30 @@ export function sessionBoard(index, session, athletes) {
         .map((block) => ({ name: block.title || 'Resultado', type: block.score, value: log.results.blocks[block.id].value })),
     };
   });
+}
+
+/**
+ * One session in numbers: how many of its athletes finished it, and for every line and block
+ * score they logged, each athlete's value with the average and the best (the lowest for a time,
+ * the highest otherwise). `metrics` follow the session's order; ones nobody logged are left out.
+ */
+export function sessionStats(index, session, athletes) {
+  const rows = sessionBoard(index, session, athletes);
+  const completed = rows.filter((row) => row.completedAt).length;
+  const logs = rows.map((row) => ({ athlete: row.athlete, results: index.logOf(session.id, row.athlete.id)?.results }));
+  const metric = (key, name, kind, entries) => {
+    if (!entries.length) return null;
+    const values = entries.map((entry) => entry.value);
+    const bestValue = kind === 'time' ? Math.min(...values) : Math.max(...values);
+    const sorted = [...entries].sort((a, b) => (kind === 'time' ? a.value - b.value : b.value - a.value));
+    return { key, name, kind, entries: sorted, average: values.reduce((sum, value) => sum + value, 0) / values.length, best: sorted.find((entry) => entry.value === bestValue) };
+  };
+  const metrics = session.content.blocks.flatMap((block) => [
+    ...block.items.map((item) => metric(item.id, itemName(item), 'weight', logs
+      .filter((log) => log.results?.items[item.id]?.weight > 0)
+      .map((log) => ({ athlete: log.athlete, value: log.results.items[item.id].weight, reps: log.results.items[item.id].reps ?? null })))),
+    block.score === 'none' ? null : metric(block.id, block.title || 'Resultado', block.score, logs
+      .filter((log) => log.results?.blocks[block.id]).map((log) => ({ athlete: log.athlete, value: log.results.blocks[block.id].value }))),
+  ]).filter(Boolean);
+  return { rows, total: rows.length, completed, rate: rows.length ? completed / rows.length : null, metrics };
 }

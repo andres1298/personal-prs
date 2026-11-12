@@ -10,12 +10,22 @@ import { useTimer } from '../timer/timer-provider';
 import { describe as describeTimer, TEMPLATES } from '../timer/timer-views';
 
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
-const BLOCK_COLORS = ['--b-blue', '--b-pink', '--b-yellow', '--b-green', '--b-lilac', '--b-cyan', '--b-lime'];
 const SCORE_FIELDS = {
   time: { label: 'Tu tiempo', placeholder: 'mm:ss', inputMode: 'numeric' },
   reps: { label: 'Tus reps', placeholder: 'reps', inputMode: 'numeric' },
   weight: { label: 'Tu peso', placeholder: 'lb', inputMode: 'decimal' },
 };
+/**
+ * One color per block, taken from what it is: its timer's (AMRAP green, EMOM cyan…) when it has
+ * one, otherwise its first movement's family (Squats pink, Cleans blue…), and neutral for text.
+ */
+export function blockColor(block) {
+  if (block.timer) return TEMPLATES[block.timer.type].color;
+  const first = block.items.find((item) => item.movement || item.parts?.length);
+  const move = first?.movement ?? first?.parts?.[0]?.movement;
+  return (move && moveInfo(move).group.color) || '--b-gray';
+}
+
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 const fieldText = (value) => (value == null ? '' : String(value));
@@ -126,13 +136,16 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
       {session.group && <span className="plan-tag" style={{ '--c': `var(${session.group.color})` }}>{session.group.name}</span>}
     </header>
     {session.notes && <p className="plan-notes">{session.notes}</p>}
-    {session.content.blocks.map((block, index) => <section key={block.id} className="plan-block" style={{ '--b': `var(${BLOCK_COLORS[index % BLOCK_COLORS.length]})` }}>
+    {session.content.blocks.map((block, index) => <section key={block.id} className="plan-block" style={{ '--b': `var(${blockColor(block)})` }}>
       <header className="plan-block-head">
         <span className="plan-letter display" aria-hidden="true">{String.fromCharCode(65 + index)}</span>
-        <h3>{block.title || `Bloque ${String.fromCharCode(65 + index)}`}</h3>
+        <div className="plan-block-title">
+          <h3>{block.title || `Bloque ${String.fromCharCode(65 + index)}`}</h3>
+          {block.timer && <p>{describeTimer(block.timer)}</p>}
+        </div>
+        {block.timer && <StartTimer config={block.timer} />}
       </header>
       {block.notes && <p className="plan-notes">{block.notes}</p>}
-      {block.timer && <BlockTimer config={block.timer} />}
       {block.items.map((item) => <PlanItem key={item.id} item={item} content={session.content} results={results} bestOf={bestOf}
         onChange={(patch) => setItem(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
       {block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => setScore(block, value)} />}
@@ -144,15 +157,11 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
   </article>;
 }
 
-// The coach's clock for the block, started on the app's own timer with one tap.
-function BlockTimer({ config }) {
+// The coach's clock for the block, started on the app's own timer with one tap. It lives in the
+// block's header and takes the block's color, so the block reads as one piece.
+function StartTimer({ config }) {
   const timer = useTimer();
-  const template = TEMPLATES[config.type];
-  return <div className="plan-timer" style={{ '--c': `var(${template.color})` }}>
-    <span className="plan-timer-icon" aria-hidden="true">{template.icon}</span>
-    <span className="plan-timer-text"><b className="display">{template.name}</b><small>{describeTimer(config)}</small></span>
-    <button type="button" className="plan-timer-start" onClick={() => timer?.begin(config)}><Icon name="play" fill />Iniciar timer</button>
-  </div>;
+  return <button type="button" className="plan-timer-start" onClick={() => timer?.begin(config)}><Icon name="play" fill />Iniciar timer</button>;
 }
 
 function PlanItem({ item, content, results, bestOf, onChange, onExecute, onAddRecord }) {

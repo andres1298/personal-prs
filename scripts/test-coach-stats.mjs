@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import {
-  attendance, averageGrowth, bestSeries, growthOf, indexStats, loggedLoads, loggedMovements, newRecords, sessionBoard, summarize,
+  attendance, indexStats, loggedLoads, loggedMovements, sessionBoard, sessionStats, summarize,
 } from '../src/lib/coach-stats.js';
 
 const id = (n) => `00000000-0000-4000-8000-00000000000${n}`;
@@ -51,33 +51,6 @@ test('attendance tells done, started, missed, pending and rest days apart', () =
   assert.deepEqual(row.cells.map((cell) => cell.state), ['done', 'none', 'missed', 'partial', 'done', 'pending']);
 });
 
-const records = [
-  { athleteId: 'ana', move: 'Back Squat', value: 240, rm: 1, date: '2026-08-01' },
-  { athleteId: 'ana', move: 'Back Squat', value: 235, rm: 1, date: '2026-09-01' },
-  { athleteId: 'ana', move: 'Back Squat', value: 250, rm: 1, date: '2026-10-30' },
-  { athleteId: 'ana', move: 'Back Squat', value: 260, rm: 1, date: '2026-11-10' },
-  { athleteId: 'ana', move: 'Back Squat', value: 225, rm: 3, date: '2026-11-01' },
-  { athleteId: 'ana', move: 'Snatch', value: 125, rm: 1, date: '2026-11-05' },
-  { athleteId: 'ana', move: 'Fran', value: 285, rm: null, date: '2026-11-06' },
-  { athleteId: 'ben', move: 'Back Squat', value: 315, rm: 1, date: '2026-07-01' },
-];
-
-test('records become a running best and growth over a period', () => {
-  assert.deepEqual(bestSeries(records, 'ana', 'Back Squat').map((point) => point.value), [240, 250, 260]);
-  const growth = growthOf(records, 'ana', period.from, period.to);
-  assert.deepEqual(growth.map((entry) => [entry.move, entry.start, entry.end, entry.change]), [['Back Squat', 240, 260, 20], ['Snatch', 125, 125, 0]]);
-  assert.ok(Math.abs(averageGrowth(records, 'ana', period.from, period.to) - (20 / 240) / 2) < 1e-9);
-  assert.equal(averageGrowth(records, 'ben', period.from, period.to), 0);
-  assert.equal(averageGrowth(records, 'nobody', period.from, period.to), null);
-});
-
-test('new records are the ones that beat the earlier best inside the period', () => {
-  const found = newRecords(records, ['ana', 'ben'], period.from, period.to);
-  assert.deepEqual(found.map((record) => [record.move, record.rm, record.value, record.previous]),
-    [['Back Squat', 1, 260, 250], ['Snatch', 1, 125, null], ['Back Squat', 3, 225, null], ['Back Squat', 1, 250, 240]]);
-  assert.deepEqual(newRecords(records, ['ben'], period.from, period.to), []);
-});
-
 test('logged loads and the session board read what athletes wrote', () => {
   const loads = loggedLoads(index, [ana, ben], period);
   assert.deepEqual(loads.map((load) => [load.date, load.weight, load.reps]), [['2026-10-26', 185, 3], ['2026-11-02', 195, 3], ['2026-11-09', 200, null]]);
@@ -87,4 +60,21 @@ test('logged loads and the session board read what athletes wrote', () => {
   assert.deepEqual([board[0].lines, board[0].scores], [[{ name: 'Back Squat', weight: 195, reps: 3 }], [{ name: 'Fran', type: 'time', value: 312 }]]);
   const untouched = sessionBoard(index, data.sessions[2], [ana])[0];
   assert.deepEqual([untouched.started, untouched.completedAt, untouched.lines], [false, null, []]);
+});
+
+test('a session in numbers: completion, and the average and best of every logged line and score', () => {
+  const cara = { id: 'cara', name: 'Cara', groupIds: ['g'], since: '2026-10-01' };
+  const extra = indexStats({ ...data, logs: [...data.logs,
+    { sessionId: 's2', athleteId: 'cara', completedAt: '2026-11-02T19:00:00Z', results: { items: { [squat.id]: { weight: 155 } }, blocks: { [wod.id]: { value: 280 } } } }] });
+  const stats = sessionStats(extra, data.sessions[1], [ana, ben, cara]);
+  assert.deepEqual([stats.total, stats.completed, stats.rate], [2, 2, 1]);
+  const [weights, times] = stats.metrics;
+  assert.deepEqual([weights.name, weights.kind, weights.average, weights.best.athlete.id], ['Back Squat', 'weight', 175, 'ana']);
+  assert.deepEqual(weights.entries.map((entry) => [entry.athlete.id, entry.value, entry.reps]), [['ana', 195, 3], ['cara', 155, null]]);
+  // The best time is the lowest one.
+  assert.deepEqual([times.name, times.kind, times.average, times.best.athlete.id, times.entries[0].value], ['Fran', 'time', 296, 'cara', 280]);
+  // Nobody logged anything on a missed session.
+  const missed = sessionStats(extra, data.sessions[2], [ana, cara]);
+  assert.deepEqual([missed.total, missed.completed, missed.rate, missed.metrics], [2, 0, 0, []]);
+  assert.equal(sessionStats(extra, data.sessions[2], []).rate, null);
 });

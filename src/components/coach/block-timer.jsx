@@ -63,7 +63,7 @@ function RoundsField({ label, value, onChange }) {
 export default function BlockTimer({ timer, onChange }) {
   const config = timer ? normalizeConfig(timer) : null;
   const set = (patch) => onChange(normalizeConfig({ ...config, ...patch }));
-  return <div className="block-timer" style={config ? { '--c': `var(${TEMPLATES[config.type].color})` } : undefined}>
+  return <div className="block-timer">
     <div className="line-field">
       <span className="line-label">Cronómetro del bloque</span>
       <Choice label="Tipo de cronómetro" size="small" options={TYPE_CHOICES} value={config?.type ?? NONE}

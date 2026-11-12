@@ -985,13 +985,9 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .plan-block-head { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; }
 .plan-block-head h3 { font-size: 17px; font-weight: 800; overflow-wrap: anywhere; }
 .plan-letter { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: var(--b); color: var(--block-ink); font-size: 16px; }
-.plan-timer { display: flex; align-items: center; gap: 10px; margin: 2px 0 10px; padding: 8px 8px 8px 12px; border-radius: 12px; background: var(--c); color: var(--block-ink); }
-.plan-timer-icon { flex: none; width: 26px; height: 26px; }
-.plan-timer-icon svg { width: 100%; height: 100%; }
-.plan-timer-text { flex: 1; min-width: 0; display: grid; gap: 3px; }
-.plan-timer-text b { font-size: 16px; }
-.plan-timer-text small { font-size: 13px; font-weight: 700; line-height: 1.25; }
-.plan-timer-start { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 10px; background: var(--block-ink); color: #fff; font-size: 14px; font-weight: 800; transition: transform .2s var(--ease); }
+.plan-block-title { flex: 1; min-width: 0; display: grid; gap: 2px; }
+.plan-block-title p { margin: 0; color: var(--ink2); font-size: 13px; font-weight: 700; line-height: 1.25; }
+.plan-timer-start { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: var(--b); color: var(--block-ink); font-size: 14px; font-weight: 800; transition: transform .2s var(--ease); }
 .plan-timer-start svg { width: 14px; height: 14px; }
 .plan-timer-start:active { transform: scale(.95); }
 .plan-item { padding: 10px 0; box-shadow: inset 0 1px 0 var(--line); }
