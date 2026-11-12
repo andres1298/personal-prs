@@ -11,8 +11,8 @@ export const metadata = {
 
 export default function RegisterPage() {
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY ?? '';
-  return <AuthShell title="Crear cuenta" subtitle="Regístrate con tu correo para guardar tus PRs.">
+  return <AuthShell title="Crear cuenta" subtitle="Guarda tus PRs y sigue el plan de tu coach." tone="--b-green">
     <RegisterForm siteKey={siteKey} />
-    <Link className="plain-button wide" href="/app">Ya tengo cuenta</Link>
+    <div className="auth-links"><Link className="auth-link" href="/app"><b>Ya tengo cuenta</b><small>Entrar con mi correo</small></Link></div>
   </AuthShell>;
 }

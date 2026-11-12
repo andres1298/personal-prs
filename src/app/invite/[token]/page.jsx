@@ -19,13 +19,13 @@ export default async function InvitationPage({ params, searchParams }) {
   const invitation = await findValidInvitation(token);
 
   if (!invitation) {
-    return <AuthShell title="Mis PRs">
+    return <AuthShell tone="--b-blue" title="Mis PRs">
       <p className="auth-message" role="status">Este link ya no es válido. Pide una nueva invitación.</p>
       <Link className="plain-button wide" href="/app">Ir al inicio</Link>
     </AuthShell>;
   }
 
-  return <AuthShell title={`Hola ${invitation.name}`} subtitle="Crea tu contraseña para entrar a Mis PRs.">
+  return <AuthShell tone="--b-blue" title={`Hola ${invitation.name}`} subtitle="Crea tu contraseña para entrar a Mis PRs.">
     {error && <p className="auth-message error" role="alert">{formErrors[error] ?? 'No se pudo crear la cuenta. Inténtalo de nuevo.'}</p>}
     <form className="auth-form" action="/auth/invite" method="post">
       <input type="hidden" name="token" value={token} />

@@ -844,13 +844,45 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 @keyframes island-in { from { transform: translateX(-50%) scale(.6); opacity: 0; } }
 
 /* ---------- Sign in ---------- */
-.auth-panel {
-  min-height: 100dvh; display: flex; flex-direction: column; justify-content: center; gap: 12px;
-  padding-top: calc(var(--safe-top) + 32px); padding-bottom: calc(var(--safe-bottom) + 32px); text-align: center; animation: view-in .4s var(--ease);
+/* Signed-out screens: a color block with the title and a loaded barbell, and the form under it. */
+.auth-page {
+  --c: var(--b-yellow); min-height: 100dvh; max-width: 480px; margin: 0 auto; display: flex; flex-direction: column;
+  padding: 0 0 calc(var(--safe-bottom) + 28px); animation: view-in .4s var(--ease);
 }
-.app-icon { display: block; margin: 0 auto 6px; border-radius: 22.5%; box-shadow: 0 8px 24px rgba(0, 0, 0, .18); }
-.auth-panel h1 { font-size: clamp(34px, 11.5vw, 48px); overflow-wrap: anywhere; }
-.auth-subtitle { color: var(--ink2); font-size: 16px; margin-bottom: 10px; }
+.auth-hero {
+  position: relative; overflow: hidden; display: grid; align-content: end; gap: 10px; min-height: clamp(260px, 38dvh, 330px);
+  padding: calc(var(--safe-top) + 18px) 22px 24px; border-radius: 0 0 28px 28px; background: var(--c); color: var(--block-ink);
+}
+.auth-brand { position: absolute; top: calc(var(--safe-top) + 16px); left: 20px; display: flex; align-items: center; gap: 10px; margin: 0; font-weight: 800; font-size: 15px; }
+.auth-brand img { border-radius: 22.5%; }
+.auth-hero h1 { position: relative; font-size: clamp(44px, 15vw, 68px); letter-spacing: -.02em; overflow-wrap: anywhere; }
+.auth-lead { position: relative; margin: 0; max-width: 300px; font-size: 16px; font-weight: 600; line-height: 1.3; }
+/* The right half of a barbell coming in from the edge; plates slide on one after another. */
+.auth-barbell { position: absolute; top: calc(var(--safe-top) + 22px); right: -18px; height: 100px; display: flex; align-items: center; gap: 4px; }
+.auth-barbell i {
+  position: relative; z-index: 1; width: 15px; height: var(--h); border-radius: 6px; background: var(--p); box-shadow: inset 0 0 0 2.5px var(--block-ink);
+  animation: plate-on .5s var(--bounce) both; animation-delay: calc(180ms + var(--i) * 70ms);
+}
+.auth-barbell span { position: absolute; left: -64px; right: 0; top: 50%; height: 12px; margin-top: -6px; border-radius: 6px; background: var(--block-ink); }
+@media (max-width: 380px) { .auth-barbell { height: 76px; top: calc(var(--safe-top) + 14px); } }
+.auth-form .auth-message { margin-bottom: 12px; }
+@keyframes plate-on { from { opacity: 0; transform: translateX(46px); } }
+.auth-body { flex: 1; display: flex; flex-direction: column; gap: 12px; padding: 22px 16px 0; }
+.auth-links { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: auto; padding-top: 10px; }
+.auth-link { display: grid; gap: 3px; padding: 14px 16px; border-radius: var(--radius); background: var(--surface); color: var(--ink); text-decoration: none; transition: transform .2s var(--ease), background-color .2s; }
+.auth-link b { font-weight: 800; font-size: 16px; }
+.auth-link small { color: var(--ink2); font-size: 13px; line-height: 1.25; }
+.auth-link:active { transform: scale(.97); background: var(--surface2); }
+.auth-body > .plain-button.wide { margin-top: auto; }
+@media (min-width: 560px) {
+  .auth-page { justify-content: center; padding: 32px 0; }
+  .auth-hero { border-radius: 28px; padding-top: 18px; }
+  .auth-brand { top: 16px; }
+  .auth-barbell { top: 22px; }
+  .auth-body { flex: none; padding: 20px 0 0; }
+  .auth-links { margin-top: 0; }
+}
+@media (prefers-reduced-motion: reduce) { .auth-barbell i { animation: none; } }
 .auth-form { display: grid; text-align: left; }
 .auth-form .field > span { width: 96px; }
 .auth-form .filled-button { margin-bottom: 4px; }
@@ -866,7 +898,7 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .check-email .check-email-hint { font-size: 14px; opacity: .75; }
 .reveal-button { flex: none; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ink); font-size: 14px; font-weight: 800; }
 .turnstile-box { display: flex; justify-content: center; min-height: 65px; margin-bottom: 14px; }
-.auth-footnote { color: var(--ink2); font-size: 13px; }
+.auth-footnote { color: var(--ink2); font-size: 13px; text-align: center; }
 
 /* ---------- Guided tour ---------- */
 :root { --tour-dim: rgba(13, 13, 13, .55); }

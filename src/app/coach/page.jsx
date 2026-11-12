@@ -13,7 +13,7 @@ export default async function CoachPage() {
   const { user, authorized } = await getAccess();
   if (!authorized) redirect('/app');
   if (!(await isCoach(user.id))) {
-    return <AuthShell title="Modo coach">
+    return <AuthShell tone="--b-blue" title="Modo coach">
       <p className="auth-message" role="status">Tu cuenta todavía no tiene el rol de coach. Pídeselo al administrador.</p>
       <Link className="plain-button wide" href="/app">Volver a la app</Link>
     </AuthShell>;
