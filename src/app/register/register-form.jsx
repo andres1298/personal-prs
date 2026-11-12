@@ -2,6 +2,7 @@
 
 import { useEffect, useRef, useState } from 'react';
 import Icon from '../../components/ui/icon';
+import PasswordField from '../../components/ui/password-field';
 
 const SCRIPT_SRC = 'https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit';
 
@@ -34,7 +35,6 @@ export default function RegisterForm({ siteKey }) {
   const widget = useRef(null);
   const widgetId = useRef(null);
   const [token, setToken] = useState('');
-  const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
   const [sentTo, setSentTo] = useState('');
@@ -91,12 +91,7 @@ export default function RegisterForm({ siteKey }) {
     <div className="list form-group">
       <label className="field"><span>Nombre</span><input name="name" autoComplete="name" maxLength={80} placeholder="Tu nombre" required /></label>
       <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="username" placeholder="correo@ejemplo.com" required /></label>
-      <label className="field">
-        <span>Contraseña</span>
-        <input name="password" type={showPassword ? 'text' : 'password'} minLength={8} maxLength={72} autoComplete="new-password" placeholder="8 o más caracteres" required />
-        <button type="button" className="reveal-button" aria-pressed={showPassword} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
-          onClick={() => setShowPassword((shown) => !shown)}><Icon name={showPassword ? 'eyeOff' : 'eye'} /></button>
-      </label>
+      <PasswordField minLength={8} maxLength={72} autoComplete="new-password" placeholder="8 o más caracteres" />
     </div>
     <fieldset className="division-field">
       <legend>¿Con qué pesos entrenas?</legend>

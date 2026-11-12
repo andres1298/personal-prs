@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import Link from 'next/link';
+import PasswordField from '../components/ui/password-field';
 
 const authErrors = {
   credentials: 'Correo o contraseña incorrectos.',
@@ -41,7 +42,7 @@ export default function AuthPanel({ configured, signedIn, authError }) {
     </> : configured ? <form className="auth-form" action="/auth/login" method="post">
       <div className="list form-group">
         <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="username" placeholder="correo@ejemplo.com" required /></label>
-        <label className="field"><span>Contraseña</span><input name="password" type="password" autoComplete="current-password" placeholder="Tu contraseña" required /></label>
+        <PasswordField autoComplete="current-password" placeholder="Tu contraseña" />
       </div>
       <button className="filled-button">Entrar{arrow}</button>
     </form>
