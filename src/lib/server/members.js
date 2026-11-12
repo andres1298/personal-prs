@@ -18,7 +18,7 @@ function adminIdSet(adminUserIds = '') {
 export async function listMembers(adminUserIds) {
   const admins = adminIdSet(adminUserIds);
   const rows = await getPrisma().profile.findMany({
-    select: { id: true, displayName: true, email: true, createdAt: true, disabledAt: true, _count: { select: { records: true } } },
+    select: { id: true, displayName: true, email: true, createdAt: true, disabledAt: true, coachSince: true, _count: { select: { records: true } } },
     orderBy: { createdAt: 'asc' },
   });
   return rows.map((row) => ({
@@ -28,6 +28,7 @@ export async function listMembers(adminUserIds) {
     createdAt: row.createdAt,
     disabledAt: row.disabledAt,
     isAdmin: admins.has(row.id.toLowerCase()),
+    isCoach: Boolean(row.coachSince),
     recordCount: row._count.records,
   }));
 }
@@ -42,4 +43,17 @@ export async function setMemberDisabled(actorId, memberId, disabled, adminUserId
     data: disabled ? { disabledAt: now, disabledById: actorId } : { disabledAt: null, disabledById: null },
   });
   if (count !== 1) throw new MemberError('not_found');
+}
+
+// Coaching is granted per member by an admin. Removing it keeps the coach's athletes, groups
+// and sessions in place, so granting it again restores everything.
+export async function setMemberCoach(memberId, coach, now = new Date()) {
+  if (typeof coach !== 'boolean') throw new MemberError('invalid_input');
+  if (typeof memberId !== 'string' || !uuidPattern.test(memberId)) throw new MemberError('not_found');
+  const prisma = getPrisma();
+  // Granting twice keeps the first date.
+  const { count } = coach
+    ? await prisma.profile.updateMany({ where: { id: memberId, coachSince: null }, data: { coachSince: now } })
+    : await prisma.profile.updateMany({ where: { id: memberId }, data: { coachSince: null } });
+  if (count !== 1 && !(await prisma.profile.findUnique({ where: { id: memberId }, select: { id: true } }))) throw new MemberError('not_found');
 }

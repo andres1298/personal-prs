@@ -49,7 +49,9 @@ function fakeDatabase({ movements = [], records = [], hidden = [] } = {}) {
 
 async function service(options) {
   const db = fakeDatabase(options);
-  const dependencies = { 'server-only': {}, 'node:crypto': { randomUUID: () => `custom-${db.movements.length}` }, './prisma.js': { getPrisma: () => db } };
+  const dependencies = { 'server-only': {}, 'node:crypto': { randomUUID: () => `custom-${db.movements.length}` }, './prisma.js': { getPrisma: () => db },
+    // No coach in these tests: only shared and own movements are in reach.
+    './coaching.js': { activeCoachIds: async () => [] } };
   const module = new SourceTextModule(source);
   await module.link((specifier) => {
     const exports = dependencies[specifier];

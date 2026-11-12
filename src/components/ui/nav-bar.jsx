@@ -20,6 +20,8 @@ function useBarState() {
       // A bar that overlaps the title block (negative bottom margin) only turns solid once the title moves.
       const overlap = Math.max(0, -parseFloat(getComputedStyle(bar).marginBottom) || 0);
       const box = title.getBoundingClientRect();
+      // A hidden tab has no box; measuring it would leave the small title showing once the tab opens.
+      if (!box.width && !box.height) return;
       const scrolled = box.top < edge - overlap - 0.5;
       const collapsed = box.bottom <= edge;
       setState((prev) => (prev.scrolled === scrolled && prev.collapsed === collapsed ? prev : { scrolled, collapsed }));
@@ -28,7 +30,11 @@ function useBarState() {
     update();
     window.addEventListener('scroll', schedule, { passive: true });
     window.addEventListener('resize', schedule);
+    // Measures again when the title gets its box, e.g. when its tab is shown.
+    const observer = typeof ResizeObserver === 'function' ? new ResizeObserver(schedule) : null;
+    if (titleRef.current) observer?.observe(titleRef.current);
     return () => {
+      observer?.disconnect();
       cancelAnimationFrame(frame);
       window.removeEventListener('scroll', schedule);
       window.removeEventListener('resize', schedule);

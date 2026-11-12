@@ -14,6 +14,7 @@ export default defineConfig({
   },
   datasource: {
     url: getMigrationDatabaseUrl(),
-    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
+    // An empty value, as copied from .env.example, counts as not set; Prisma rejects an empty string.
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL || undefined,
   },
 });

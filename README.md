@@ -28,11 +28,13 @@ Prisma owns application models and migrations. See [Prisma persistence](docs/PRI
 
 The interface follows iPhone conventions (system colors in light and dark mode, large titles, grouped lists, sheets and alerts) and is built entirely from React components: `src/components/ui` holds the shared controls, and the pure catalog, plate and timer logic lives in `src/lib`.
 
+Coaches program training for their athletes and groups; roles, invitations, the session format and what a coach can read are described in [Coaching](docs/COACHING.md).
+
 The workout timer (AMRAP, EMOM, TABATA, FOR TIME), its sound cues and iOS limitations are described in [Workout timer](docs/TIMER.md).
 
 ```bash
 npm run db:check
-node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-logout-route.mjs scripts/test-accept-route.mjs scripts/test-bulk-records.mjs scripts/test-bulk-record-route.mjs scripts/test-timer-engine.mjs scripts/test-plates.mjs
+node --experimental-vm-modules --test scripts/test-access.mjs scripts/test-record-routes.mjs scripts/test-invitations.mjs scripts/test-invitation-routes.mjs scripts/test-login-route.mjs scripts/test-logout-route.mjs scripts/test-accept-route.mjs scripts/test-bulk-records.mjs scripts/test-bulk-record-route.mjs scripts/test-timer-engine.mjs scripts/test-plates.mjs scripts/test-members.mjs scripts/test-training.mjs scripts/test-coaching-routes.mjs
 npm run build
 ```
 
