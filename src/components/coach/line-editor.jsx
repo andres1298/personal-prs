@@ -236,9 +236,13 @@ export default function LineEditor({ item, content, earlier, weightNames, previe
       <Choice label="Tipo de carga" options={LOAD_CHOICES} value={load.type} onChange={(type) => type !== load.type && setType(type)} />
     </Field>}
 
-    {load.type === 'weight' && <Field label="Peso">
-      <label className="unit-input"><input inputMode="decimal" value={load.value ?? ''} placeholder="0" aria-label="Peso en libras"
-        onChange={(event) => setLoad({ value: numberOrNull(event.target.value) })} /><span>lb</span></label>
+    {load.type === 'weight' && <Field label="Peso" hint="Deja «Chicas» vacío si el peso es el mismo para todos. Cada atleta ve el suyo según lo que eligió en su cuenta.">
+      <div className="pick-row">
+        <label className="unit-input"><small>{load.women != null ? 'Chicos' : 'Todos'}</small><input inputMode="decimal" value={load.value ?? ''} placeholder="0" aria-label="Peso en libras"
+          onChange={(event) => setLoad({ value: numberOrNull(event.target.value) })} /><span>lb</span></label>
+        <label className="unit-input"><small>Chicas</small><input inputMode="decimal" value={load.women ?? ''} placeholder="–" aria-label="Peso de chicas en libras"
+          onChange={(event) => setLoad({ women: numberOrNull(event.target.value) })} /><span>lb</span></label>
+      </div>
     </Field>}
 
     {load.type === 'percent' && <>

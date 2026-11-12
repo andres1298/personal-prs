@@ -8,7 +8,7 @@
 .coach :is(input, textarea, select) { font: inherit; color: var(--ink); }
 .coach :is(input, textarea, select):focus-visible, .coach button:focus-visible, .coach a:focus-visible { outline: 2px solid var(--ink); outline-offset: 2px; }
 
-.coach-side { position: sticky; top: 0; height: 100dvh; display: flex; flex-direction: column; gap: 18px; padding: 24px 14px 18px; background: var(--surface); }
+.coach-side { position: sticky; top: 0; align-self: start; height: 100dvh; display: flex; flex-direction: column; gap: 18px; padding: 24px 14px 18px; background: var(--surface); }
 .coach-brand { padding: 0 10px; font-size: 26px; }
 .coach-nav { display: grid; gap: 4px; }
 .coach-nav button, .coach-exit {
@@ -195,6 +195,8 @@
 .stepper-field svg { width: 16px; height: 16px; }
 .stepper-field input { width: 52px; height: 48px; border: 0; background: transparent; text-align: center; font-size: 18px; font-weight: 800; }
 .unit-input { display: inline-flex; align-items: center; gap: 6px; padding-right: 14px; border-radius: 12px; background: var(--surface); font-weight: 800; color: var(--ink2); }
+.unit-input small { padding-left: 14px; font-size: 12px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.unit-input small + input { width: 70px; padding-left: 0; }
 .unit-input input { width: 84px; height: 48px; padding: 0 0 0 14px; border: 0; background: transparent; text-align: right; font-size: 18px; font-weight: 800; }
 .line-picked { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 52px; padding: 6px 6px 6px 16px; border-radius: 12px; background: var(--surface); }
 .line-picked b { font-size: 17px; font-weight: 800; overflow-wrap: anywhere; }

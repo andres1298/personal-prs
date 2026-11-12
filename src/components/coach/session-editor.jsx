@@ -69,6 +69,7 @@ export default function SessionEditor({ date, session, targetName, group, athlet
   const patchBlock = (id, patch) => setBlocks((blocks) => blocks.map((block) => (block.id === id ? { ...block, ...patch } : block)));
   const names = useMemo(() => movements.filter((movement) => !movement.hidden).map((movement) => movement.name), [movements]);
   const weightNames = useMemo(() => names.filter((name) => moveInfo(name).type === 'weight'), [names]);
+  const previewDivision = athletes.find((athlete) => athlete.id === previewId)?.division ?? null;
   const bestOf = (movement, rm) => (previewRecords ? bestRecord(previewRecords, movement, rm)?.value ?? null : null);
 
   async function close() {
@@ -200,7 +201,7 @@ export default function SessionEditor({ date, session, targetName, group, athlet
         {draft.content.blocks.map((block, blockIndex) => {
           const rows = block.items.map((item) => {
             const row = <LineEditor key={item.id} item={item} content={draft.content} earlier={[...earlier]} weightNames={weightNames}
-              preview={previewId ? resolveLoad(item, null, bestOf) : null} open={openId === item.id}
+              preview={previewId ? resolveLoad(item, null, bestOf, previewDivision) : null} open={openId === item.id}
               onOpen={() => setOpenId(item.id)} onClose={() => setOpenId(null)}
               onChange={(patch) => patchItem(block.id, item.id, patch)}
               onMove={(direction) => patchBlock(block.id, { items: swap(block.items, block.items.indexOf(item), direction) })}
@@ -266,7 +267,7 @@ export default function SessionEditor({ date, session, targetName, group, athlet
         <button type="button" className="nav-text preview-close" onClick={() => setPreviewing(false)}>Volver a editar</button>
       </div>
       <div className="phone">
-        <PlanPreview session={previewSession} records={previewRecords ?? []} />
+        <PlanPreview session={previewSession} records={previewRecords ?? []} division={previewDivision} />
       </div>
       {!draft.published && <p className="line-hint">Es un borrador: tus atletas no lo ven hasta que lo publiques.</p>}
     </aside>}

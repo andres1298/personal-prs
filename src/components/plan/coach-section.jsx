@@ -5,10 +5,12 @@ import { useState } from 'react';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
-import { SymbolTile } from '../ui/controls';
+import { SegmentedControl, SymbolTile } from '../ui/controls';
 
 /** Settings rows about coaching: the member's coach (or a code to join one) and the coach workspace. */
-export default function CoachSection({ coach, isCoach, onJoin, onLeave }) {
+const DIVISIONS = [{ value: 'MEN', label: 'Chicos' }, { value: 'WOMEN', label: 'Chicas' }];
+
+export default function CoachSection({ coach, isCoach, division, onDivision, onJoin, onLeave }) {
   const alert = useAlert();
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -38,7 +40,16 @@ export default function CoachSection({ coach, isCoach, onJoin, onLeave }) {
     finally { setBusy(false); }
   }
 
+  async function pickDivision(next) {
+    setError('');
+    try { await onDivision(next); }
+    catch (err) { setError(err.message); }
+  }
+
   return <>
+    <List header="Pesos de" footer="Cuando tu coach programe un peso para chicos y otro para chicas, verás solo el tuyo.">
+      <div className="row"><SegmentedControl label="Pesos de" value={division} onChange={pickDivision} options={DIVISIONS} className="flush" /></div>
+    </List>
     <List header="Coach" footer={coach ? 'Tu coach puede ver tus PRs y lo que anotas en sus sesiones, pero no modificarlos.'
       : 'Si tu coach te dio un código, escríbelo aquí. Podrá ver tus PRs mientras sigas su plan.'}>
       {coach ? <>

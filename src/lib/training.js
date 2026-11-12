@@ -7,7 +7,8 @@
 // item:    { id, movement, label, sets, reps, load: { type, value, base }, log, notes }
 //   movement  catalog name (links the athlete's records) or null for free text in `label`
 //   parts     optional, for a complex: [{ reps, movement }] in order; `label` holds its text ("1 Clean + 2 Split Jerk")
-//   load.type 'none' | 'weight' (lb) | 'percent' | 'max' (work up to the heaviest of the day)
+//   load.type 'none' | 'weight' (lb; `value` for everyone, or for men when `women` gives theirs) | 'percent'
+//             | 'max' (work up to the heaviest of the day)
 //   load.base for 'percent': { kind: 'pr', movement, rm } (movement null = the line's own)
 //             or { kind: 'item', itemId } (the weight logged on an earlier line of the session)
 //   log       whether the athlete records what they did; 'max' lines always do
@@ -18,6 +19,7 @@ import { normalizeConfig, TIMER_TYPES } from './timer-engine.js';
 export const LOAD_TYPES = ['none', 'weight', 'percent', 'max'];
 export const SCORE_TYPES = ['none', 'time', 'reps', 'weight'];
 export const BASE_RMS = [1, 3, 5];
+export const DIVISIONS = ['MEN', 'WOMEN'];
 export const LIMITS = { blocks: 12, items: 20, title: 80, notes: 2000, label: 80, reps: 16, comment: 2000, parts: 6 };
 
 const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -52,7 +54,10 @@ function normalizeLoad(input, earlierItems) {
   if (!isObject(input) || !LOAD_TYPES.includes(input.type)) fail('Unknown load type.');
   const { type } = input;
   if (type === 'none' || type === 'max') return { type, value: null, base: null };
-  if (type === 'weight') return { type, value: numberIn(input.value, 1, 2000, 'Weight'), base: null };
+  if (type === 'weight') {
+    const women = input.women == null ? null : numberIn(input.women, 1, 2000, 'Women\'s weight');
+    return { type, value: numberIn(input.value, 1, 2000, 'Weight'), ...(women ? { women } : {}), base: null };
+  }
   const value = numberIn(input.value, 1, 200, 'Percentage');
   const base = input.base;
   if (isObject(base) && base.kind === 'item') {
@@ -190,7 +195,7 @@ export function volumeText(item) {
 /** How the coach wrote the load, without anyone's numbers: "75 % de 1RM", "185 lb", "Máximo del día". */
 export function loadText(item, content) {
   const { type, value, base } = item.load;
-  if (type === 'weight') return `${value} lb`;
+  if (type === 'weight') return item.load.women ? `${value} / ${item.load.women} lb` : `${value} lb`;
   if (type === 'max') return 'Máximo del día';
   if (type !== 'percent') return '';
   if (base.kind === 'item') {
@@ -204,11 +209,16 @@ export function loadText(item, content) {
 /**
  * The weight a line asks of one athlete. `bestOf(movement, rm)` returns their best record or null.
  * Returns { weight, base, missing }: weight and base are null when there is nothing to compute,
- * and missing is 'pr' or 'item' when a percentage has no base yet.
+ * and missing is 'pr' or 'item' when a percentage has no base yet, or 'division' when the coach
+ * wrote a weight for men and another for women and the athlete has not said which one is theirs.
  */
-export function resolveLoad(item, results, bestOf) {
+export function resolveLoad(item, results, bestOf, division = null) {
   const { type, value, base } = item.load;
-  if (type === 'weight') return { weight: value, base: null, missing: null };
+  if (type === 'weight') {
+    if (!item.load.women) return { weight: value, base: null, missing: null };
+    if (!DIVISIONS.includes(division)) return { weight: null, base: null, missing: 'division' };
+    return { weight: division === 'WOMEN' ? item.load.women : value, base: null, missing: null };
+  }
   if (type !== 'percent') return { weight: null, base: null, missing: null };
   const baseWeight = base.kind === 'item'
     ? results?.items?.[base.itemId]?.weight ?? null

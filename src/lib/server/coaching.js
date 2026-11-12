@@ -65,7 +65,7 @@ async function ownedGroup(db, coachId, groupId) {
 export async function getOverview(coachId, now = new Date()) {
   const id = requireId(coachId);
   const prisma = getPrisma();
-  const person = { select: { id: true, displayName: true, email: true } };
+  const person = { select: { id: true, displayName: true, email: true, division: true } };
   const [links, groups, invites] = await Promise.all([
     prisma.coachAthlete.findMany({ where: { coachId: id }, include: { athlete: person }, orderBy: { createdAt: 'asc' } }),
     prisma.trainingGroup.findMany({
@@ -77,7 +77,7 @@ export async function getOverview(coachId, now = new Date()) {
   ]);
   const active = links.filter((link) => !link.endedAt);
   const activeIds = new Set(active.map((link) => link.athleteId));
-  const row = (link) => ({ id: link.athleteId, name: personName(link.athlete), email: link.athlete.email, since: link.createdAt });
+  const row = (link) => ({ id: link.athleteId, name: personName(link.athlete), email: link.athlete.email, division: link.athlete.division, since: link.createdAt });
   // Someone who left and came back is an athlete again, not a former one.
   const former = new Map();
   for (const link of links) {

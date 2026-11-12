@@ -255,7 +255,7 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
     <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} isCoach={isCoach} coach={plan.coach} onJoin={joinPlan} onLeave={leavePlan} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
+      demo={!hasBackend} isAdmin={isAdmin} isCoach={isCoach} coach={plan.coach} division={plan.division} onDivision={plan.setDivision} onJoin={joinPlan} onLeave={leavePlan} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
     <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
       onNew={() => setNewMovement({})} onHide={movements.setHidden} onDelete={deleteMovement} />
     <NewMovementSheet preset={newMovement} onClose={() => setNewMovement(null)} onCreate={movements.createMovement} />

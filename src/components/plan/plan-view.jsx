@@ -146,7 +146,7 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
         {block.timer && <StartTimer config={block.timer} />}
       </header>
       {block.notes && <p className="plan-notes">{block.notes}</p>}
-      {block.items.map((item) => <PlanItem key={item.id} item={item} content={session.content} results={results} bestOf={bestOf}
+      {block.items.map((item) => <PlanItem key={item.id} item={item} content={session.content} results={results} bestOf={bestOf} division={plan.division}
         onChange={(patch) => setItem(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
       {block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => setScore(block, value)} />}
     </section>)}
@@ -164,8 +164,8 @@ function StartTimer({ config }) {
   return <button type="button" className="plan-timer-start" onClick={() => timer?.begin(config)}><Icon name="play" fill />Iniciar timer</button>;
 }
 
-function PlanItem({ item, content, results, bestOf, onChange, onExecute, onAddRecord }) {
-  const load = resolveLoad(item, results, bestOf);
+function PlanItem({ item, content, results, bestOf, division, onChange, onExecute, onAddRecord }) {
+  const load = resolveLoad(item, results, bestOf, division);
   const prescription = loadText(item, content);
   const volume = volumeText(item);
   const result = results.items[item.id] ?? {};
@@ -186,6 +186,7 @@ function PlanItem({ item, content, results, bestOf, onChange, onExecute, onAddRe
     {load.missing === 'pr' && <button type="button" className="plan-missing" onClick={() => onAddRecord(baseMove, base.rm)}>
       <Icon name="plus" weight={2.8} />Registra tu {base.rm}RM de {baseMove} para ver tu peso
     </button>}
+    {load.missing === 'division' && <p className="plan-missing">Chicos / chicas. Elige tu categoría en Ajustes para ver solo tu peso.</p>}
     {load.missing === 'item' && <p className="plan-missing">Registra primero el peso de la línea base para ver tu carga.</p>}
     {item.notes && <p className="plan-notes">{item.notes}</p>}
     {item.log && <div className="plan-log">
@@ -268,7 +269,7 @@ const noop = () => {};
  * day and the session card, with loads resolved from `records`. It is a picture, not a working
  * screen: nothing in it can be pressed.
  */
-export function PlanPreview({ session, records }) {
+export function PlanPreview({ session, records, division = null }) {
   const monday = weekStart(session.date);
   return <div className="plan-preview" inert aria-label="Vista previa del atleta">
     <header className="large-title"><p>Con tu coach</p><h1 className="display">Plan</h1></header>
@@ -282,7 +283,7 @@ export function PlanPreview({ session, records }) {
       <span className="week-arrow"><Icon name="chevronRight" weight={2.6} /></span>
     </nav>
     <p className="plan-date">{longDate(session.date)}</p>
-    <SessionCard session={session} plan={NO_PLAN} records={records} userId="" active={false} preview
+    <SessionCard session={session} plan={{ ...NO_PLAN, division }} records={records} userId="" active={false} preview
       onExecute={noop} onAddRecord={noop} onSaveRecord={noop} />
   </div>;
 }

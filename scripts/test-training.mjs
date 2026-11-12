@@ -111,6 +111,21 @@ test('a percentage resolves from the athlete records or from an earlier line, ro
   assert.deepEqual(resolveLoad(newItem({ label: 'x', load: { type: 'weight', value: 95, base: null } }), null, bestOf), { weight: 95, base: null, missing: null });
 });
 
+test('a fixed weight can differ for men and women, and resolves by the athlete division', () => {
+  const both = normalizeContent({ blocks: [newBlock({ items: [newItem({ label: 'Thruster', load: { type: 'weight', value: 95, women: 65 } })] })] }).blocks[0].items[0];
+  assert.deepEqual(both.load, { type: 'weight', value: 95, women: 65, base: null });
+  assert.equal(loadText(both, { blocks: [] }), '95 / 65 lb');
+  assert.deepEqual(['MEN', 'WOMEN', null, 'OTHER'].map((division) => resolveLoad(both, null, () => null, division)), [
+    { weight: 95, base: null, missing: null }, { weight: 65, base: null, missing: null },
+    { weight: null, base: null, missing: 'division' }, { weight: null, base: null, missing: 'division' },
+  ]);
+  // One weight is for everyone, whatever the division.
+  const one = normalizeContent({ blocks: [newBlock({ items: [newItem({ label: 'Thruster', load: { type: 'weight', value: 95, women: null } })] })] }).blocks[0].items[0];
+  assert.equal('women' in one.load, false);
+  assert.deepEqual(resolveLoad(one, null, () => null), { weight: 95, base: null, missing: null });
+  invalid({ blocks: [newBlock({ items: [newItem({ label: 'x', load: { type: 'weight', value: 95, women: -1 } })] })] });
+});
+
 test('prescriptions read as the coach wrote them', () => {
   const { content, max, backOff, squat, pull } = sample();
   assert.deepEqual([max, backOff, squat, pull].map((item) => [volumeText(item), loadText(item, content)]), [

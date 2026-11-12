@@ -24,7 +24,7 @@ async function call(url, method = 'GET', body) {
  * once the server answered; until then `coach` may come from the device copy.
  */
 export default function usePlan(enabled, scope) {
-  const [plan, setPlan] = useState({ coach: null, sessions: [] });
+  const [plan, setPlan] = useState({ coach: null, sessions: [], division: null });
   const [status, setStatus] = useState({ loaded: false, error: '' });
   const key = enabled ? cacheKey('plan', scope) : null;
   const request = useRef(0);
@@ -39,7 +39,7 @@ export default function usePlan(enabled, scope) {
     try {
       const data = await call(`/api/plan?from=${range.from}&to=${range.to}`);
       if (id !== request.current) return;
-      setPlan({ coach: data.coach, sessions: data.sessions });
+      setPlan({ coach: data.coach, sessions: data.sessions, division: data.division ?? null });
       setStatus({ loaded: true, error: '' });
     } catch (err) {
       if (id === request.current) setStatus((current) => ({ ...current, error: err.message === 'Failed to fetch' ? 'Sin conexión.' : err.message }));
@@ -90,5 +90,12 @@ export default function usePlan(enabled, scope) {
     await refresh();
   }, [refresh]);
 
-  return { ...plan, ...status, range, reload: refresh, saveLog, addComment, markSeen, join, leave };
+  // Which fixed weights the member loads when the coach wrote one for men and one for women.
+  const setDivision = useCallback(async (division) => {
+    const saved = await call('/api/profile', 'PUT', { division });
+    request.current += 1;
+    setPlan((current) => ({ ...current, division: saved.division }));
+  }, []);
+
+  return { ...plan, ...status, range, reload: refresh, saveLog, addComment, markSeen, join, leave, setDivision };
 }
