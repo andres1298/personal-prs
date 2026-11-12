@@ -1,9 +1,11 @@
 // Training sessions shared by the coach's editor, the athlete's plan and the server
 // validation. Pure: no DOM and no database. Weights are in lb.
 //
-// content: { blocks: [{ id, title, notes, score, timer?, items: [item] }] }
+// content: { blocks: [{ id, title, notes, score, timer?, rounds?, rest?, items: [item] }] }
 //   timer     optional workout clock the athlete starts from the block: a timer-engine config
 //             ({ type: 'amrap' | 'emom' | 'tabata' | 'fortime', ...its times and rounds })
+//   rounds    optional, more than one: how many times the block's lines are done ("3 rounds for time")
+//   rest      optional ms of rest between sets of a block without a clock
 // item:    { id, movement, label, sets, reps, load: { type, value, base }, log, notes }
 //   movement  catalog name (links the athlete's records) or null for free text in `label`
 //   parts     optional, for a complex: [{ reps, movement }] in order; `label` holds its text ("1 Clean + 2 Split Jerk")
@@ -125,9 +127,11 @@ export function normalizeContent(input) {
     });
     // The timer engine clamps times and rounds to what it can run.
     if (block.timer != null && (!isObject(block.timer) || !TIMER_TYPES.includes(block.timer.type))) fail('Unknown timer type.');
+    const rounds = block.rounds == null ? null : numberIn(Math.trunc(block.rounds), 1, 99, 'Rounds');
+    const rest = block.rest == null ? null : numberIn(Math.round(block.rest / 1000) * 1000, 5000, 3_600_000, 'Rest');
     return {
       id: blockId, title: text(block.title, LIMITS.title, 'Block title'), notes: text(block.notes, LIMITS.notes, 'Block notes'), score: block.score,
-      ...(block.timer ? { timer: normalizeConfig(block.timer) } : {}), items,
+      ...(block.timer ? { timer: normalizeConfig(block.timer) } : {}), ...(rounds > 1 ? { rounds } : {}), ...(rest ? { rest } : {}), items,
     };
   });
   return { blocks };

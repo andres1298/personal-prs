@@ -1014,9 +1014,14 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .plan-letter { flex: none; width: 30px; height: 30px; display: grid; place-items: center; border-radius: 9px; background: var(--b); color: var(--block-ink); font-size: 16px; }
 .plan-block-title { flex: 1; min-width: 0; display: grid; gap: 2px; }
 .plan-block-title p { margin: 0; color: var(--ink2); font-size: 13px; font-weight: 700; line-height: 1.25; }
-.plan-timer-start { flex: none; display: inline-flex; align-items: center; gap: 6px; min-height: 44px; padding: 0 14px; border-radius: 12px; background: var(--b); color: var(--block-ink); font-size: 14px; font-weight: 800; transition: transform .2s var(--ease); }
-.plan-timer-start svg { width: 14px; height: 14px; }
-.plan-timer-start:active { transform: scale(.95); }
+.plan-block-foot { display: flex; gap: 8px; padding: 10px 0; box-shadow: inset 0 1px 0 var(--line); }
+.plan-outline {
+  flex: 1; min-width: 0; display: inline-flex; align-items: center; justify-content: center; gap: 7px; min-height: 44px; padding: 0 12px; border-radius: 12px;
+  box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink2); font-size: 14px; font-weight: 800; transition: transform .2s var(--ease), color .2s, box-shadow .2s;
+}
+.plan-outline svg { width: 14px; height: 14px; flex: none; color: var(--b); }
+.plan-outline:hover, .plan-outline[aria-expanded="true"] { color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--b); }
+.plan-outline:active { transform: scale(.97); }
 .plan-item { padding: 10px 0; box-shadow: inset 0 1px 0 var(--line); }
 .plan-item-main { display: flex; align-items: center; gap: 10px; }
 .plan-item-text { flex: 1; min-width: 0; display: grid; gap: 2px; }
