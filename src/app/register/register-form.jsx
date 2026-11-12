@@ -93,8 +93,9 @@ export default function RegisterForm({ siteKey }) {
       <label className="field"><span>Correo</span><input name="email" type="email" autoComplete="username" placeholder="correo@ejemplo.com" required /></label>
       <label className="field">
         <span>Contraseña</span>
-        <input name="password" type={showPassword ? 'text' : 'password'} minLength={8} maxLength={72} autoComplete="new-password" placeholder="Mínimo 8 caracteres" required />
-        <button type="button" className="reveal-button" aria-pressed={showPassword} onClick={() => setShowPassword((shown) => !shown)}>{showPassword ? 'Ocultar' : 'Mostrar'}</button>
+        <input name="password" type={showPassword ? 'text' : 'password'} minLength={8} maxLength={72} autoComplete="new-password" placeholder="8 o más caracteres" required />
+        <button type="button" className="reveal-button" aria-pressed={showPassword} aria-label={showPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'}
+          onClick={() => setShowPassword((shown) => !shown)}><Icon name={showPassword ? 'eyeOff' : 'eye'} /></button>
       </label>
     </div>
     <fieldset className="division-field">

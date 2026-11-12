@@ -32,7 +32,7 @@ export function AuthShell({ eyebrow, title, subtitle, tone = '--b-yellow', actio
 const arrow = <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" /></svg>;
 
 export default function AuthPanel({ configured, signedIn, authError }) {
-  return <AuthShell eyebrow="Bienvenido de vuelta" title={'Entra a\ntu barra.'} subtitle="Tus marcas, tu plan y los discos de cada serie."
+  return <AuthShell eyebrow="Bienvenido de vuelta" title={'Entra a\ntus PRs.'} subtitle="Tus marcas, tu plan y los discos de cada serie."
     action={configured && !signedIn ? { href: '/register', label: 'Crear cuenta' } : null}>
     {authError && <p className="auth-message error" role="alert">{authErrors[authError] ?? 'No se pudo iniciar sesión. Inténtalo de nuevo.'}</p>}
     {signedIn ? <>

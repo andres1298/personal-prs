@@ -888,7 +888,10 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .check-email h2 { font-family: var(--display); font-stretch: 125%; font-weight: 900; text-transform: uppercase; font-size: 24px; line-height: 1; }
 .check-email p { font-size: 16px; overflow-wrap: anywhere; }
 .check-email .check-email-hint { font-size: 14px; opacity: .75; }
-.reveal-button { flex: none; min-height: 44px; padding: 0 4px; border: 0; background: none; color: var(--ink); font-size: 14px; font-weight: 800; }
+/* An eye at the end of the field: 44 px to touch, drawn small so the text keeps its room. */
+.reveal-button { flex: none; width: 44px; height: 44px; margin-right: -10px; display: grid; place-items: center; border: 0; background: none; color: var(--ink2); }
+.reveal-button svg { width: 22px; height: 22px; }
+.reveal-button[aria-pressed="true"] { color: var(--ink); }
 .turnstile-box { display: flex; justify-content: center; min-height: 65px; margin-bottom: 14px; }
 .auth-footnote { color: var(--ink2); font-size: 13px; text-align: center; }
 
