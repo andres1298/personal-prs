@@ -127,19 +127,36 @@
 .editor-block { --b: var(--b-gray); display: grid; grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 16px; box-shadow: inset 5px 0 0 var(--b); border-radius: var(--radius); background: var(--surface); }
 .editor-block-head { display: flex; align-items: center; gap: 6px; }
 .editor-block-head input { flex: 1; min-width: 0; min-height: 44px; padding: 0 10px; border: 0; border-radius: 10px; background: transparent; font-weight: 800; font-size: 17px; }
-.editor-block-foot { display: flex; align-items: flex-end; flex-wrap: wrap; gap: 12px 14px; padding-top: 4px; }
-.editor-block-foot > textarea {
-  flex: 1 1 260px; min-width: 0; min-height: 44px; padding: 11px 14px; border: 0; border-radius: 12px; background: var(--bg); font-size: 15px; resize: vertical;
+.block-lines { display: grid; gap: 10px; }
+/* Rounds wrap the lines they repeat: one bracket in the block's color, said once above them. */
+.block-lines[data-rounds="true"] { padding: 12px 0 2px 14px; box-shadow: inset 3px 0 0 color-mix(in oklab, var(--b) 70%, transparent); border-radius: 2px; }
+.block-rounds { display: flex; align-items: center; gap: 8px; margin: 0; color: var(--ink2); font-size: 14px; font-weight: 700; }
+.block-rounds b { color: var(--ink); font-weight: 800; }
+.block-rounds svg { width: 18px; height: 18px; color: var(--b); }
+.line-add {
+  display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; border-radius: 14px;
+  box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink2); font-size: 15px; font-weight: 800; transition: color .2s, background-color .2s, box-shadow .2s;
 }
-.block-score { display: grid; gap: 6px; margin-left: auto; }
+.line-add:hover:not(:disabled) { background: var(--bg); color: var(--ink); box-shadow: none; }
+.line-add:disabled { opacity: .4; }
+.line-add svg { width: 16px; height: 16px; }
+/* The block's note and what the athlete logs: their own section under the lines, with room to read. */
+.editor-block-foot { display: grid; grid-template-columns: minmax(0, 1fr) auto; align-items: start; gap: 16px 24px; margin-top: 8px; padding-top: 18px; box-shadow: inset 0 1px 0 var(--line); }
+.block-note { display: grid; gap: 8px; min-width: 0; }
+.block-note textarea {
+  width: 100%; min-height: 76px; padding: 12px 14px; border: 0; border-radius: 12px; background: var(--bg); font-size: 15px; line-height: 1.45;
+  resize: vertical; field-sizing: content;
+}
+.block-note textarea::placeholder { color: var(--ink3); }
+.block-score { display: grid; gap: 8px; align-content: start; }
+@media (max-width: 1000px) { .editor-block-foot { grid-template-columns: minmax(0, 1fr); } }
 .editor-add {
   display: flex; align-items: center; justify-content: center; gap: 8px; min-height: 56px; margin-bottom: 12px; border-radius: var(--radius);
   box-shadow: inset 0 0 0 1.5px var(--line); color: var(--ink2); font-weight: 800; font-size: 15px; transition: color .2s, box-shadow .2s, background-color .2s;
 }
 .editor-add:hover:not(:disabled) { color: var(--ink); background: var(--surface); box-shadow: none; }
 .editor-add:disabled { opacity: .4; }
-.editor-add svg, .editor-block-foot svg { width: 16px; height: 16px; }
-.editor-block-foot .tinted-button { min-height: 44px; padding: 0 14px; gap: 8px; background: var(--bg); }
+.editor-add svg { width: 16px; height: 16px; }
 
 /* ---------- Block format: one row of choices, one row of its values ---------- */
 .block-format { display: grid; gap: 12px; padding-bottom: 6px; }
@@ -162,7 +179,6 @@
 .line { border-radius: 14px; background: var(--bg); }
 .line[data-open="true"] { box-shadow: inset 0 0 0 2px var(--ink); }
 .line-row { padding: 6px; }
-.line-row > .line-move:first-child { grid-column: 1 / 3; }
 .line-reps, .line-move input, .line-load input {
   width: 100%; min-height: 44px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--surface); font-size: 16px; font-weight: 800;
 }
@@ -171,7 +187,6 @@
 .line-move { position: relative; min-width: 0; }
 .line-move input { padding-right: 30px; }
 .line-move-dot { position: absolute; top: 50%; right: 12px; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: var(--c); }
-.line-move.complex-name { display: flex; align-items: center; min-height: 44px; padding: 0 12px; border-radius: 10px; background: var(--surface); font-weight: 800; overflow-wrap: anywhere; }
 .move-suggest {
   position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; right: 0; display: grid; gap: 2px; margin: 0; padding: 6px; list-style: none;
   border-radius: 12px; background: var(--surface2); box-shadow: var(--shadow);
@@ -179,6 +194,15 @@
 .move-suggest li { display: flex; align-items: center; gap: 10px; min-height: 40px; padding: 0 10px; border-radius: 8px; font-weight: 800; cursor: pointer; }
 .move-suggest li::before { content: ''; width: 9px; height: 9px; flex: none; border-radius: 50%; background: var(--c); }
 .move-suggest li[aria-selected="true"], .move-suggest li:hover { background: var(--bg); }
+/* A complex takes the reps and movement columns: one row per part, typed like a line. */
+.line-row[data-complex="true"] { align-items: start; }
+.complex-parts { grid-column: 1 / 3; display: grid; gap: 6px; min-width: 0; }
+.complex-tag { padding: 4px 4px 0; color: var(--ink2); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.complex-row { display: grid; grid-template-columns: 116px minmax(0, 1fr) 38px; gap: 6px; align-items: center; }
+.complex-row .icon-button { width: 38px; }
+.complex-add { justify-self: start; display: inline-flex; align-items: center; gap: 6px; min-height: 36px; padding: 0 10px; border-radius: 10px; color: var(--ink2); font-size: 13px; font-weight: 800; }
+.complex-add:hover { background: var(--surface); color: var(--ink); }
+.complex-add svg { width: 14px; height: 14px; }
 .line-load { display: flex; align-items: center; gap: 4px; min-width: 0; color: var(--ink3); font-weight: 800; }
 .line-load input { min-width: 0; padding: 0 8px; text-align: center; font-variant-numeric: tabular-nums; }
 .line-load input::placeholder { font-size: 13px; }
@@ -225,11 +249,6 @@
 .stepper-field svg { width: 16px; height: 16px; }
 .stepper-field input { width: 52px; height: 48px; border: 0; background: transparent; text-align: center; font-size: 18px; font-weight: 800; }
 .stepper-field output { width: 44px; text-align: center; font-size: 18px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.complex { display: grid; gap: 8px; }
-.complex-part { display: flex; align-items: center; gap: 8px; }
-.complex-part .line-select { flex: 1; min-width: 0; }
-.complex-plus { width: 20px; flex: none; text-align: center; font-family: var(--display); font-weight: 900; font-size: 20px; }
-.complex-part:first-child { padding-left: 28px; }
 .line-switch { display: flex; align-items: center; gap: 12px; font-size: 15px; font-weight: 600; }
 .line-preview { margin: -6px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--b-yellow); color: var(--block-ink); font-size: 14px; font-weight: 600; }
 .line-preview b { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 20px; margin-right: 4px; }
@@ -240,9 +259,10 @@
 @media (max-width: 560px) {
   .line-columns { display: none; }
   .line-row { grid-template-columns: 76px minmax(0, 1fr) 38px 38px; }
-  .line-row .line-move { grid-column: 2 / -1; }
-  .line-row > .line-move:first-child { grid-column: 1 / -1; }
-  .line-row .line-load { grid-column: 1 / 3; }
+  .line-row > .line-move { grid-column: 2 / -1; }
+  .complex-parts { grid-column: 1 / -1; }
+  .complex-row { grid-template-columns: 76px minmax(0, 1fr) 38px; }
+  .line-row > .line-load { grid-column: 1 / 3; }
 }
 
 /* ---------- Results ---------- */

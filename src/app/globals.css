@@ -1022,6 +1022,9 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .plan-outline svg { width: 14px; height: 14px; flex: none; color: var(--b); }
 .plan-outline:hover, .plan-outline[aria-expanded="true"] { color: var(--ink); box-shadow: inset 0 0 0 1.5px var(--b); }
 .plan-outline:active { transform: scale(.97); }
+.plan-rounds { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 0 2px; box-shadow: inset 0 1px 0 var(--line); color: var(--ink); font-size: 13px; font-weight: 800; letter-spacing: .06em; text-transform: uppercase; }
+.plan-rounds svg { width: 16px; height: 16px; flex: none; color: var(--b); }
+.plan-rounds + .plan-item { box-shadow: none; }
 .plan-item { padding: 10px 0; box-shadow: inset 0 1px 0 var(--line); }
 .plan-item-main { display: flex; align-items: center; gap: 10px; }
 .plan-item-text { flex: 1; min-width: 0; display: grid; gap: 2px; }

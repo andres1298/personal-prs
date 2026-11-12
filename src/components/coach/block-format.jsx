@@ -9,17 +9,20 @@ import Icon from '../ui/icon';
 import { Choice } from './line-editor';
 
 /**
- * How a block is done, chosen once for the whole block: plain sets, or one of the timer's
- * workouts. Each format shows only its own values, in one row, and sets what the athlete logs.
+ * How a block is done, chosen once for the whole block: rounds of its lines at the athlete's
+ * pace, or one of the timer's workouts. Each format shows only its own values, in one row, and
+ * sets what the athlete logs. Rounds belong to the block: all of its lines repeat together.
  */
-export const FORMATS = ['sets', 'fortime', 'amrap', 'emom', 'tabata'];
-const FORMAT_CHOICES = FORMATS.map((value) => ({ value, label: value === 'sets' ? 'Series' : TEMPLATES[value].name }));
-const SCORE_OF = { sets: 'none', fortime: 'time', amrap: 'reps', emom: 'none', tabata: 'reps' };
-export const formatOf = (block) => block.timer?.type ?? 'sets';
+export const FORMATS = ['rounds', 'fortime', 'amrap', 'emom', 'tabata'];
+const FORMAT_CHOICES = FORMATS.map((value) => ({ value, label: value === 'rounds' ? 'Rondas' : TEMPLATES[value].name }));
+const SCORE_OF = { rounds: 'none', fortime: 'time', amrap: 'reps', emom: 'none', tabata: 'reps' };
+/** Formats where the block's own rounds apply; the others count rounds on their clock. */
+const ROUNDED = ['rounds', 'fortime'];
+export const formatOf = (block) => block.timer?.type ?? 'rounds';
 /** Formats done against the clock and scored as a whole. */
 export const TIMED = ['fortime', 'amrap', 'tabata'];
 
-/** The value every line of the block shares (their sets or reps), or null when they differ. */
+/** The value every line of the block shares (their reps), or null when they differ. */
 export function commonValue(items, key) {
   const values = items.filter((item) => item.movement || item.label).map((item) => item[key]);
   return values.length && values.every((value) => value === values[0]) ? values[0] : null;
@@ -74,31 +77,31 @@ export default function BlockFormat({ block, onChange }) {
   const format = formatOf(block);
   const config = block.timer ? normalizeConfig(block.timer) : null;
   const setTimer = (patch) => onChange({ timer: normalizeConfig({ ...config, ...patch }) });
-  // Sets and a rep scheme are the block's, so they are written on every line at once.
+  // A rep scheme for the whole block ("21-15-9") is written on every line at once.
   const setAll = (key, value) => onChange({ items: block.items.map((item) => ({ ...item, [key]: value })) });
-  const sets = commonValue(block.items, 'sets');
   const reps = commonValue(block.items, 'reps');
+  const setRounds = (rounds) => onChange({ rounds: rounds > 1 ? rounds : undefined });
 
   function pick(next) {
     if (next === format) return;
-    // An EMOM of as many rounds as the block had sets keeps the work the coach already wrote.
-    const timer = next === 'sets' ? undefined : normalizeConfig({ type: next, ...(next === 'emom' && sets ? { rounds: sets } : {}) });
+    // An EMOM of as many rounds as the block had keeps the work the coach already wrote.
+    const timer = next === 'rounds' ? undefined : normalizeConfig({ type: next, ...(next === 'emom' && block.rounds ? { rounds: block.rounds } : {}) });
     // Lifts are logged one by one in sets and EMOMs; a workout on the clock is logged as a whole.
     const timed = TIMED.includes(next);
     const items = TIMED.includes(format) === timed ? block.items : block.items.map((item) => (item.movement && moveInfo(item.movement).type === 'weight' && item.load.type !== 'max' ? { ...item, log: !timed } : item));
-    onChange({ timer, score: SCORE_OF[next], rest: next === 'sets' ? block.rest : undefined, rounds: next === 'fortime' ? block.rounds : undefined, items });
+    onChange({ timer, score: SCORE_OF[next], rest: next === 'rounds' ? block.rest : undefined, rounds: ROUNDED.includes(next) ? block.rounds : undefined, items });
   }
 
   return <div className="block-format">
     <Choice label="Formato del bloque" size="small" value={format} onChange={pick}
-      options={FORMAT_CHOICES.map((option) => ({ ...option, color: option.value === 'sets' ? undefined : TEMPLATES[option.value].color }))} />
+      options={FORMAT_CHOICES.map((option) => ({ ...option, color: option.value === 'rounds' ? undefined : TEMPLATES[option.value].color }))} />
     <div className="format-fields">
-      {format === 'sets' && <>
-        <CountField label="Series" value={sets} optional onChange={(value) => setAll('sets', value)} />
-        <TimeField label="Descanso" value={block.rest ?? null} optional onChange={(rest) => onChange({ rest: rest ?? undefined })} />
+      {format === 'rounds' && <>
+        <CountField label="Rondas" value={block.rounds ?? 1} onChange={setRounds} />
+        <TimeField label="Descanso entre rondas" value={block.rest ?? null} optional onChange={(rest) => onChange({ rest: rest ?? undefined })} />
       </>}
       {format === 'fortime' && <>
-        <CountField label="Rondas" value={block.rounds ?? 1} onChange={(rounds) => onChange({ rounds: rounds > 1 ? rounds : undefined })} />
+        <CountField label="Rondas" value={block.rounds ?? 1} onChange={setRounds} />
         <label className="format-field">
           <span>Reps de todas las líneas</span>
           <input className="format-text" value={reps ?? ''} maxLength={LIMITS.reps} placeholder="21-15-9" aria-label="Reps de todas las líneas"
