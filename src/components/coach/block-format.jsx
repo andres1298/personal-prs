@@ -80,7 +80,8 @@ export default function BlockFormat({ block, onChange }) {
   // A rep scheme for the whole block ("21-15-9") is written on every line at once.
   const setAll = (key, value) => onChange({ items: block.items.map((item) => ({ ...item, [key]: value })) });
   const reps = commonValue(block.items, 'reps');
-  const setRounds = (rounds) => onChange({ rounds: rounds > 1 ? rounds : undefined });
+  // A For Time of one round has no rest between rounds.
+  const setRounds = (rounds) => onChange({ rounds: rounds > 1 ? rounds : undefined, ...(rounds > 1 || format !== 'fortime' ? {} : { rest: undefined }) });
 
   function pick(next) {
     if (next === format) return;
@@ -89,7 +90,7 @@ export default function BlockFormat({ block, onChange }) {
     // Lifts are logged one by one in sets and EMOMs; a workout on the clock is logged as a whole.
     const timed = TIMED.includes(next);
     const items = TIMED.includes(format) === timed ? block.items : block.items.map((item) => (item.movement && moveInfo(item.movement).type === 'weight' && item.load.type !== 'max' ? { ...item, log: !timed } : item));
-    onChange({ timer, score: SCORE_OF[next], rest: next === 'rounds' ? block.rest : undefined, rounds: ROUNDED.includes(next) ? block.rounds : undefined, items });
+    onChange({ timer, score: SCORE_OF[next], rest: ROUNDED.includes(next) ? block.rest : undefined, rounds: ROUNDED.includes(next) ? block.rounds : undefined, items });
   }
 
   return <div className="block-format">
@@ -108,6 +109,7 @@ export default function BlockFormat({ block, onChange }) {
             onChange={(event) => setAll('reps', event.target.value)} />
         </label>
         <TimeField label="Límite" value={config.cap} onChange={(cap) => setTimer({ cap })} />
+        {block.rounds > 1 && <TimeField label="Descanso entre rondas" value={block.rest ?? null} optional onChange={(rest) => onChange({ rest: rest ?? undefined })} />}
       </>}
       {format === 'amrap' && <TimeField label="Duración" value={config.duration} onChange={(duration) => setTimer({ duration })} />}
       {format === 'emom' && <>
