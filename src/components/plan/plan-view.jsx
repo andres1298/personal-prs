@@ -5,7 +5,6 @@ import { bestRecord, formatValue, moveInfo, parseValue, today } from '../../lib/
 import { addDays, itemName, loadText, recordCandidate, resolveLoad, volumeText, weekDays, weekStart } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
-import { LargeTitle } from '../ui/nav-bar';
 import { useTimer } from '../timer/timer-provider';
 import { formatClock } from '../../lib/timer-engine';
 import { TEMPLATES } from '../timer/timer-views';
@@ -61,10 +60,10 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
   const now = today();
 
   return <>
-    <LargeTitle title="Plan" subtitle={plan.coach ? `Con ${plan.coach.name}` : 'Tu historial de sesiones'}
-      trailing={selected !== now && <button type="button" className="nav-text" onClick={() => setSelected(now)}>Hoy</button>} />
+    {/* The week is the first thing on screen; the tab bar already says this is the plan. */}
+    <h1 className="visually-hidden">Plan</h1>
     {plan.error && <div className="banner warn" role="alert"><span>{plan.error}</span><button type="button" className="pill-btn" onClick={plan.reload}>Reintentar</button></div>}
-    <nav className="week-strip" aria-label="Semana">
+    <nav className="week-strip top" aria-label="Semana">
       <button type="button" className="week-arrow" aria-label="Semana anterior" disabled={addDays(monday, -1) < plan.range.from} onClick={() => move(-1)}>
         <Icon name="chevronLeft" weight={2.6} />
       </button>
@@ -82,7 +81,10 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
         <Icon name="chevronRight" weight={2.6} />
       </button>
     </nav>
-    <p className="plan-date">{longDate(selected)}</p>
+    <div className="plan-date-row">
+      <p className="plan-date">{longDate(selected)}</p>
+      {selected !== now && <button type="button" className="plan-today" onClick={() => setSelected(now)}>Hoy</button>}
+    </div>
     {!sessions.length && <p className="empty">{plan.loaded || plan.sessions.length ? 'No hay sesión programada para este día.' : 'Cargando tu plan…'}</p>}
     {sessions.map((session) => <SessionCard key={session.id} session={session} plan={plan} records={records} userId={userId} active={active}
       onExecute={onExecute} onAddRecord={onAddRecord} onSaveRecord={onSaveRecord} />)}
@@ -221,7 +223,7 @@ function PlanItem({ item, content, results, bestOf, division, logging, onChange,
       </button>}
     </div>
     {load.missing === 'pr' && <button type="button" className="plan-missing" onClick={() => onAddRecord(baseMove, base.rm)}>
-      <Icon name="plus" weight={2.8} />Registra tu {base.rm}RM de {baseMove} para ver tu peso
+      <Icon name="plus" weight={2.8} />Agrega tu {base.rm}RM{baseMove === item.movement ? '' : ` de ${baseMove}`}
     </button>}
     {load.missing === 'item' && <p className="plan-missing">Registra primero el peso de la línea base para ver tu carga.</p>}
     {item.notes && <p className="plan-notes">{item.notes}</p>}
@@ -308,8 +310,7 @@ const noop = () => {};
 export function PlanPreview({ session, records, division = null }) {
   const monday = weekStart(session.date);
   return <div className="plan-preview" inert aria-label="Vista previa del atleta">
-    <header className="large-title"><p>Con tu coach</p><h1 className="display">Plan</h1></header>
-    <nav className="week-strip" aria-hidden="true">
+    <nav className="week-strip top" aria-hidden="true">
       <span className="week-arrow"><Icon name="chevronLeft" weight={2.6} /></span>
       {weekDays(monday).map((date, index) => <span key={date} className="week-day" aria-pressed={date === session.date}>
         <small>{DAY_LETTERS[index]}</small>
@@ -318,7 +319,7 @@ export function PlanPreview({ session, records, division = null }) {
       </span>)}
       <span className="week-arrow"><Icon name="chevronRight" weight={2.6} /></span>
     </nav>
-    <p className="plan-date">{longDate(session.date)}</p>
+    <div className="plan-date-row"><p className="plan-date">{longDate(session.date)}</p></div>
     <SessionCard session={session} plan={{ ...NO_PLAN, division }} records={records} userId="" active={false} preview
       onExecute={noop} onAddRecord={noop} onSaveRecord={noop} />
   </div>;
