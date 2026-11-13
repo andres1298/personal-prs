@@ -59,7 +59,7 @@ const Empty = ({ children }) => <p className="stat-empty">{children}</p>;
  * who did each day, each session in numbers and the loads athletes logged. The chips narrow
  * every panel to a group or to one athlete.
  */
-export default function ProgressView({ api }) {
+export default function ProgressView({ api, onPeople }) {
   const [weeks, setWeeks] = useState(12);
   const [scope, setScope] = useState('all');   // 'all' | 'group:<id>' | 'athlete:<id>'
   const [data, setData] = useState(null);
@@ -93,10 +93,7 @@ export default function ProgressView({ api }) {
   </header>;
   if (error) return <>{title}<div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={load}>Reintentar</button></div></>;
   if (!data || !summary) return <>{title}<div className="stat-skeleton" aria-label="Cargando">{Array.from({ length: 6 }, (_, at) => <i key={at} style={{ '--i': at }} />)}</div></>;
-  if (!data.athletes.length) return <section className="coach-empty">
-    <h1 className="display">Progreso</h1>
-    <p>Aquí verás el cumplimiento, los pesos y los resultados de tus atletas. Todavía no tienes atletas: invítalos desde la sección Atletas.</p>
-  </section>;
+  if (!data.athletes.length) return <ProgressPreview onPeople={onPeople} />;
 
   const attention = summary.byAthlete.filter((row) => row.assigned > 0 && (row.missed >= 2 || row.rate < 0.5));
   const logged = loads.length;
@@ -291,4 +288,45 @@ function Loads({ index, wide, athletes, loads, focused, deps }) {
             plugins: { tooltip: { callbacks: { label: (context) => `${context.parsed.y} lb` } } } },
         })} />}
   </Card>;
+}
+
+const PREVIEW_KPIS = [
+  { label: 'Cumplimiento', icon: 'check', color: '--b-green', detail: 'Sesiones hechas de las asignadas' },
+  { label: 'Sesiones', icon: 'calendar', color: '--b-blue', detail: 'Completadas en el periodo' },
+  { label: 'Pesos anotados', icon: 'barbell', color: '--b-yellow', detail: 'Cargas que registraron' },
+  { label: 'Nuevos PRs', icon: 'trophy', color: '--b-pink', detail: 'Récords que superaron' },
+];
+const PREVIEW_CARDS = [
+  { title: 'Cumplimiento por atleta', hint: 'Quién entrena y quién se está quedando atrás.', bars: [86, 72, 64, 41] },
+  { title: 'Pesos usados', hint: 'La carga de cada atleta en tus porcentajes.', bars: [58, 77, 69, 90] },
+];
+
+/** Before the first athlete: the dashboard as it will look, faded, and the way to invite them. */
+function ProgressPreview({ onPeople }) {
+  return <section className="progress-preview">
+    <header className="coach-head"><h1 className="display">Progreso</h1></header>
+    <div className="progress-preview-call">
+      <div>
+        <b>Todavía no tienes atletas</b>
+        <p>Cuando se unan y registren sus sesiones, aquí verás su cumplimiento, los pesos que usan y sus nuevos PRs.</p>
+      </div>
+      <button type="button" className="pill-btn" onClick={onPeople}><Icon name="people" />Invitar atletas</button>
+    </div>
+    <div className="progress-preview-ghost" aria-hidden="true">
+      <div className="kpis">
+        {PREVIEW_KPIS.map((kpi) => <article className="kpi ghost" key={kpi.label} style={{ '--c': `var(${kpi.color})` }}>
+          <span className="kpi-icon"><Icon name={kpi.icon} weight={2.4} /></span>
+          <p className="kpi-label">{kpi.label}</p>
+          <p className="kpi-value display num">–</p>
+          <p className="kpi-detail">{kpi.detail}</p>
+        </article>)}
+      </div>
+      <div className="stat-grid">
+        {PREVIEW_CARDS.map((card) => <section className="stat-card" key={card.title}>
+          <header><div><h2>{card.title}</h2><p>{card.hint}</p></div></header>
+          <div className="ghost-bars">{card.bars.map((width, index) => <i key={index} style={{ '--w': `${width}%` }} />)}</div>
+        </section>)}
+      </div>
+    </div>
+  </section>;
 }

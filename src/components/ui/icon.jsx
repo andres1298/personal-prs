@@ -28,6 +28,7 @@ const STROKE = {
   stop: <rect x="5.5" y="5.5" width="13" height="13" rx="2" />,
   flag: <path d="M5 21V4m0 0h11l-2 4 2 4H5" />,
   undo: <><path d="M9 14 4 9l5-5" /><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11" /></>,
+  broadcast: <><circle cx="12" cy="12" r="2" /><path d="M8.5 15.5a5 5 0 0 1 0-7M15.5 8.5a5 5 0 0 1 0 7M5.6 18.4a9 9 0 0 1 0-12.8M18.4 5.6a9 9 0 0 1 0 12.8" /></>,
   repeat: <><path d="M4 11V9a3 3 0 0 1 3-3h13M17 3l3 3-3 3" /><path d="M20 13v2a3 3 0 0 1-3 3H4M7 21l-3-3 3-3" /></>,
   sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></>,
   simple: <><rect x="3.5" y="4.5" width="17" height="15" rx="3" /><path d="M8 12h8" /></>,

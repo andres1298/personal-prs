@@ -8,6 +8,8 @@ import Icon from '../ui/icon';
 import SessionEditor from './session-editor';
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+// Sessions take one block color per weekday, so a week reads as distinct days at a glance.
+const DAY_COLORS = ['--b-blue', '--b-pink', '--b-green', '--b-yellow', '--b-lilac', '--b-cyan', '--b-coral'];
 const monthLabel = (month) => new Date(`${month}-15T12:00`).toLocaleDateString('es-CR', { month: 'long', year: 'numeric' });
 const shortDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { day: 'numeric', month: 'short' });
 
@@ -165,7 +167,7 @@ export default function CalendarView({ overview, movements, target, focus, onTar
                 {session && <button type="button" className="cal-tool" onClick={() => setClipboard({ kind: 'day', date, session })}>Copiar</button>}
                 {clipboard?.kind === 'day' && clipboard.date !== date && <button type="button" className="cal-tool" onClick={() => pasteDay(date)}>Pegar</button>}
               </header>
-              {session ? <button type="button" className="cal-session" data-draft={!session.published} onClick={() => setEditing({ date })}>
+              {session ? <button type="button" className="cal-session" data-draft={!session.published} style={{ '--b': `var(${DAY_COLORS[index]})` }} onClick={() => setEditing({ date })}>
                 <b>{session.title || 'Sesión'}</b>
                 {lines.map((line, lineIndex) => <span key={lineIndex}>{line}</span>)}
                 {allItems(session.content).length === 0 && !lines.length && session.notes && <span>{session.notes}</span>}
