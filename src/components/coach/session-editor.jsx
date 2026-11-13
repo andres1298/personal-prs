@@ -6,7 +6,7 @@ import {
   allItems, itemName, LIMITS, newBlock, newItem, resolveLoad, volumeText,
 } from '../../lib/training';
 import { useAlert } from '../ui/alert';
-import { SegmentedControl, Switch } from '../ui/controls';
+import { SegmentedControl } from '../ui/controls';
 import Icon from '../ui/icon';
 import LineEditor, { Choice } from './line-editor';
 import { blockColor, PlanPreview } from '../plan/plan-view';
@@ -177,9 +177,11 @@ export default function SessionEditor({ date, session, targetName, group, athlet
           <p className="drawer-kicker">{targetName}</p>
           <h1 className="display">{longDate(date)}</h1>
         </div>
-        {canPreview && <button type="button" className="nav-text preview-toggle" aria-pressed={previewing} onClick={() => setPreviewing(!previewing)}>
-          <Icon name="person" />{previewing ? 'Ocultar vista previa' : 'Previsualizar'}
-        </button>}
+        {/* Always in the header, so switching tabs never moves the title; from Results it opens the program with its preview. */}
+        <button type="button" className="nav-text preview-toggle" aria-pressed={previewing && canPreview}
+          onClick={() => { if (canPreview) setPreviewing(!previewing); else { setTab('program'); setPreviewing(true); } }}>
+          <Icon name="person" />{previewing && canPreview ? 'Ocultar vista previa' : 'Previsualizar'}
+        </button>
       </header>
       {session && <SegmentedControl label="Vista" value={tab} onChange={setTab}
         options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
@@ -251,10 +253,10 @@ export default function SessionEditor({ date, session, targetName, group, athlet
       </>}
 
       {tab === 'program' && <footer className="editor-foot">
-        <label className="editor-publish">
-          <Switch checked={draft.published} label="Publicada" onChange={(published) => change({ published })} />
-          <span>{draft.published ? 'Publicada: tus atletas la ven' : 'Borrador: solo tú la ves'}</span>
-        </label>
+        {/* One icon for the state: lit while athletes see the day, grey while it is a draft. */}
+        <button type="button" className="publish-toggle" aria-pressed={draft.published} onClick={() => change({ published: !draft.published })}
+          aria-label={draft.published ? 'Publicada: tus atletas la ven. Toca para volverla borrador' : 'Borrador: solo tú la ves. Toca para publicarla'}
+          title={draft.published ? 'Publicada: tus atletas la ven' : 'Borrador: solo tú la ves'}><Icon name="broadcast" weight={2.4} /></button>
         <span className="editor-foot-actions">
           {session && <button type="button" className="nav-text danger" onClick={remove}>Borrar</button>}
           {session && <button type="button" className="nav-text" disabled={dirty} title={dirty ? 'Guarda antes de copiar' : undefined} onClick={onCopy}>Copiar día</button>}

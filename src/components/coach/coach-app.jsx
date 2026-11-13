@@ -104,7 +104,7 @@ function Workspace({ userId }) {
       {error && <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={loadOverview}>Reintentar</button></div>}
       {overview && prefs.section === 'calendar' && <CalendarView overview={overview} movements={movements} target={target} focus={focus}
         onTarget={(next) => updatePrefs({ target: next })} onPeople={() => go('people')} api={api} />}
-      {overview && prefs.section === 'progress' && <ProgressView api={api} />}
+      {overview && prefs.section === 'progress' && <ProgressView api={api} onPeople={() => go('people')} />}
       {overview && prefs.section === 'people' && <PeopleView overview={overview} api={api} />}
       {overview && prefs.section === 'activity' && <ActivityView events={events} onOpen={openSession} onReload={loadActivity} />}
     </main>
