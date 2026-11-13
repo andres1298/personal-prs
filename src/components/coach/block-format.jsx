@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react';
 import { formatClock, normalizeConfig } from '../../lib/timer-engine';
 import { moveInfo } from '../../lib/catalog';
 import { LIMITS } from '../../lib/training';
-import { describe, TEMPLATES } from '../timer/timer-views';
+import { TEMPLATES } from '../timer/timer-views';
 import Icon from '../ui/icon';
 import { Choice } from './line-editor';
 
@@ -122,6 +122,5 @@ export default function BlockFormat({ block, onChange }) {
         <CountField label="Rondas" value={config.rounds} onChange={(rounds) => setTimer({ rounds: rounds ?? 1 })} />
       </>}
     </div>
-    {config && <p className="format-summary">{describe(config)}. El atleta inicia el cronómetro desde el bloque.</p>}
   </div>;
 }

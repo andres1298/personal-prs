@@ -105,7 +105,10 @@
 }
 .editor-foot-actions { display: flex; gap: 8px; margin-left: auto; }
 .editor-foot .nav-text:not(.strong) { background: var(--surface); }
-.editor-aside { position: sticky; top: 24px; display: grid; gap: 12px; justify-items: center; max-height: calc(100dvh - 48px); }
+/* The phone is as tall as its content, up to the window: past that it scrolls inside. */
+.editor-aside { position: sticky; top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; max-height: calc(100dvh - 48px); }
+.editor-aside > * { flex: none; }
+.editor-aside > .phone { flex: 0 1 auto; }
 .preview-bar { width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 10px; }
 .preview-bar p { margin: 0; color: var(--ink2); font-size: 13px; line-height: 1.35; }
 .preview-bar b { color: var(--ink); }
@@ -170,7 +173,6 @@
 .format-field .stepper-field input { width: 64px; letter-spacing: 0; }
 .format-text { width: 150px; min-height: 48px; padding: 0 14px; border: 0; border-radius: 12px; background: var(--bg); font-size: 18px; font-weight: 800; letter-spacing: 0; text-transform: none; }
 .format-text::placeholder, .format-field input::placeholder { color: var(--ink3); font-size: 16px; font-weight: 600; }
-.format-summary { margin: 0; color: var(--ink2); font-size: 14px; line-height: 1.4; }
 
 /* ---------- Lines: one row each, like the whiteboard ---------- */
 .line-columns, .line-row { display: grid; grid-template-columns: 116px minmax(0, 1fr) 196px 38px 38px; align-items: center; gap: 6px; }
