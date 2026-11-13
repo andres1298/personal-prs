@@ -8,7 +8,7 @@ import Icon from '../ui/icon';
 import { LargeTitle } from '../ui/nav-bar';
 import { useTimer } from '../timer/timer-provider';
 import { formatClock } from '../../lib/timer-engine';
-import { describe as describeTimer, TEMPLATES } from '../timer/timer-views';
+import { TEMPLATES } from '../timer/timer-views';
 
 const DAY_LETTERS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 const SCORE_FIELDS = {
@@ -27,12 +27,20 @@ export function blockColor(block) {
   return (move && moveInfo(move).group.color) || '--b-gray';
 }
 
-/** How the block is done, under its title: "Lo más rápido posible · límite 20:00", "Descanso 2:00 entre rondas". */
-export function blockSummary(block) {
-  return [
-    block.timer && describeTimer(block.timer),
-    block.rest && `Descanso ${formatClock(block.rest)} entre ${block.rounds > 1 ? 'rondas' : 'series'}`,
-  ].filter(Boolean).join(' · ');
+const seconds = (ms) => (ms < 60_000 ? `${ms / 1000} s` : formatClock(ms));
+/**
+ * How the block is done, as short tags under its title: its format first, then its numbers.
+ * "FOR TIME · Límite 30:00 · Descanso 2:00", "EMOM · Cada 3:00 · 5 rondas".
+ */
+export function blockTags(block) {
+  const { timer } = block;
+  const tags = timer ? {
+    fortime: [TEMPLATES.fortime.name, `Límite ${formatClock(timer.cap)}`],
+    amrap: [TEMPLATES.amrap.name, formatClock(timer.duration)],
+    emom: [TEMPLATES.emom.name, `Cada ${seconds(timer.interval)}`, `${timer.rounds} rondas`],
+    tabata: [TEMPLATES.tabata.name, `${seconds(timer.work)} / ${seconds(timer.rest)}`, `${timer.rounds} rondas`],
+  }[timer.type] : [];
+  return block.rest ? [...tags, `Descanso ${formatClock(block.rest)}`] : tags;
 }
 
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
@@ -167,7 +175,9 @@ function PlanBlock({ block, index, content, results, bestOf, division, onItemCha
       <span className="plan-letter display" aria-hidden="true">{letter}</span>
       <div className="plan-block-title">
         <h3>{block.title || `Bloque ${letter}`}</h3>
-        {blockSummary(block) && <p>{blockSummary(block)}</p>}
+        {blockTags(block).length > 0 && <p className="plan-tags">
+          {blockTags(block).map((tag, index) => <span key={tag} data-kind={index === 0 && block.timer ? 'format' : undefined}>{tag}</span>)}
+        </p>}
       </div>
     </header>
     {block.notes && <p className="plan-notes">{block.notes}</p>}
@@ -213,7 +223,6 @@ function PlanItem({ item, content, results, bestOf, division, logging, onChange,
     {load.missing === 'pr' && <button type="button" className="plan-missing" onClick={() => onAddRecord(baseMove, base.rm)}>
       <Icon name="plus" weight={2.8} />Registra tu {base.rm}RM de {baseMove} para ver tu peso
     </button>}
-    {load.missing === 'division' && <p className="plan-missing">Chicos / chicas. Elige tu categoría en Ajustes para ver solo tu peso.</p>}
     {load.missing === 'item' && <p className="plan-missing">Registra primero el peso de la línea base para ver tu carga.</p>}
     {item.notes && <p className="plan-notes">{item.notes}</p>}
     {item.log && logging && <div className="plan-log">
