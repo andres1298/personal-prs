@@ -29,7 +29,8 @@ export function blockColor(block) {
 const seconds = (ms) => (ms < 60_000 ? `${ms / 1000} s` : formatClock(ms));
 /**
  * How the block is done, as short tags under its title: its format first, then its numbers.
- * "FOR TIME · Límite 30:00 · Descanso 2:00", "EMOM · Cada 3:00 · 5 rondas".
+ * "FOR TIME · Límite 30:00", "EMOM · Cada 3:00 · 5 rondas". The rest is not a tag: it is done
+ * after the lines, so it closes the block (see restText).
  */
 export function blockTags(block) {
   const { timer } = block;
@@ -39,8 +40,11 @@ export function blockTags(block) {
     emom: [TEMPLATES.emom.name, `Cada ${seconds(timer.interval)}`, `${timer.rounds} rondas`],
     tabata: [TEMPLATES.tabata.name, `${seconds(timer.work)} / ${seconds(timer.rest)}`, `${timer.rounds} rondas`],
   }[timer.type] : [];
-  return block.rest ? [...tags, `Descanso ${formatClock(block.rest)}`] : tags;
+  return tags;
 }
+
+/** "Descanso 1:00 entre rondas": the pause taken after each pass through the block's lines. */
+export const restText = (block) => (block.rest ? `Descanso ${formatClock(block.rest)}${block.rounds > 1 ? ' entre rondas' : ''}` : '');
 
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -187,6 +191,8 @@ function PlanBlock({ block, index, content, results, bestOf, division, onItemCha
     {block.rounds > 1 && <p className="plan-rounds"><Icon name="repeat" weight={2.4} />{block.rounds} rondas de:</p>}
     {block.items.map((item) => <PlanItem key={item.id} item={item} content={content} results={results} bestOf={bestOf} division={division} logging={open}
       onChange={(patch) => onItemChange(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
+    {/* The rest comes after the lines, as it does in the gym: it closes each round. */}
+    {block.rest && <p className="plan-rest"><Icon name="pause" weight={2.4} />{restText(block)}</p>}
     {open && block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => onScoreChange(block, value)} />}
     {(block.timer || loggable) && <div className="plan-block-foot">
       {block.timer && <StartTimer config={block.timer} />}
