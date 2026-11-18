@@ -1059,6 +1059,12 @@ button.plan-missing { min-height: 44px; color: var(--ink); text-decoration: unde
 .log-field input::placeholder { color: var(--ink3); font-weight: 600; font-size: 15px; }
 .log-field input[aria-invalid="true"] { color: var(--danger); }
 .log-field:focus-within { box-shadow: inset 0 0 0 2px var(--ink); }
+.time-field { flex-wrap: wrap; row-gap: 0; }
+.time-field .time-inputs { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+.time-field .time-inputs input { flex: none; width: 3.2em; height: 36px; border-radius: 8px; background: var(--surface); text-align: center; }
+.time-field .time-inputs b { color: var(--ink2); font-size: 18px; }
+.time-field[aria-invalid="true"] input { color: var(--danger); }
+.time-field .time-cap { flex-basis: 100%; padding-bottom: 8px; color: var(--ink3); font-size: 12px; font-weight: 700; text-align: right; }
 .filled-button.plan-done { margin: 4px 0 18px; }
 .filled-button.plan-done[data-done="true"] { background: var(--b-green); color: var(--block-ink); }
 .thread { display: grid; gap: 8px; }

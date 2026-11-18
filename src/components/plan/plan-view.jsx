@@ -193,7 +193,8 @@ function PlanBlock({ block, index, content, results, bestOf, division, onItemCha
       onChange={(patch) => onItemChange(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
     {/* The rest comes after the lines, as it does in the gym: it closes each round. */}
     {block.rest && <p className="plan-rest"><Icon name="pause" weight={2.4} />{restText(block)}</p>}
-    {open && block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => onScoreChange(block, value)} />}
+    {open && block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value}
+      cap={block.timer?.type === 'fortime' ? block.timer.cap : null} onChange={(value) => onScoreChange(block, value)} />}
     {(block.timer || loggable) && <div className="plan-block-foot">
       {block.timer && <StartTimer config={block.timer} />}
       {loggable && <button type="button" className="plan-outline" aria-expanded={open} onClick={() => setLogging(!open)}>
@@ -262,9 +263,63 @@ function LogField({ label, unit, inputMode, value, parse, format = fieldText, on
 }
 
 const formatTime = (value) => (value == null ? '' : formatValue(value, 'time'));
+const splitTime = (value) => (value == null ? { min: '', sec: '' } : { min: String(Math.floor(value / 60)), sec: String(Math.round(value % 60)).padStart(2, '0') });
 
-function ScoreField({ type, value, onChange }) {
+/**
+ * A time as minutes and seconds in two boxes, so the phone's number pad is enough: no ':' to find
+ * and no sum in seconds. Saved in seconds once focus leaves both boxes. A time over the coach's cap
+ * (ms) is saved only after the athlete confirms it, since it usually means a typo.
+ */
+function TimeField({ label, value, cap, onChange }) {
+  const alert = useAlert();
+  const [text, setText] = useState(() => splitTime(value));
+  const [invalid, setInvalid] = useState(false);
+  const group = useRef(null);
+  const seconds = useRef(null);
+  useEffect(() => { setText(splitTime(value)); }, [value]);
+  const revert = () => { setText(splitTime(value)); setInvalid(false); };
+
+  async function commit() {
+    const min = text.min.trim();
+    const sec = text.sec.trim();
+    if (!min && !sec) { setInvalid(false); if (value != null) onChange(null); return; }
+    if (!/^\d{0,3}$/.test(min) || !/^\d{0,2}$/.test(sec) || Number(sec || 0) > 59) { setInvalid(true); return; }
+    const total = Number(min || 0) * 60 + Number(sec || 0);
+    if (!(total > 0)) { setInvalid(true); return; }
+    setInvalid(false);
+    setText(splitTime(total));
+    if (total === value) return;
+    if (cap && total * 1000 > cap) {
+      const keep = await alert({
+        title: 'Terminaste fuera del tiempo límite',
+        message: `Registraste ${formatTime(total)} y el límite del coach era ${formatClock(cap)}. ¿Quieres guardarlo así?`,
+        actions: [{ label: 'Corregir', role: 'cancel' }, { label: 'Guardar así', value: true }],
+      });
+      if (!keep) { revert(); return; }
+    }
+    onChange(total);
+  }
+  // Moving from minutes to seconds is one edit, not two saves.
+  const leave = (event) => { if (!group.current?.contains(event.relatedTarget)) commit(); };
+  const digits = (key, max) => (event) => setText((current) => ({ ...current, [key]: event.target.value.replace(/\D/g, '').slice(0, max) }));
+  const enter = (event) => { if (event.key === 'Enter') event.currentTarget.blur(); };
+
+  return <div className="log-field time-field" ref={group} onBlur={leave} aria-invalid={invalid}>
+    <span>{label}</span>
+    <span className="time-inputs">
+      <input inputMode="numeric" aria-label="Minutos" placeholder="min" value={text.min} enterKeyHint="next"
+        onChange={digits('min', 3)} onKeyDown={(event) => { if (event.key === 'Enter') seconds.current?.focus(); }} />
+      <b aria-hidden="true">:</b>
+      <input ref={seconds} inputMode="numeric" aria-label="Segundos" placeholder="seg" value={text.sec} enterKeyHint="done"
+        onChange={digits('sec', 2)} onKeyDown={enter} />
+    </span>
+    {cap ? <small className="time-cap">Límite {formatClock(cap)}</small> : null}
+  </div>;
+}
+
+function ScoreField({ type, value, cap, onChange }) {
   const field = SCORE_FIELDS[type];
+  if (type === 'time') return <div className="plan-log score"><TimeField label={field.label} value={value} cap={cap} onChange={onChange} /></div>;
   return <div className="plan-log score">
     <LogField label={field.label} unit={field.placeholder} inputMode={field.inputMode} value={value}
       parse={(text) => parseValue(text, type)} format={type === 'time' ? formatTime : fieldText} onChange={onChange} />
