@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { bestRecord, formatValue, moveInfo, parseValue, today } from '../../lib/catalog';
-import { addDays, itemName, loadText, recordCandidate, resolveLoad, volumeText, weekDays, weekStart } from '../../lib/training';
+import { addDays, itemName, ladderText, loadText, recordCandidate, resolveLoad, volumeText, weekDays, weekStart } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
 import { useTimer } from '../timer/timer-provider';
@@ -44,7 +44,7 @@ export function blockTags(block) {
 }
 
 /** "Descanso 1:00 entre rondas": the pause taken after each pass through the block's lines. */
-export const restText = (block) => (block.rest ? `Descanso ${formatClock(block.rest)}${block.rounds > 1 ? ' entre rondas' : ''}` : '');
+export const restText = (block) => (block.rest ? `Descanso ${formatClock(block.rest)}${block.rounds > 1 || block.ladder ? ' entre rondas' : ''}` : '');
 
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
@@ -189,6 +189,7 @@ function PlanBlock({ block, index, content, results, bestOf, division, onItemCha
     {block.notes && <p className="plan-notes">{block.notes}</p>}
     {/* Rounds are the block's: everything below is repeated together, so it is said once, above it. */}
     {block.rounds > 1 && <p className="plan-rounds"><Icon name="repeat" weight={2.4} />{block.rounds} rondas de:</p>}
+    {block.ladder && <p className="plan-rounds"><Icon name="stairs" weight={2.4} />Escalera <span className="num">{ladderText(block.ladder)}</span> de:</p>}
     {block.items.map((item) => <PlanItem key={item.id} item={item} content={content} results={results} bestOf={bestOf} division={division} logging={open}
       onChange={(patch) => onItemChange(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
     {/* The rest comes after the lines, as it does in the gym: it closes each round. */}

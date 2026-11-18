@@ -182,6 +182,10 @@
 .format-field .stepper-field input { width: 56px; letter-spacing: 0; }
 .format-text { width: 132px; min-height: 38px; padding: 0 12px; border: 0; border-radius: 10px; background: var(--bg); font-size: 15px; font-weight: 800; letter-spacing: 0; text-transform: none; }
 .format-text::placeholder, .format-field input::placeholder { color: var(--ink3); font-size: 14px; font-weight: 600; }
+.format-text[aria-invalid="true"] { box-shadow: inset 0 0 0 2px var(--danger); }
+.ladder-field { flex-basis: 100%; }
+.ladder-field .format-text { width: 200px; }
+.format-error { color: var(--danger); font-size: 12px; font-weight: 700; letter-spacing: 0; text-transform: none; }
 
 /* ---------- Lines: one row each, like the whiteboard ---------- */
 .line-columns, .line-row { display: grid; grid-template-columns: 96px minmax(0, 1fr) 172px 32px 32px; align-items: center; gap: 5px; }
