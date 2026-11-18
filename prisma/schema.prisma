@@ -156,19 +156,21 @@ model CoachAthlete {
 }
 
 model TrainingGroup {
-  id         String            @id @default(uuid(7)) @db.Uuid
-  coachId    String            @db.Uuid
-  name       String
+  id          String            @id @default(uuid(7)) @db.Uuid
+  coachId     String            @db.Uuid
+  name        String
   // Block color token, e.g. "--b-blue".
-  color      String
+  color       String
   // Reusable code athletes use to join; the coach can replace it at any time.
-  joinCode   String            @unique
-  archivedAt DateTime?         @db.Timestamptz(3)
-  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
-  coach      Profile           @relation(fields: [coachId], references: [id], onDelete: Restrict)
-  members    GroupMember[]
-  sessions   TrainingSession[]
-  invites    CoachInvite[]
+  joinCode    String            @unique
+  // The coach trains with this group: its published sessions also show in the coach's own plan.
+  coachTrains Boolean           @default(false)
+  archivedAt  DateTime?         @db.Timestamptz(3)
+  createdAt   DateTime          @default(now()) @db.Timestamptz(3)
+  coach       Profile           @relation(fields: [coachId], references: [id], onDelete: Restrict)
+  members     GroupMember[]
+  sessions    TrainingSession[]
+  invites     CoachInvite[]
 
   @@index([coachId, archivedAt])
 }

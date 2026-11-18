@@ -10,7 +10,7 @@ import { SegmentedControl, SymbolTile } from '../ui/controls';
 /** Settings rows about coaching: the member's coach (or a code to join one) and the coach workspace. */
 const DIVISIONS = [{ value: 'MEN', label: 'Chicos' }, { value: 'WOMEN', label: 'Chicas' }];
 
-export default function CoachSection({ coach, isCoach, division, onDivision, onJoin, onLeave }) {
+export default function CoachSection({ coach, ownGroups = [], isCoach, division, onDivision, onJoin, onLeave }) {
   const alert = useAlert();
   const [code, setCode] = useState('');
   const [busy, setBusy] = useState(false);
@@ -63,7 +63,8 @@ export default function CoachSection({ coach, isCoach, division, onDivision, onJ
       </form>}
     </List>
     {error && <p className="field-error" role="alert">{error}</p>}
-    {isCoach && <List header="Modo coach">
+    {isCoach && <List header="Modo coach" footer={ownGroups.length ? `Entrenas con ${ownGroups.join(', ')}: sus sesiones publicadas aparecen en tu Plan.`
+      : 'Para ver tu propia programación en el Plan, activa "Entreno con este grupo" en Atletas.'}>
       <Link className="row row-button" href="/coach">
         <span className="row-leading"><SymbolTile color="--b-blue"><Icon name="calendar" /></SymbolTile></span>
         <span className="row-body"><span className="row-text"><span className="row-title">Programar entrenamientos</span>

@@ -54,7 +54,9 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
   const movements = useMovements(hasBackend, scope);
   const plan = usePlan(hasBackend, scope);
   // The server's answer at page load holds until the plan itself arrives, so the tab does not flicker.
-  const planEnabled = hasBackend && (plan.loaded ? Boolean(plan.coach) || plan.sessions.length > 0 : hasPlan || Boolean(plan.coach));
+  // Following someone: a coach, or the coach's own groups they train with.
+  const following = Boolean(plan.coach) || plan.ownGroups.length > 0;
+  const planEnabled = hasBackend && (plan.loaded ? following || plan.sessions.length > 0 : hasPlan || following);
   const planBadge = plan.sessions.some((session) => session.unread > 0 || (session.date === today() && !session.completedAt));
   const loading = loadingRecords || movements.loading;
   const error = recordsError || movements.error;
@@ -142,7 +144,7 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
   };
 
   // Members who follow a plan open on it, once per visit; afterwards the tab they pick is kept.
-  const home = planEnabled && plan.coach ? 'plan' : 'exec';
+  const home = planEnabled && following ? 'plan' : 'exec';
   const homed = useRef(false);
   useEffect(() => {
     if (!ready || home !== 'plan' || homed.current) return;
@@ -255,7 +257,7 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
     <RecordFormSheet form={form} onClose={() => setForm(null)} onSave={saveRecord} />
     <QuickUploadSheet open={quickOpen} records={records} onClose={() => setQuickOpen(false)} onSave={saveQuick} />
     <SettingsSheet open={settingsOpen} onClose={() => setSettingsOpen(false)} settings={settings} updateSettings={updateSettings}
-      demo={!hasBackend} isAdmin={isAdmin} isCoach={isCoach} coach={plan.coach} division={plan.division} onDivision={plan.setDivision} onJoin={joinPlan} onLeave={leavePlan} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
+      demo={!hasBackend} isAdmin={isAdmin} isCoach={isCoach} coach={plan.coach} ownGroups={plan.ownGroups} division={plan.division} onDivision={plan.setDivision} onJoin={joinPlan} onLeave={leavePlan} onTour={replayTour} onMyMovements={() => setMyMovementsOpen(true)} />
     <MyMovementsSheet open={myMovementsOpen} onClose={() => setMyMovementsOpen(false)} movements={movements.movements}
       onNew={() => setNewMovement({})} onHide={movements.setHidden} onDelete={deleteMovement} />
     <NewMovementSheet preset={newMovement} onClose={() => setNewMovement(null)} onCreate={movements.createMovement} />

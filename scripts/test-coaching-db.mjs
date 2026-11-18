@@ -10,7 +10,7 @@ import {
 } from '../src/lib/server/coaching.js';
 import {
   addAthleteComment, addCoachComment, deleteSession, getSessionDetail, hasPlan, listActivity, listCoachSessions, listPlan,
-  saveLog, saveSession,
+  ownTrainingGroups, saveLog, saveSession,
 } from '../src/lib/server/training.js';
 import { newBlock, newItem } from '../src/lib/training.js';
 import { seedMovements } from '../prisma/catalog.mjs';
@@ -152,6 +152,32 @@ try {
   await assert.rejects(deleteSession(otherCoachId, draft.id), code('not_found'));
   await deleteSession(coachId, draft.id);
   assert.deepEqual((await listCoachSessions(coachId, { groupId: group.id }, '2026-11-01', '2026-11-30')).map((entry) => entry.logged), [1]);
+
+  // A coach can train with their own group: its published sessions join their plan, drafts and
+  // one-to-one sessions do not, they log like an athlete, and nobody counts their log as an athlete's.
+  assert.deepEqual(await ownTrainingGroups(coachId), []);
+  assert.equal(await hasPlan(coachId), false);
+  assert.deepEqual(await listPlan(coachId, '2026-11-01', '2026-11-30'), []);
+  await assert.rejects(updateGroup(coachId, group.id, { coachTrains: 'yes' }), code('invalid_input'));
+  await assert.rejects(updateGroup(otherCoachId, group.id, { coachTrains: true }), code('not_found'));
+  assert.equal((await updateGroup(coachId, group.id, { coachTrains: true })).coachTrains, true);
+  assert.equal((await getOverview(coachId)).groups.find((entry) => entry.id === group.id).coachTrains, true);
+  assert.deepEqual(await ownTrainingGroups(coachId), [updated.name]);
+  assert.equal(await hasPlan(coachId), true);
+  const ownDraft = await saveSession(coachId, session({ groupId: group.id }, '2026-11-12', { blocks: [] }, false));
+  const own = await listPlan(coachId, '2026-11-01', '2026-11-30');
+  assert.deepEqual(own.map((entry) => [entry.date, entry.own]), [['2026-11-10', true]]);
+  assert.equal((await listPlan(anaId, '2026-11-10', '2026-11-10'))[0].own, false);
+  await saveLog(coachId, saved.id, { completed: true });
+  assert.ok((await listPlan(coachId, '2026-11-10', '2026-11-10'))[0].completedAt);
+  await assert.rejects(addAthleteComment(coachId, saved.id, 'Note to self'), code('forbidden'));
+  assert.deepEqual((await listCoachSessions(coachId, { groupId: group.id }, '2026-11-10', '2026-11-10')).map((entry) => [entry.logged, entry.completed]), [[1, 1]]);
+  assert.deepEqual((await getSessionDetail(coachId, saved.id)).athletes.map((athlete) => athlete.name), ['Ana', 'Ben']);
+  assert.equal((await updateGroup(coachId, group.id, { coachTrains: false })).coachTrains, false);
+  assert.deepEqual(await ownTrainingGroups(coachId), []);
+  // What the coach logged stays theirs, like any athlete's.
+  assert.deepEqual((await listPlan(coachId, '2026-11-01', '2026-11-30')).map((entry) => entry.date), ['2026-11-10']);
+  await deleteSession(coachId, ownDraft.id);
 
   // Leaving: the athlete keeps what they logged and their records; the coach loses access and keeps a history row.
   await assert.rejects(endLink(otherCoachId, { coachId, athleteId: anaId }), code('forbidden'));

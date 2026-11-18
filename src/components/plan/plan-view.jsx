@@ -164,7 +164,7 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
     <button type="button" className="filled-button plan-done" data-done={done} disabled={saving} onClick={toggleDone}>
       <Icon name="check" weight={3} />{done ? `Completada · ${clock(session.completedAt)}` : 'Marcar como completada'}
     </button>
-    {!preview && <Thread session={session} plan={plan} userId={userId} active={active} />}
+    {!preview && !session.own && <Thread session={session} plan={plan} userId={userId} active={active} />}
   </article>;
 }
 

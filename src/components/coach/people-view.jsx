@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import { bestRecord, formatValue, getCatalog, RMS } from '../../lib/catalog';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
+import { Switch } from '../ui/controls';
 
 const dateFormat = new Intl.DateTimeFormat('es', { day: 'numeric', month: 'short', year: 'numeric' });
 const joinUrl = (code) => `${window.location.origin}/join/${code}`;
@@ -52,6 +53,7 @@ export default function PeopleView({ overview, api }) {
   const toggleMember = (group, athleteId) => run(() => api.send(`/api/coach/groups/${group.id}`, 'PATCH', {
     memberIds: group.memberIds.includes(athleteId) ? group.memberIds.filter((id) => id !== athleteId) : [...group.memberIds, athleteId],
   }));
+  const setTraining = (group, coachTrains) => run(() => api.send(`/api/coach/groups/${group.id}`, 'PATCH', { coachTrains }));
   async function renameGroup(group, name) {
     if (name.trim() && name.trim() !== group.name) await run(() => api.send(`/api/coach/groups/${group.id}`, 'PATCH', { name }));
   }
@@ -108,6 +110,10 @@ export default function PeopleView({ overview, api }) {
           <input className="group-name display" defaultValue={group.name} key={group.name} maxLength={40} aria-label="Nombre del grupo"
             onBlur={(event) => renameGroup(group, event.target.value)} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
           <p>{group.memberIds.length === 1 ? '1 atleta' : `${group.memberIds.length} atletas`} · código <b className="code num">{group.joinCode}</b></p>
+          <label className="group-train">
+            <Switch checked={group.coachTrains} disabled={busy} label={`Entreno con ${group.name}`} onChange={(next) => setTraining(group, next)} />
+            <span><b>Entreno con este grupo</b>{group.coachTrains ? 'Sus sesiones publicadas aparecen en Mi entrenamiento.' : 'Actívalo para ver sus sesiones en Mi entrenamiento.'}</span>
+          </label>
           <div className="group-actions">
             <CopyButton text={joinUrl(group.joinCode)} />
             <CopyButton text={group.joinCode} label="Copiar código" />

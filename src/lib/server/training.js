@@ -58,7 +58,8 @@ export async function listCoachSessions(coachId, target, from, to) {
   const where = await resolveTarget(prisma, id, target);
   const sessions = await prisma.trainingSession.findMany({
     where: { coachId: id, ...where, date: range(from, to) },
-    include: { logs: { select: { completedAt: true } } }, orderBy: { date: 'asc' },
+    // The coach's own log (training with their group) is not an athlete's.
+    include: { logs: { where: { athleteId: { not: id } }, select: { completedAt: true } } }, orderBy: { date: 'asc' },
   });
   return sessions.map((session) => ({
     ...sessionDto(session), logged: session.logs.length, completed: session.logs.filter((log) => log.completedAt).length,
@@ -77,7 +78,7 @@ export async function saveSession(coachId, input, now = new Date()) {
   const date = toDate(input.date);
   return getPrisma().$transaction(async (tx) => {
     const target = await resolveTarget(tx, id, input.target);
-    const existing = await tx.trainingSession.findFirst({ where: { coachId: id, ...target, date }, include: { logs: { select: { completedAt: true } } } });
+    const existing = await tx.trainingSession.findFirst({ where: { coachId: id, ...target, date }, include: { logs: { where: { athleteId: { not: id } }, select: { completedAt: true } } } });
     // The first publication time is kept through later edits.
     const publishedAt = input.published ? existing?.publishedAt ?? now : null;
     const session = existing
@@ -205,16 +206,26 @@ export async function getCoachStats(coachId, from, to) {
 /* ---------- Athlete ---------- */
 
 // Published sessions of the athlete's current coaches and groups, plus any session they logged:
-// what they did stays theirs after leaving a coach or a group.
+// what they did stays theirs after leaving a coach or a group. A coach who trains with one of
+// their own groups sees its published sessions too.
 async function visibleWhere(db, athleteId) {
   const coachIds = await activeCoachIds(athleteId, db);
   return {
     OR: [
       { publishedAt: { not: null }, athleteId, coachId: { in: coachIds } },
       { publishedAt: { not: null }, group: { archivedAt: null, members: { some: { athleteId } } } },
+      { publishedAt: { not: null }, coachId: athleteId, group: { archivedAt: null, coachTrains: true } },
       { logs: { some: { athleteId } } },
     ],
   };
+}
+
+/** Names of the coach's own groups they train with, for their plan tab. Empty for anyone else. */
+export async function ownTrainingGroups(profileId, db = getPrisma()) {
+  const groups = await db.trainingGroup.findMany({
+    where: { coachId: requireId(profileId), coachTrains: true, archivedAt: null }, select: { name: true }, orderBy: { createdAt: 'asc' },
+  });
+  return groups.map((group) => group.name);
 }
 
 async function visibleSession(db, athleteId, sessionId) {
@@ -228,6 +239,7 @@ export async function hasPlan(athleteId) {
   const id = requireId(athleteId);
   const prisma = getPrisma();
   if ((await activeCoachIds(id, prisma)).length) return true;
+  if ((await ownTrainingGroups(id, prisma)).length) return true;
   return Boolean(await prisma.sessionLog.findFirst({ where: { athleteId: id }, select: { sessionId: true } }));
 }
 
@@ -250,6 +262,8 @@ export async function listPlan(athleteId, from, to) {
     return {
       ...sessionDto(session),
       group: session.group,
+      // The coach's own programming: there is no one to comment with.
+      own: session.coachId === id,
       results: log?.results ?? emptyResults(), completedAt: log?.completedAt ?? null,
       comments: session.comments.map(commentDto),
       unread: session.comments.filter((comment) => comment.authorId !== id && comment.createdAt > seenAt).length,
@@ -287,5 +301,7 @@ export async function addAthleteComment(athleteId, sessionId, body) {
   const id = requireId(athleteId);
   const prisma = getPrisma();
   const session = await visibleSession(prisma, id, sessionId);
+  // A coach training with their own group has no one to write to.
+  if (session.coachId === id) throw new CoachingError('forbidden');
   return commentDto(await prisma.sessionComment.create({ data: { sessionId: session.id, athleteId: id, authorId: id, body: commentBody(body) } }));
 }

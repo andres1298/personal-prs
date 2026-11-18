@@ -24,7 +24,7 @@ async function call(url, method = 'GET', body) {
  * once the server answered; until then `coach` may come from the device copy.
  */
 export default function usePlan(enabled, scope) {
-  const [plan, setPlan] = useState({ coach: null, sessions: [], division: null });
+  const [plan, setPlan] = useState({ coach: null, ownGroups: [], sessions: [], division: null });
   const [status, setStatus] = useState({ loaded: false, error: '' });
   const key = enabled ? cacheKey('plan', scope) : null;
   const request = useRef(0);
@@ -39,7 +39,7 @@ export default function usePlan(enabled, scope) {
     try {
       const data = await call(`/api/plan?from=${range.from}&to=${range.to}`);
       if (id !== request.current) return;
-      setPlan({ coach: data.coach, sessions: data.sessions, division: data.division ?? null });
+      setPlan({ coach: data.coach, ownGroups: data.ownGroups ?? [], sessions: data.sessions, division: data.division ?? null });
       setStatus({ loaded: true, error: '' });
     } catch (err) {
       if (id === request.current) setStatus((current) => ({ ...current, error: err.message === 'Failed to fetch' ? 'Sin conexión.' : err.message }));
@@ -49,7 +49,7 @@ export default function usePlan(enabled, scope) {
   useEffect(() => {
     if (!enabled) return;
     const cached = key ? readStored(key, null) : null;
-    if (cached?.sessions) setPlan(cached);
+    if (cached?.sessions) setPlan({ ownGroups: [], ...cached });
     refresh();
   }, [enabled, key, refresh]);
   useEffect(() => { if (key && status.loaded) writeStored(key, plan); }, [key, plan, status.loaded]);
