@@ -9,8 +9,8 @@ import {
   isCoach, revokeInvite, updateGroup,
 } from '../src/lib/server/coaching.js';
 import {
-  addAthleteComment, addCoachComment, deleteSession, getSessionDetail, hasPlan, listActivity, listCoachSessions, listPlan,
-  ownTrainingGroups, saveLog, saveSession,
+  addAthleteComment, addCoachComment, deleteSession, getSessionDetail, hasPlan, listActivity, listCoachNotifications, listCoachSessions,
+  listPlan, markCoachThreadsSeen, ownTrainingGroups, saveLog, saveSession,
 } from '../src/lib/server/training.js';
 import { newBlock, newItem } from '../src/lib/training.js';
 import { seedMovements } from '../prisma/catalog.mjs';
@@ -144,6 +144,31 @@ try {
   assert.deepEqual(events.map((event) => [event.kind, event.athleteName]).sort(), [['comment', 'Ana'], ['completed', 'Ana']]);
   assert.deepEqual(await listActivity(otherCoachId), []);
 
+  // The coach's bell: athletes' comments stay new until the coach reads that thread; their own
+  // replies never count, and other coaches neither list nor mark anything.
+  const notices = async () => (await listCoachNotifications(coachId)).map((notice) => [notice.athleteName, notice.body, notice.unread]);
+  const [first] = await listCoachNotifications(coachId);
+  assert.deepEqual([first.sessionId, first.date, first.groupId, first.athleteId], [saved.id, '2026-11-10', group.id, anaId]);
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', true]]);
+  assert.deepEqual(await listCoachNotifications(otherCoachId), []);
+  await assert.rejects(markCoachThreadsSeen(otherCoachId, saved.id), code('not_found'));
+  await assert.rejects(markCoachThreadsSeen(coachId, saved.id, 'nope'), code('invalid_input'));
+  assert.equal(await markCoachThreadsSeen(coachId, saved.id, [benId]), 0);
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', true]]);
+  assert.equal(await markCoachThreadsSeen(coachId, saved.id), 1);
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', false]]);
+  await addCoachComment(coachId, saved.id, anaId, 'Keep going');
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', false]]);
+  await addAthleteComment(anaId, saved.id, 'Thanks');
+  assert.deepEqual(await notices(), [['Ana', 'Thanks', true], ['Ana', 'Felt heavy', false]]);
+  assert.equal(await markCoachThreadsSeen(coachId, saved.id, [anaId]), 1);
+  assert.deepEqual(await notices(), [['Ana', 'Thanks', false], ['Ana', 'Felt heavy', false]]);
+  // A group session's thread counts only while the athlete is in the group, as in the session detail.
+  await updateGroup(coachId, group.id, { memberIds: [benId] });
+  assert.deepEqual(await notices(), []);
+  await updateGroup(coachId, group.id, { memberIds: [anaId, benId] });
+  assert.equal((await notices()).length, 2);
+
   // Editing a logged session keeps the athlete's results; deleting it is refused.
   const edited = await saveSession(coachId, session({ groupId: group.id }, '2026-11-10', { blocks: [newBlock({ title: 'Changed' })] }));
   assert.deepEqual([edited.id, edited.logged, edited.completed], [saved.id, 1, 1]);
@@ -193,6 +218,7 @@ try {
   assert.deepEqual(overview.former.map((athlete) => [athlete.name, athlete.left]), [['Ana', true]]);
   assert.deepEqual((await getSessionDetail(coachId, saved.id)).athletes.map((athlete) => athlete.name), ['Ben']);
   assert.deepEqual(await listActivity(coachId, new Date('2026-11-12T00:00:00Z')), []);
+  assert.deepEqual(await listCoachNotifications(coachId), []);
   // Free again, Ana can follow another coach.
   await acceptJoin(anaId, otherGroup.joinCode);
 
@@ -205,7 +231,7 @@ try {
   assert.deepEqual((await getOverview(otherCoachId)).groups, []);
 
   // Every new table denies the Data API.
-  const tables = ['CoachAthlete', 'TrainingGroup', 'GroupMember', 'CoachInvite', 'TrainingSession', 'SessionLog', 'SessionComment'];
+  const tables = ['CoachAthlete', 'TrainingGroup', 'GroupMember', 'CoachInvite', 'TrainingSession', 'SessionLog', 'SessionComment', 'CoachThreadRead'];
   const rls = await prisma.$queryRaw`SELECT relname FROM pg_class WHERE relrowsecurity AND relname = ANY(${tables})`;
   assert.equal(rls.length, tables.length);
   console.log('Coaching integration checks passed.');

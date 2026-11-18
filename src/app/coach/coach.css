@@ -10,6 +10,10 @@
 
 .coach-side { position: sticky; top: 0; align-self: start; height: 100dvh; display: flex; flex-direction: column; gap: 18px; padding: 24px 14px 18px; background: var(--surface); }
 .coach-brand { padding: 0 10px; font-size: 26px; }
+.coach-brand-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding-right: 6px; }
+.coach-bell { background: var(--surface2); }
+.coach-bell .bell-count { box-shadow: 0 0 0 2px var(--surface); }
+.coach-topbar { display: none; }
 .coach-nav { display: grid; gap: 4px; }
 .coach-nav button, .coach-exit {
   display: flex; align-items: center; gap: 10px; min-height: 46px; padding: 0 12px; border-radius: 12px; color: var(--ink2);
@@ -363,7 +367,10 @@
     position: fixed; z-index: 30; top: auto; left: 0; right: 0; bottom: 0; height: auto; flex-direction: row; align-items: center; gap: 4px;
     padding: 8px 10px max(var(--safe-bottom), 10px); box-shadow: 0 -1px 0 var(--line);
   }
-  .coach-brand { display: none; }
+  .coach-brand-row { display: none; }
+  .coach-topbar { display: flex; justify-content: flex-end; margin: -6px 0 2px; }
+  .coach-topbar .coach-bell { background: var(--surface); }
+  .coach-topbar .coach-bell .bell-count { box-shadow: 0 0 0 2px var(--bg); }
   .coach-nav { flex: 1; grid-auto-flow: column; grid-auto-columns: 1fr; }
   .coach-nav button, .coach-exit { flex-direction: column; justify-content: center; gap: 3px; min-height: 52px; padding: 0 6px; font-size: 11px; position: relative; }
   .coach-count { position: absolute; top: 4px; right: calc(50% - 26px); margin: 0; }

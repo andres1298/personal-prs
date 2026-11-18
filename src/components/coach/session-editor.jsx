@@ -30,7 +30,7 @@ function swap(list, index, direction) {
  * shows the day as the athlete's phone would, next to the form on a wide screen and instead of it
  * on a narrow one. Saving replaces the day's session; results already logged stay as written.
  */
-export default function SessionEditor({ date, session, targetName, group, athletes, movements, initialTab, focusAthleteId, api, onSave, onDelete, onCopy, onClose }) {
+export default function SessionEditor({ date, session, targetName, group, athletes, movements, initialTab, focusAthleteId, api, onSave, onDelete, onCopy, onClose, onDirty }) {
   const alert = useAlert();
   const [draft, setDraft] = useState(() => ({
     title: session?.title ?? '', notes: session?.notes ?? '', content: session?.content ?? { blocks: [] }, published: session?.published ?? true,
@@ -54,6 +54,11 @@ export default function SessionEditor({ date, session, targetName, group, athlet
     window.addEventListener('beforeunload', warn);
     return () => window.removeEventListener('beforeunload', warn);
   }, [dirty]);
+  // The workspace asks before a notice replaces this page with unsaved work.
+  useEffect(() => {
+    onDirty?.(dirty);
+    return () => onDirty?.(false);
+  }, [dirty, onDirty]);
 
   useEffect(() => {
     setPreviewRecords(null);
@@ -286,8 +291,12 @@ function Results({ sessionId, content, focusAthleteId, api }) {
   const [error, setError] = useState('');
   useEffect(() => {
     let current = true;
-    api.send(`/api/coach/sessions/${sessionId}`, 'GET').then((data) => { if (current) setDetail(data.session); })
-      .catch((err) => { if (current) setError(err.message); });
+    api.send(`/api/coach/sessions/${sessionId}`, 'GET').then((data) => {
+      if (!current) return;
+      setDetail(data.session);
+      // The threads are on screen now, so their comments are read.
+      if (data.session.athletes.some((athlete) => athlete.comments.length)) api.markThreadsSeen?.(sessionId);
+    }).catch((err) => { if (current) setError(err.message); });
     return () => { current = false; };
   }, [sessionId, api]);
 

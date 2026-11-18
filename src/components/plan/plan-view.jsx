@@ -5,6 +5,7 @@ import { bestRecord, formatValue, moveInfo, parseValue, today } from '../../lib/
 import { addDays, itemName, ladderText, loadText, recordCandidate, resolveLoad, volumeText, weekDays, weekStart } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
+import { BellButton, NoticeSheet } from '../notifications';
 import { useTimer } from '../timer/timer-provider';
 import { formatClock } from '../../lib/timer-engine';
 import { TEMPLATES } from '../timer/timer-views';
@@ -47,8 +48,23 @@ export function blockTags(block) {
 export const restText = (block) => (block.rest ? `Descanso ${formatClock(block.rest)}${block.rounds > 1 || block.ladder ? ' entre rondas' : ''}` : '');
 
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
+const shortDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'short', day: 'numeric', month: 'short' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 const fieldText = (value) => (value == null ? '' : String(value));
+const NOTICE_LIMIT = 30;
+
+/**
+ * The coach's comments across the loaded weeks, newest first, for the bell. The last `unread`
+ * comments of each session's thread are the new ones; the athlete's own never count, and the
+ * coach's own programming has no thread.
+ */
+function coachNotices(sessions, userId) {
+  const notices = sessions.filter((session) => !session.own).flatMap((session) => {
+    const theirs = session.comments.filter((comment) => comment.authorId !== userId);
+    return theirs.map((comment, index) => ({ comment, session, unread: index >= theirs.length - session.unread }));
+  });
+  return notices.sort((a, b) => new Date(b.comment.createdAt) - new Date(a.comment.createdAt)).slice(0, NOTICE_LIMIT);
+}
 
 /** The athlete's programming: a week strip and the session of the chosen day. */
 export default function PlanView({ plan, records, userId, active, onExecute, onAddRecord, onSaveRecord }) {
@@ -62,6 +78,17 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
   const sessions = byDate.get(selected) ?? [];
   const move = (weeks) => setSelected((current) => addDays(current, 7 * weeks));
   const now = today();
+  const [noticesOpen, setNoticesOpen] = useState(false);
+  // The thread a notice asked for: its day is selected and the thread scrolled into view.
+  const [threadFocus, setThreadFocus] = useState(null); // { id, key }
+  const notices = useMemo(() => coachNotices(plan.sessions, userId), [plan.sessions, userId]);
+  const unread = plan.sessions.reduce((sum, session) => sum + (session.own ? 0 : session.unread), 0);
+  const coachName = plan.coach?.name || 'Tu coach';
+  function openNotice({ session }) {
+    setNoticesOpen(false);
+    setSelected(session.date);
+    setThreadFocus({ id: session.id, key: Date.now() });
+  }
 
   return <>
     {/* The week is the first thing on screen; the tab bar already says this is the plan. */}
@@ -87,15 +114,24 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
     </nav>
     <div className="plan-date-row">
       <p className="plan-date">{longDate(selected)}</p>
-      {selected !== now && <button type="button" className="plan-today" onClick={() => setSelected(now)}>Hoy</button>}
+      <span className="plan-date-tools">
+        {selected !== now && <button type="button" className="plan-today" onClick={() => setSelected(now)}>Hoy</button>}
+        {(plan.coach || notices.length > 0) && <BellButton count={unread} onClick={() => setNoticesOpen(true)} />}
+      </span>
     </div>
     {!sessions.length && <p className="empty">{plan.loaded || plan.sessions.length ? 'No hay sesión programada para este día.' : 'Cargando tu plan…'}</p>}
     {sessions.map((session) => <SessionCard key={session.id} session={session} plan={plan} records={records} userId={userId} active={active}
-      onExecute={onExecute} onAddRecord={onAddRecord} onSaveRecord={onSaveRecord} />)}
+      threadFocus={threadFocus?.id === session.id ? threadFocus.key : null} onExecute={onExecute} onAddRecord={onAddRecord} onSaveRecord={onSaveRecord} />)}
+    <NoticeSheet open={noticesOpen} onClose={() => setNoticesOpen(false)} onOpen={openNotice}
+      empty="Aquí verás los comentarios que te deje tu coach en tus sesiones."
+      notices={notices.map(({ comment, session, unread: isNew }) => ({
+        id: comment.id, session, unread: isNew, heading: coachName, body: comment.body, time: clock(comment.createdAt),
+        context: `Sesión del ${shortDate(session.date)}${session.title ? ` · ${session.title}` : ''}`,
+      }))} />
   </>;
 }
 
-function SessionCard({ session, plan, records, userId, active, preview = false, onExecute, onAddRecord, onSaveRecord }) {
+function SessionCard({ session, plan, records, userId, active, threadFocus = null, preview = false, onExecute, onAddRecord, onSaveRecord }) {
   const alert = useAlert();
   const [results, setResults] = useState(session.results);
   const [saving, setSaving] = useState(false);
@@ -164,7 +200,7 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
     <button type="button" className="filled-button plan-done" data-done={done} disabled={saving} onClick={toggleDone}>
       <Icon name="check" weight={3} />{done ? `Completada · ${clock(session.completedAt)}` : 'Marcar como completada'}
     </button>
-    {!preview && !session.own && <Thread session={session} plan={plan} userId={userId} active={active} />}
+    {!preview && !session.own && <Thread session={session} plan={plan} userId={userId} active={active} focus={threadFocus} />}
   </article>;
 }
 
@@ -327,14 +363,21 @@ function ScoreField({ type, value, cap, onChange }) {
   </div>;
 }
 
-function Thread({ session, plan, userId, active }) {
+function Thread({ session, plan, userId, active, focus }) {
   const alert = useAlert();
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const section = useRef(null);
   const { id, unread } = session;
   const { markSeen } = plan;
   // Reading the thread is what clears the unread mark; the tab stays mounted while hidden, so it must be showing.
   useEffect(() => { if (active && unread > 0) markSeen(id); }, [active, id, unread, markSeen]);
+  // Opened from the bell: bring the thread into view once its day is on screen.
+  useEffect(() => {
+    if (!focus || !active) return undefined;
+    const frame = requestAnimationFrame(() => section.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [focus, active]);
 
   async function send(event) {
     event.preventDefault();
@@ -349,7 +392,7 @@ function Thread({ session, plan, userId, active }) {
     } finally { setSending(false); }
   }
 
-  return <section className="thread" aria-label="Comentarios">
+  return <section ref={section} className="thread" aria-label="Comentarios">
     <h3 className="list-header">Comentarios con tu coach</h3>
     {session.comments.map((comment) => <p key={comment.id} className="bubble" data-mine={comment.authorId === userId}>
       {comment.body}<small>{clock(comment.createdAt)}</small>

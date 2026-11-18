@@ -5,6 +5,8 @@ import { emptyResults, isDate, LIMITS, normalizeContent, normalizeResults } from
 
 const MAX_RANGE_DAYS = 400;
 const ACTIVITY_DAYS = 14;
+const NOTIFICATION_DAYS = 30;
+const NOTIFICATION_LIMIT = 50;
 const day = (date) => date.toISOString().slice(0, 10);
 const toDate = (value) => new Date(`${value}T00:00:00.000Z`);
 const personName = (profile) => profile.displayName || profile.email || 'Sin nombre';
@@ -170,6 +172,63 @@ export async function listActivity(coachId, now = new Date()) {
     ...logs.map((log) => event('completed', log.completedAt, log.athleteId, log.athlete, log.session)),
     ...comments.map((comment) => event('comment', comment.createdAt, comment.athleteId, comment.author, comment.session, comment.body)),
   ].sort((a, b) => b.at - a.at).slice(0, 50);
+}
+
+/**
+ * Comments athletes left on the coach's sessions in the last days, newest first, for the coach's
+ * bell. Only threads the coach can open count: current athletes, and in a group session only its
+ * current members (as in getSessionDetail). `unread` marks a comment newer than the coach's last
+ * read of that thread; the coach's own replies are never listed.
+ */
+export async function listCoachNotifications(coachId, now = new Date()) {
+  const id = requireId(coachId);
+  const prisma = getPrisma();
+  const since = new Date(now.getTime() - NOTIFICATION_DAYS * 86400000);
+  const links = await prisma.coachAthlete.findMany({
+    where: { coachId: id, endedAt: null },
+    select: { athleteId: true, athlete: { select: { groupMemberships: { where: { group: { coachId: id, archivedAt: null } }, select: { groupId: true } } } } },
+  });
+  const athleteIds = links.map((link) => link.athleteId);
+  const members = new Set(links.flatMap((link) => link.athlete.groupMemberships.map((membership) => `${membership.groupId}:${link.athleteId}`)));
+  const comments = await prisma.sessionComment.findMany({
+    where: { athleteId: { in: athleteIds }, authorId: { in: athleteIds }, createdAt: { gte: since }, session: { coachId: id } },
+    include: {
+      session: { select: { id: true, date: true, title: true, groupId: true, athleteId: true, threadReads: { where: { athleteId: { in: athleteIds } } } } },
+      author: { select: { displayName: true, email: true } },
+    },
+    // Some rows may be dropped below, so a few more than the limit are read.
+    orderBy: { createdAt: 'desc' }, take: NOTIFICATION_LIMIT * 4,
+  });
+  const reachable = (comment) => comment.authorId === comment.athleteId && (comment.session.groupId
+    ? members.has(`${comment.session.groupId}:${comment.athleteId}`) : comment.session.athleteId === comment.athleteId);
+  return comments.filter(reachable).slice(0, NOTIFICATION_LIMIT).map((comment) => {
+    const read = comment.session.threadReads.find((entry) => entry.athleteId === comment.athleteId);
+    return {
+      id: comment.id, sessionId: comment.sessionId, date: day(comment.session.date), title: comment.session.title ?? '', groupId: comment.session.groupId,
+      athleteId: comment.athleteId, athleteName: personName(comment.author), body: comment.body, createdAt: comment.createdAt,
+      unread: !read || comment.createdAt > read.seenAt,
+    };
+  });
+}
+
+/**
+ * Marks threads of one of the coach's sessions as read now: those of `athleteIds`, or every
+ * thread with comments when it is omitted. Returns how many threads were marked.
+ */
+export async function markCoachThreadsSeen(coachId, sessionId, athleteIds, now = new Date()) {
+  const prisma = getPrisma();
+  const session = await prisma.trainingSession.findFirst({ where: { id: requireId(sessionId), coachId: requireId(coachId) }, select: { id: true } });
+  if (!session) throw new CoachingError('not_found');
+  if (athleteIds != null && !Array.isArray(athleteIds)) throw new CoachingError('invalid_input');
+  const only = athleteIds?.map((athleteId) => requireId(athleteId, 'invalid_input'));
+  const threads = await prisma.sessionComment.findMany({
+    where: { sessionId: session.id, ...(only ? { athleteId: { in: only } } : {}) }, distinct: ['athleteId'], select: { athleteId: true },
+  });
+  await prisma.$transaction(threads.map(({ athleteId }) => prisma.coachThreadRead.upsert({
+    where: { sessionId_athleteId: { sessionId: session.id, athleteId } },
+    update: { seenAt: now }, create: { sessionId: session.id, athleteId, seenAt: now },
+  })));
+  return threads.length;
 }
 
 /**

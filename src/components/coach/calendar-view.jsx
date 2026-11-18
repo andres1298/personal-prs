@@ -19,14 +19,14 @@ function summary(session) {
 }
 
 /** Month calendar of one group or athlete: open a day to program it, copy and paste days or whole weeks. */
-export default function CalendarView({ overview, movements, target, focus, onTarget, onPeople, api }) {
+export default function CalendarView({ overview, movements, target, focus, onTarget, onPeople, onDirty, api }) {
   const alert = useAlert();
   const [month, setMonth] = useState(today().slice(0, 7));
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState('');
   // The editor waits for the month's sessions, so a day opened from elsewhere shows what it already has.
   const [loaded, setLoaded] = useState(false);
-  const [editing, setEditing] = useState(null);     // { date, tab?, athleteId? }
+  const [editing, setEditing] = useState(null);     // { date, tab?, athleteId?, key? }
   const [clipboard, setClipboard] = useState(null); // { kind: 'day', date, session } | { kind: 'week', monday, sessions }
   const weeks = useMemo(() => monthWeeks(month), [month]);
   const from = weeks[0];
@@ -47,7 +47,8 @@ export default function CalendarView({ overview, movements, target, focus, onTar
   useEffect(() => {
     if (!focus) return;
     setMonth(focus.date.slice(0, 7));
-    setEditing({ date: focus.date, tab: 'results', athleteId: focus.athleteId });
+    // The key opens the editor afresh even when that day is already open, so it lands on the results.
+    setEditing({ date: focus.date, tab: 'results', athleteId: focus.athleteId, key: focus.key });
   }, [focus]);
 
   const byDate = useMemo(() => new Map(sessions.map((session) => [session.date, session])), [sessions]);
@@ -108,8 +109,8 @@ export default function CalendarView({ overview, movements, target, focus, onTar
   const editingSession = editing && byDate.get(editing.date);
   // Programming a day takes the whole page; the calendar comes back when it closes.
   if (editing && loaded) {
-    return <SessionEditor key={`${target.id}:${editing.date}`} date={editing.date} session={editingSession} targetName={targetName} group={group}
-      athletes={athletes} movements={movements} initialTab={editing.tab} focusAthleteId={editing.athleteId} api={api}
+    return <SessionEditor key={`${target.id}:${editing.date}:${editing.key ?? ''}`} date={editing.date} session={editingSession} targetName={targetName} group={group}
+      athletes={athletes} movements={movements} initialTab={editing.tab} focusAthleteId={editing.athleteId} api={api} onDirty={onDirty}
       onSave={(draft) => put(editing.date, draft)} onDelete={() => remove(editingSession)}
       onCopy={() => { setClipboard({ kind: 'day', date: editing.date, session: editingSession }); setEditing(null); }}
       onClose={() => setEditing(null)} />;
