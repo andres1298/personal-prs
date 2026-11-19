@@ -990,6 +990,37 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .screen-skeleton .tab-bar { pointer-events: none; }
 .screen-skeleton .tab-action { display: grid; place-items: center; }
 
+/* The loading screen holds the three skeletons; <html data-shell> (set before paint) picks one. */
+.shell-variant { display: none; }
+html:not([data-shell]) .shell-variant[data-for="plan"],
+html[data-shell="plan"] .shell-variant[data-for="plan"],
+html[data-shell="exec"] .shell-variant[data-for="exec"],
+html[data-shell="coach"] .shell-variant[data-for="coach"] { display: contents; }
+
+/* The coach's workspace skeleton, self-contained so it shows before the coach's styles load. */
+.cs { display: grid; grid-template-columns: 216px minmax(0, 1fr); min-height: 100dvh; }
+.cs-side { display: flex; flex-direction: column; gap: 6px; padding: 24px 14px; background: var(--surface); }
+.cs-brand { margin: 0 0 14px; }
+.cs-nav { height: 40px; border-radius: 10px; }
+.cs-main { min-width: 0; display: grid; align-content: start; gap: 14px; padding: 24px 28px 48px; }
+.cs-toolbar { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 4px; }
+.cs-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.cs-cell { min-height: 132px; display: flex; flex-direction: column; gap: 8px; padding: 8px; border-radius: 14px; background: var(--surface); }
+.cs-cell-body { flex: 1; min-height: 60px; border-radius: 10px; }
+@media (max-width: 860px) {
+  .cs { grid-template-columns: minmax(0, 1fr); }
+  .cs-side {
+    position: fixed; z-index: 30; left: 0; right: 0; bottom: 0; flex-direction: row; gap: 4px;
+    padding: 8px 10px max(var(--safe-bottom), 10px); box-shadow: 0 -1px 0 var(--line);
+  }
+  .cs-brand { display: none; }
+  .cs-nav { flex: 1; height: 44px; }
+  .cs-main { padding: max(var(--safe-top, 0px), 16px) 16px 110px; }
+  .cs-week { grid-template-columns: minmax(0, 1fr); gap: 6px; }
+  .cs-cell { min-height: 0; }
+  .cs-cell-body { min-height: 64px; }
+}
+
 /* ---------- Motion preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }

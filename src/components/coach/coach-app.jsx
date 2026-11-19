@@ -9,6 +9,7 @@ import { AlertProvider, useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
 import { BellButton, NoticeSheet } from '../notifications';
 import { CoachSkeleton } from '../ui/screen-skeleton';
+import { setShell } from '../../lib/shell';
 import ActivityView from './activity-view';
 import CalendarView from './calendar-view';
 import PeopleView from './people-view';
@@ -59,6 +60,8 @@ function Workspace({ userId }) {
     try { setNotices((await request('/api/coach/notifications')).notifications); } catch {}
   }, []);
   useEffect(() => { loadOverview(); loadMovements(); loadActivity(); loadNotices(); }, [loadOverview, loadMovements, loadActivity, loadNotices]);
+  // Loading screens and the next visit show the calendar's skeleton.
+  useEffect(() => { setShell('coach', true); }, []);
   useRefreshOnReturn(loadNotices, true);
   // Opening a session's results reads every thread in it.
   const markThreadsSeen = useCallback((sessionId) => {
@@ -132,7 +135,7 @@ function Workspace({ userId }) {
           {section.value === 'activity' && unseen > 0 && prefs.section !== 'activity' && <i className="coach-count num">{unseen}</i>}
         </button>)}
       </nav>
-      <Link className="coach-exit" href="/app?personal=1"><Icon name="barbell" /><span>Mi entrenamiento</span></Link>
+      <Link className="coach-exit" href="/app?personal=1" onClick={() => setShell(overview?.groups.some((group) => group.coachTrains) ? 'plan' : 'exec')}><Icon name="barbell" /><span>Mi entrenamiento</span></Link>
       <form className="coach-logout" action="/auth/logout" method="post" onSubmit={clearCaches}>
         <button className="coach-exit"><Icon name="logout" /><span>Cerrar sesión</span></button>
       </form>

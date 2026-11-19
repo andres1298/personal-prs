@@ -1,4 +1,5 @@
 import { Archivo } from 'next/font/google';
+import { SHELL_SCRIPT } from '../lib/shell';
 import { SITE_DESCRIPTION, SITE_IMAGE, SITE_NAME, siteUrl } from '../lib/site';
 import './globals.css';
 
@@ -38,5 +39,9 @@ export const viewport = {
 };
 
 export default function RootLayout({ children }) {
-  return <html lang="es" className={archivo.variable}><body>{children}</body></html>;
+  // The script marks which skeleton the loading screen shows before anything paints (see lib/shell).
+  return <html lang="es" className={archivo.variable} suppressHydrationWarning>
+    <head><script dangerouslySetInnerHTML={{ __html: SHELL_SCRIPT }} /></head>
+    <body>{children}</body>
+  </html>;
 }
