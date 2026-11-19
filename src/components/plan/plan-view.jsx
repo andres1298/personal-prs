@@ -67,8 +67,11 @@ function coachNotices(sessions, userId) {
   return notices.sort((a, b) => new Date(b.comment.createdAt) - new Date(a.comment.createdAt)).slice(0, NOTICE_LIMIT);
 }
 
-/** The athlete's programming: a week strip and the session of the chosen day. */
-export default function PlanView({ plan, records, userId, active, onExecute, onAddRecord, onSaveRecord }) {
+/**
+ * The athlete's programming: a week strip and the session of the chosen day. `recordsReady` says the
+ * records have arrived (or a copy of them was on the device), so a load missing its PR really is missing.
+ */
+export default function PlanView({ plan, records, recordsReady = true, userId, active, onExecute, onAddRecord, onSaveRecord }) {
   const [selected, setSelected] = useState(today());
   const monday = weekStart(selected);
   const byDate = useMemo(() => {
@@ -77,6 +80,8 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
     return map;
   }, [plan.sessions]);
   const sessions = byDate.get(selected) ?? [];
+  // A day the server has not answered for yet is still loading, not empty.
+  const answered = Boolean(plan.covered) && selected >= plan.covered.from && selected <= plan.covered.to;
   const move = (weeks) => setSelected((current) => addDays(current, 7 * weeks));
   const now = today();
   const [noticesOpen, setNoticesOpen] = useState(false);
@@ -120,8 +125,8 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
         {(plan.coach || notices.length > 0) && <BellButton count={unread} onClick={() => setNoticesOpen(true)} />}
       </span>
     </div>
-    {!sessions.length && (plan.loaded || plan.sessions.length ? <p className="empty">No hay sesión programada para este día.</p> : <SessionSkeleton />)}
-    {sessions.map((session) => <SessionCard key={session.id} session={session} plan={plan} records={records} userId={userId} active={active}
+    {!sessions.length && (answered ? <p className="empty">No hay sesión programada para este día.</p> : <SessionSkeleton />)}
+    {sessions.map((session) => <SessionCard key={session.id} session={session} plan={plan} records={records} recordsReady={recordsReady} userId={userId} active={active}
       threadFocus={threadFocus?.id === session.id ? threadFocus.key : null} onExecute={onExecute} onAddRecord={onAddRecord} onSaveRecord={onSaveRecord} />)}
     <NoticeSheet open={noticesOpen} onClose={() => setNoticesOpen(false)} onOpen={openNotice}
       empty="Aquí verás los comentarios que te deje tu coach en tus sesiones."
@@ -158,7 +163,7 @@ function SessionSkeleton() {
 /** A weight still loading, the size of the button that loads it on the bar. */
 const WeightSkeleton = () => <Skeleton width={96} height={48} radius={12} />;
 
-function SessionCard({ session, plan, records, userId, active, threadFocus = null, preview = false, onExecute, onAddRecord, onSaveRecord }) {
+function SessionCard({ session, plan, records, recordsReady = true, userId, active, threadFocus = null, preview = false, onExecute, onAddRecord, onSaveRecord }) {
   const alert = useAlert();
   const [results, setResults] = useState(session.results);
   const [saving, setSaving] = useState(false);
@@ -178,8 +183,9 @@ function SessionCard({ session, plan, records, userId, active, threadFocus = nul
   }
 
   // A logged weight that beats the athlete's record is offered as a new one; it is never saved silently.
+  // Until the records arrive there is nothing to compare it with.
   async function offerRecord(item, result) {
-    if (moveInfo(item.movement).type !== 'weight' || moveInfo(item.movement).tab == null) return;
+    if (!recordsReady || moveInfo(item.movement).type !== 'weight' || moveInfo(item.movement).tab == null) return;
     const candidate = recordCandidate(item, result, bestOf);
     const key = candidate && `${item.id}:${candidate.rm}:${candidate.value}`;
     if (!candidate || offered.current.has(key)) return;
@@ -223,7 +229,7 @@ function SessionCard({ session, plan, records, userId, active, threadFocus = nul
     </header>
     {session.notes && <p className="plan-notes">{session.notes}</p>}
     {session.content.blocks.map((block, index) => <PlanBlock key={block.id} block={block} index={index} content={session.content} results={results}
-      bestOf={bestOf} division={plan.division} onItemChange={setItem} onScoreChange={setScore} onExecute={onExecute} onAddRecord={onAddRecord} />)}
+      bestOf={bestOf} recordsReady={recordsReady} division={plan.division} onItemChange={setItem} onScoreChange={setScore} onExecute={onExecute} onAddRecord={onAddRecord} />)}
     <button type="button" className="filled-button plan-done" data-done={done} disabled={saving} onClick={toggleDone}>
       <Icon name="check" weight={3} />{done ? `Completada · ${clock(session.completedAt)}` : 'Marcar como completada'}
     </button>
@@ -233,7 +239,7 @@ function SessionCard({ session, plan, records, userId, active, threadFocus = nul
 
 // One block of the session. The movements lead; the block's timer and the athlete's log sit in a
 // quiet row at its foot, and the log fields stay folded until asked for, or once something is logged.
-function PlanBlock({ block, index, content, results, bestOf, division, onItemChange, onScoreChange, onExecute, onAddRecord }) {
+function PlanBlock({ block, index, content, results, bestOf, recordsReady, division, onItemChange, onScoreChange, onExecute, onAddRecord }) {
   const letter = String.fromCharCode(65 + index);
   const loggable = block.items.some((item) => item.log) || block.score !== 'none';
   const logged = results.blocks[block.id] != null || block.items.some((item) => item.log && results.items[item.id]);
@@ -253,7 +259,7 @@ function PlanBlock({ block, index, content, results, bestOf, division, onItemCha
     {/* Rounds are the block's: everything below is repeated together, so it is said once, above it. */}
     {block.rounds > 1 && <p className="plan-rounds"><Icon name="repeat" weight={2.4} />{block.rounds} rondas de:</p>}
     {block.ladder && <p className="plan-rounds"><Icon name="stairs" weight={2.4} />Escalera <span className="num">{ladderText(block.ladder)}</span> de:</p>}
-    {block.items.map((item) => <PlanItem key={item.id} item={item} content={content} results={results} bestOf={bestOf} division={division} logging={open}
+    {block.items.map((item) => <PlanItem key={item.id} item={item} content={content} results={results} bestOf={bestOf} recordsReady={recordsReady} division={division} logging={open}
       onChange={(patch) => onItemChange(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
     {/* The rest comes after the lines, as it does in the gym: it closes each round. */}
     {block.rest && <p className="plan-rest"><Icon name="pause" weight={2.4} />{restText(block)}</p>}
@@ -274,8 +280,10 @@ function StartTimer({ config }) {
   return <button type="button" className="plan-outline" onClick={() => timer?.begin(config)}><Icon name="play" fill />Iniciar timer</button>;
 }
 
-function PlanItem({ item, content, results, bestOf, division, logging, onChange, onExecute, onAddRecord }) {
+function PlanItem({ item, content, results, bestOf, recordsReady, division, logging, onChange, onExecute, onAddRecord }) {
   const load = resolveLoad(item, results, bestOf, division);
+  // A weight that depends on a PR waits for the records instead of asking for one too early.
+  const waiting = load.missing === 'pr' && !recordsReady;
   const prescription = loadText(item, content);
   const volume = volumeText(item);
   const result = results.items[item.id] ?? {};
@@ -292,8 +300,9 @@ function PlanItem({ item, content, results, bestOf, division, logging, onChange,
         onClick={() => onExecute({ movement: item.load.type === 'percent' && baseMove === item.movement ? item.movement : null, rm: base?.rm, pct: item.load.value, base: load.base, weight: load.weight })}>
         <span className="display num">{load.weight}<small>lb</small></span><Icon name="barbell" />
       </button>}
+      {waiting && <Loading as="span" className="plan-weight-skeleton" label="Cargando tu peso"><WeightSkeleton /></Loading>}
     </div>
-    {load.missing === 'pr' && <button type="button" className="plan-missing" onClick={() => onAddRecord(baseMove, base.rm)}>
+    {load.missing === 'pr' && !waiting && <button type="button" className="plan-missing" onClick={() => onAddRecord(baseMove, base.rm)}>
       <Icon name="plus" weight={2.8} />Agrega tu {base.rm}RM{baseMove === item.movement ? '' : ` de ${baseMove}`}
     </button>}
     {load.missing === 'item' && <p className="plan-missing">Registra primero el peso de la línea base para ver tu carga.</p>}

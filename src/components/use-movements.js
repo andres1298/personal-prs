@@ -20,11 +20,12 @@ const fetchMovements = async () => (await call('/api/movements', 'GET')).movemen
  * The member's movement catalog: shared movements, their own, and which shared ones
  * they turned off. Demo sessions keep the static catalog and have no custom movements.
  * The catalog is applied during render so every view below reads the same one. Live
- * sessions open from the copy kept on the device for `scope` and refresh in the background.
+ * sessions open from the copy kept on the device for `scope` and refresh in the background;
+ * while `wait` is true only the device copy is shown.
  */
-export default function useMovements(hasBackend, scope) {
+export default function useMovements(hasBackend, scope, wait = false) {
   const list = useCachedList(fetchMovements, hasBackend ? cacheKey('movements', scope) : null, {
-    enabled: hasBackend, failMessage: 'No se pudieron cargar tus movimientos. Comprueba tu conexión.',
+    enabled: hasBackend, wait, failMessage: 'No se pudieron cargar tus movimientos. Comprueba tu conexión.',
   });
   const { items: movements, error, update } = list;
 

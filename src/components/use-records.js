@@ -25,11 +25,14 @@ const liveApi = {
   addRecords: async (records) => (await send('/api/records/bulk', { records })).records,
 };
 
-/** Live records open from the copy kept on the device for `scope` and refresh in the background. */
-export default function useRecords(hasBackend, scope) {
+/**
+ * Live records open from the copy kept on the device for `scope` and refresh in the background;
+ * while `wait` is true only the device copy is shown.
+ */
+export default function useRecords(hasBackend, scope, wait = false) {
   const api = hasBackend ? liveApi : demoApi;
   const list = useCachedList(api.getRecords, hasBackend ? cacheKey('records', scope) : null, {
-    failMessage: 'No se pudieron cargar tus registros. Comprueba tu conexión.',
+    wait, failMessage: 'No se pudieron cargar tus registros. Comprueba tu conexión.',
   });
   const { update } = list;
 

@@ -93,8 +93,9 @@ export function useRefreshOnReturn(refresh, enabled, minGap = 60000) {
  * `loading` is only true while there is nothing to show; a failed refresh with data on screen
  * sets `stale` instead of `error`. `synced` turns true once the server answered.
  * `update` changes the list after a mutation and drops refreshes that started before it.
+ * While `wait` is true the device copy is shown but the server is not asked yet.
  */
-export function useCachedList(fetchList, key, { enabled = true, failMessage }) {
+export function useCachedList(fetchList, key, { enabled = true, wait = false, failMessage }) {
   const [items, setItems] = useState(null);
   const [status, setStatus] = useState({ loading: enabled, error: '', stale: '', synced: false });
   const request = useRef(0);
@@ -122,19 +123,22 @@ export function useCachedList(fetchList, key, { enabled = true, failMessage }) {
   }, [enabled, fetchList, failMessage]);
 
   useEffect(() => {
-    if (!enabled) return undefined;
+    if (!enabled) return;
     const cached = key ? readStored(key, null) : null;
     if (Array.isArray(cached)) {
       shown.current = true;
       setItems(cached);
       setStatus((current) => ({ ...current, loading: false }));
     }
+  }, [enabled, key]);
+  useEffect(() => {
+    if (!enabled || wait) return undefined;
     refresh();
     return () => { request.current += 1; };
-  }, [enabled, key, refresh]);
+  }, [enabled, wait, key, refresh]);
 
   useEffect(() => { if (key && items) writeStored(key, items); }, [key, items]);
-  useRefreshOnReturn(refresh, enabled);
+  useRefreshOnReturn(refresh, enabled && !wait);
 
   // A manual retry clears the notice; the loading state returns only when there is nothing on screen.
   const reload = useCallback(() => {

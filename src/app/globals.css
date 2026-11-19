@@ -377,6 +377,7 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
 .plan-skeleton .plan-block { --b: var(--surface2); }
 .plan-skeleton .plan-head { margin-bottom: 22px; }
 .plan-skeleton .plan-item-text { gap: 8px; }
+.plan-weight-skeleton { flex: none; display: flex; }
 
 /* Controls drawn at 40–42 px reach 44 px of touch area without changing their look. */
 :is(.pill-btn, .nav-text.strong, .segmented button, .target-reset, .pct-stepper button) { position: relative; }
