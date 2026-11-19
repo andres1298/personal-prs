@@ -9,9 +9,9 @@ const TABS = [
   { value: 'timer', label: 'Timer', icon: 'timer' },
 ];
 
-// Floating tab bar: the active tab shows its name; the + action is a separate coral block.
+// Floating tab bar: the active tab shows its name; Settings sits apart, as its own block.
 // The plan tab exists only for members who follow a coach; `planBadge` marks something new in it.
-export default function TabBar({ tab, onTab, onAdd, hidden, plan = false, planBadge = false }) {
+export default function TabBar({ tab, onTab, onSettings, hidden, plan = false, planBadge = false }) {
   const tabs = plan ? [PLAN_TAB, ...TABS] : TABS;
   return <nav className="tab-bar" aria-label="Navegación principal" data-hidden={hidden}>
     <div className="tab-group" data-tour="tabs">
@@ -22,8 +22,8 @@ export default function TabBar({ tab, onTab, onAdd, hidden, plan = false, planBa
         {t.value === 'plan' && planBadge && <i className="tab-badge" aria-label="Hay novedades" />}
       </button>)}
     </div>
-    <button type="button" className="tab-action" data-tour="add" onClick={onAdd} aria-label="Registrar">
-      <Icon name="plus" weight={2.8} />
+    <button type="button" className="tab-action" data-tour="settings" onClick={onSettings} aria-label="Ajustes">
+      <Icon name="gear" />
     </button>
   </nav>;
 }

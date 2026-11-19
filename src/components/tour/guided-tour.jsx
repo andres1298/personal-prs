@@ -42,19 +42,15 @@ export const TOUR_STEPS = [
   },
   {
     tab: 'exec', exec: { view: 'pick' }, target: 'settings', title: 'Tu barra y tus discos',
-    body: 'En Ajustes eliges la barra y los discos que tienes. Las combinaciones solo usan esos discos.',
+    body: 'Con el engrane de abajo abres Ajustes, desde cualquier pestaña. Ahí eliges la barra y los discos que tienes; las combinaciones solo usan esos discos.',
   },
   {
     tab: 'prs', target: 'prs-groups', title: 'Tus récords',
-    body: 'Aquí está tu mejor marca de cada movimiento, agrupada por categoría. Toca un movimiento para ver su historial.',
+    body: 'Aquí está tu mejor marca de cada movimiento, agrupada por categoría. Toca uno para ver su historial o, si todavía no tiene registro, para agregar tu primer PR.',
   },
   {
     tab: 'prs', target: 'quick-upload', title: 'Carga rápida',
     body: 'Escribe varios PRs de una vez para empezar sin perder tiempo.',
-  },
-  {
-    tab: 'prs', target: 'add', title: 'Registra un nuevo PR',
-    body: 'Con + guardas una marca desde cualquier pestaña. En Execute se llena con el movimiento que tienes abierto.',
   },
   {
     tab: 'timer', target: 'timer-templates', title: 'Timer para tus workouts',
@@ -66,7 +62,7 @@ export const TOUR_STEPS = [
   },
   {
     tab: 'exec', icon: 'check', title: '¡Listo para entrenar!',
-    body: 'Puedes repetir este tour cuando quieras desde Ajustes.',
+    body: 'Puedes repetir este tour cuando quieras desde Ajustes, con el engrane de abajo.',
   },
 ];
 

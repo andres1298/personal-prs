@@ -198,10 +198,11 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
 .tab:active { transform: scale(.95); }
 .tab-action {
   width: var(--tab-height); height: var(--tab-height); flex: none; display: grid; place-items: center; border-radius: 14px;
-  background: var(--b-coral); color: var(--block-ink); box-shadow: 0 10px 24px -10px var(--b-coral);
-  transition: transform .2s var(--ease);
+  background: var(--surface); color: var(--ink2); box-shadow: var(--shadow);
+  transition: transform .2s var(--ease), color .2s;
 }
-.tab-action svg { width: 26px; height: 26px; }
+.tab-action svg { width: 23px; height: 23px; }
+.tab-action:hover { color: var(--ink); }
 .tab-action:active { transform: scale(.92); }
 
 /* ---------- Lists (grouped rows) ---------- */
