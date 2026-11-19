@@ -186,7 +186,8 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
     formCount.current += 1;
     setForm({ id: formCount.current, move, rm });
   };
-  const onAdd = () => openForm(tab === 'exec' && ex.move && !ex.free ? ex.move : undefined, tab === 'exec' ? ex.rm : undefined);
+  // A movement with records opens its history; one without opens straight to its first record.
+  const openMove = (move) => (records.some((record) => record.move === move) ? setDetail({ move }) : openForm(move));
 
   async function saveRecord(record) {
     await addRecord(record);
@@ -242,13 +243,13 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
           onOpenRecord={(move) => setDetail({ move })} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'prs'}>
-        <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={(move) => setDetail({ move })} />
+        <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={openMove} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'timer'}>
         <TimerView />
       </section>
     </main>
-    <TabBar tab={tab} onTab={goTab} onAdd={onAdd} hidden={focus} plan={planEnabled} planBadge={planBadge} />
+    <TabBar tab={tab} onTab={goTab} onSettings={() => setSettingsOpen(true)} hidden={focus} plan={planEnabled} planBadge={planBadge} />
     <EdgeSwipeBack target={page} enabled={screenDepth > 0 && !openLayers} onBack={screenBack} renderPrevious={previousScreen} />
 
     <MoveDetailSheet detail={detail} records={records} onClose={() => setDetail(null)}

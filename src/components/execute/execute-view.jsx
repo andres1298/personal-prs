@@ -51,19 +51,18 @@ const executeGroups = () => [...weightGroups(), ...repsGroups()];
 export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings, onOpenRecord, scrollToTop = scrollTop }) {
   const go = (patch) => { setEx(patch); scrollToTop(); };
   if (ex.view === 'pick') {
-    return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} onOpenSettings={onOpenSettings} />;
+    return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} />;
   }
   if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} onOpenRecord={onOpenRecord} />;
   return <Workbench ex={ex} setEx={setEx} go={go} settings={settings} records={records} onOpenSettings={onOpenSettings} />;
 }
 
 /* ---------- Picker ---------- */
-function Picker({ ex, go, settings, records, banner, onOpenSettings }) {
+function Picker({ ex, go, settings, records, banner }) {
   const canResume = ex.base > 0 && (ex.move || ex.free);
   const resumeTarget = canResume ? computeLoad(ex, settings, settings.simple).target : 0;
   return <>
-    <LargeTitle title="Execute" subtitle="¿Qué vas a levantar?"
-      trailing={<button type="button" className="sq-btn" aria-label="Ajustes" data-tour="settings" onClick={onOpenSettings}><Icon name="gear" /></button>} />
+    <LargeTitle title="Execute" subtitle="¿Qué vas a levantar?" />
     {banner}
     {canResume && <div className="resume-card">
       <button type="button" className="resume-main" onClick={() => go({ view: 'run' })}>
