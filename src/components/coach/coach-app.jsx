@@ -8,7 +8,7 @@ import { clearCaches, useRefreshOnReturn, useStoredState } from '../hooks';
 import { AlertProvider, useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
 import { BellButton, NoticeSheet } from '../notifications';
-import SignalLoader from '../ui/signal-loader';
+import { CoachSkeleton } from '../ui/screen-skeleton';
 import ActivityView from './activity-view';
 import CalendarView from './calendar-view';
 import PeopleView from './people-view';
@@ -118,7 +118,7 @@ function Workspace({ userId }) {
   // Stable, so the screens below do not reload their data every time this one renders.
   const api = useMemo(() => ({ send, recordsOf, reloadOverview: loadOverview, reloadMovements: loadMovements, markThreadsSeen }),
     [recordsOf, loadOverview, loadMovements, markThreadsSeen]);
-  if (!ready || (!overview && !error)) return <SignalLoader />;
+  if (!ready || (!overview && !error)) return <CoachSkeleton />;
 
   return <div className="coach">
     <aside className="coach-side">

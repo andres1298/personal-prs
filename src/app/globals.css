@@ -979,31 +979,20 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 .tour-next svg { width: 18px; height: 18px; }
 .tour-back:active, .tour-next:active { transform: scale(.94); }
 
-/* ---------- Signal loader ---------- */
-.signal-loader {
-  min-height: 100dvh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 18px;
-  background: var(--bg); color: var(--ink2); font-size: 15px; font-weight: 700;
-}
-.signal-loader svg { width: 88px; height: auto; overflow: visible; }
-.signal-plate { transform-box: fill-box; transform-origin: bottom; opacity: .18; animation: 1.6s var(--ease) infinite; }
-.signal-plate rect { fill: var(--pc); }
-.signal-plate .signal-plate-hub { fill: var(--bg); opacity: .35; }
-.signal-plate:nth-child(1) { animation-name: signal-plate-1; }
-.signal-plate:nth-child(2) { animation-name: signal-plate-2; }
-.signal-plate:nth-child(3) { animation-name: signal-plate-3; }
-.signal-plate:nth-child(4) { animation-name: signal-plate-4; }
-.signal-plate:nth-child(5) { animation-name: signal-plate-5; }
-/* Each plate turns on 12% after the previous one; all turn off together. */
-@keyframes signal-plate-1 { 0%, 4% { opacity: .18; transform: scaleY(.92); } 10%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
-@keyframes signal-plate-2 { 0%, 16% { opacity: .18; transform: scaleY(.92); } 22%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
-@keyframes signal-plate-3 { 0%, 28% { opacity: .18; transform: scaleY(.92); } 34%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
-@keyframes signal-plate-4 { 0%, 40% { opacity: .18; transform: scaleY(.92); } 46%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
-@keyframes signal-plate-5 { 0%, 52% { opacity: .18; transform: scaleY(.92); } 58%, 82% { opacity: 1; transform: none; } 92%, 100% { opacity: .18; } }
+/* ---------- Whole-screen skeletons (first paint, before any data) ---------- */
+.screen-skeleton .wrap { display: grid; gap: 12px; }
+.sk-week { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 6px; margin-bottom: 8px; }
+.sk-day { height: 58px; border-radius: 14px; }
+.sk-card { display: grid; gap: 14px; margin-top: 6px; padding: 16px; border-radius: var(--radius); background: var(--surface); }
+.sk-card .skeleton { background: var(--surface2); }
+.sk-line { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.sk-tab { flex: 1; height: 100%; border-radius: 10px; }
+.screen-skeleton .tab-bar { pointer-events: none; }
+.screen-skeleton .tab-action { display: grid; place-items: center; }
 
 /* ---------- Motion preferences ---------- */
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
-  .signal-plate { animation: none !important; opacity: 1; }
   .skeleton::after { display: none; }
   .ring-waves { display: none; }
 }

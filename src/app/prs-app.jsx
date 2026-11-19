@@ -12,7 +12,7 @@ import { today } from '../lib/catalog';
 import { DEFAULT_PCT } from '../lib/plates';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
-import SignalLoader from '../components/ui/signal-loader';
+import { AppSkeleton } from '../components/ui/screen-skeleton';
 import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch, tourExercise } from '../components/execute/execute-view';
 import PrsView from '../components/prs/prs-view';
 import MoveDetailSheet from '../components/prs/move-detail-sheet';
@@ -241,7 +241,7 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
 
   const banner = <Banner demo={!hasBackend} error={error} stale={stale} onRetry={reload} />;
   // Only the device's settings are awaited: each tab shows the shape of its content until its data arrives.
-  if (!ready) return <SignalLoader />;
+  if (!ready) return <AppSkeleton />;
 
   return <>
     <TimerPill />
