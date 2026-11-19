@@ -84,7 +84,10 @@ export default function SessionEditor({ date, session, targetName, group, athlet
     onClose();
   }
   useEffect(() => {
-    const onKey = (event) => { if (event.key === 'Escape' && !document.querySelector('.alert-root')) close(); };
+    // Escape closes an open help bubble or alert first, not the editor.
+    const onKey = (event) => {
+      if (event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('.alert-root, .info-tip-bubble')) close();
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   });

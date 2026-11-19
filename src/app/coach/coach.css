@@ -249,15 +249,46 @@
 .line-meta { margin: -2px 0 0; padding: 0 10px 8px; color: var(--ink2); font-size: 12px; line-height: 1.35; overflow-wrap: anywhere; }
 .line-meta b { color: var(--ink); font-weight: 800; }
 .line-meta .warn { color: var(--danger); font-weight: 700; }
-.line-options { display: grid; gap: 14px; padding: 6px 12px 12px; }
-.line-options-row { display: flex; flex-wrap: wrap; gap: 14px 24px; }
-.line-options-actions { display: flex; flex-wrap: wrap; gap: 8px; }
+.line-options { display: grid; gap: 12px; padding: 6px 12px 12px; }
+/* Settings as rows grouped in cards: name and help on the left, control on the right. */
+.opt-group { display: grid; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.opt-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 52px; padding: 8px 14px; }
+.opt-row + .opt-row, .opt-group > .opt-sub { box-shadow: inset 0 1px 0 var(--line); }
+.opt-row[data-wide="true"] { flex-wrap: wrap; }
+.opt-row[data-wide="true"] .opt-control { flex: 1 1 320px; }
+.opt-title { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-size: 14px; font-weight: 800; }
+.opt-control { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
+.opt-row[data-wide="true"] .opt-control { justify-content: flex-start; }
+.opt-note { flex-basis: 100%; margin: 0; color: var(--ink2); font-size: 13px; line-height: 1.4; }
+.opt-sub { padding: 2px 0 10px; background: color-mix(in oklab, var(--b-yellow) 10%, transparent); border-radius: 0 0 14px 14px; }
+.opt-sub .opt-row { min-height: 0; padding-block: 8px; }
+.opt-sub .opt-row + .opt-row { box-shadow: none; }
+.opt-sub .line-preview { margin: 4px 14px 0; }
+.opt-sub .line-select { width: 100%; max-width: 360px; }
+.opt-row .line-input { width: 100%; }
+/* The three ways to load a line, one choice, each with its own color when chosen. */
+.load-kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; width: 100%; max-width: 420px; padding: 4px; border-radius: 12px; background: var(--bg); }
+.load-kinds button { min-height: 40px; padding: 4px 8px; border-radius: 9px; color: var(--ink2); font-size: 13px; font-weight: 800; line-height: 1.15; text-align: center; transition: background-color .2s, color .2s, transform .2s var(--ease); }
+.load-kinds button:active { transform: scale(.96); }
+.load-kinds button[aria-checked="true"] { color: var(--block-ink); }
+.load-kinds button:nth-child(1)[aria-checked="true"] { background: var(--b-blue); }
+.load-kinds button:nth-child(2)[aria-checked="true"] { background: var(--b-yellow); }
+.load-kinds button:nth-child(3)[aria-checked="true"] { background: var(--b-pink); }
+/* Help bubble beside a setting's name. */
+.info-tip { position: relative; display: inline-flex; }
+.info-tip-button { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: var(--ink3); transition: color .2s; }
+.info-tip-button svg { width: 16px; height: 16px; }
+.info-tip-button:hover, .info-tip-button[aria-expanded="true"] { color: var(--ink); }
+.info-tip-bubble {
+  position: absolute; z-index: 20; left: 50%; top: calc(100% + 6px); transform: translateX(-30%); width: max-content; max-width: min(280px, 78vw);
+  padding: 10px 12px; border-radius: 12px; background: var(--inverse); color: var(--inverse-ink); box-shadow: var(--shadow);
+  font-size: 13px; font-weight: 600; line-height: 1.4; letter-spacing: 0; text-transform: none;
+}
 .line-options .tinted-button { min-height: 36px; padding: 0 12px; gap: 8px; background: var(--surface); }
 .line-options .tinted-button svg { width: 16px; height: 16px; }
-.line-options .choice button, .line-options .stepper-field, .line-options .line-input, .line-options .line-select { background-color: var(--surface); }
+.line-options .choice button, .line-options .stepper-field, .line-options .line-input, .line-options .line-select { background-color: var(--bg); }
 .line-tools { flex: none; display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
 .line-tools .icon-button { width: 34px; height: 34px; }
-.line-field { display: grid; grid-template-columns: minmax(0, 1fr); gap: 6px; align-content: start; }
 .line-label { color: var(--ink2); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .line-hint { margin: 0; color: var(--ink2); font-size: 13px; line-height: 1.4; }
 .line-hint button { color: var(--ink); font-weight: 800; text-decoration: underline; text-underline-offset: 3px; }
@@ -282,7 +313,6 @@
 .stepper-field svg { width: 14px; height: 14px; }
 .stepper-field input { width: 46px; height: 38px; border: 0; background: transparent; text-align: center; font-size: 15px; font-weight: 800; }
 .stepper-field output { width: 40px; text-align: center; font-size: 15px; font-weight: 800; font-variant-numeric: tabular-nums; }
-.line-switch { display: flex; align-items: center; gap: 10px; font-size: 14px; font-weight: 600; }
 .line-preview { margin: -6px 0 0; padding: 12px 14px; border-radius: 12px; background: var(--b-yellow); color: var(--block-ink); font-size: 14px; font-weight: 600; }
 .line-preview b { font-family: var(--display); font-stretch: 125%; font-weight: 900; font-size: 20px; margin-right: 4px; }
 .line-foot { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
