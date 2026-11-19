@@ -5,6 +5,7 @@ import { bestRecord, formatValue, moveInfo, parseValue, today } from '../../lib/
 import { addDays, itemName, ladderText, loadText, recordCandidate, resolveLoad, volumeText, weekDays, weekStart } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
+import Skeleton, { Loading } from '../ui/skeleton';
 import { BellButton, NoticeSheet } from '../notifications';
 import { useTimer } from '../timer/timer-provider';
 import { formatClock } from '../../lib/timer-engine';
@@ -119,7 +120,7 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
         {(plan.coach || notices.length > 0) && <BellButton count={unread} onClick={() => setNoticesOpen(true)} />}
       </span>
     </div>
-    {!sessions.length && <p className="empty">{plan.loaded || plan.sessions.length ? 'No hay sesión programada para este día.' : 'Cargando tu plan…'}</p>}
+    {!sessions.length && (plan.loaded || plan.sessions.length ? <p className="empty">No hay sesión programada para este día.</p> : <SessionSkeleton />)}
     {sessions.map((session) => <SessionCard key={session.id} session={session} plan={plan} records={records} userId={userId} active={active}
       threadFocus={threadFocus?.id === session.id ? threadFocus.key : null} onExecute={onExecute} onAddRecord={onAddRecord} onSaveRecord={onSaveRecord} />)}
     <NoticeSheet open={noticesOpen} onClose={() => setNoticesOpen(false)} onOpen={openNotice}
@@ -130,6 +131,32 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
       }))} />
   </>;
 }
+
+// The lines of each placeholder block: a session usually opens with a strength part and a shorter workout.
+const SKELETON_BLOCKS = [3, 2];
+
+/** The shape of a session card while the day's session loads. */
+function SessionSkeleton() {
+  return <Loading className="plan-skeleton" label="Cargando tu plan">
+    <div className="plan-head"><Skeleton width="58%" height={24} /></div>
+    {SKELETON_BLOCKS.map((lines, index) => <section key={index} className="plan-block">
+      <header className="plan-block-head">
+        <Skeleton width={30} height={30} radius={9} />
+        <div className="plan-block-title"><Skeleton width="46%" height={17} /><Skeleton width="34%" height={20} radius={7} /></div>
+      </header>
+      {Array.from({ length: lines }, (_, line) => <div key={line} className="plan-item">
+        <div className="plan-item-main">
+          <div className="plan-item-text"><Skeleton width={line % 2 ? '44%' : '62%'} height={16} /><Skeleton width="36%" height={14} /></div>
+          {index === 0 && <WeightSkeleton />}
+        </div>
+      </div>)}
+      <div className="plan-block-foot"><Skeleton width="100%" height={44} radius={12} /></div>
+    </section>)}
+  </Loading>;
+}
+
+/** A weight still loading, the size of the button that loads it on the bar. */
+const WeightSkeleton = () => <Skeleton width={96} height={48} radius={12} />;
 
 function SessionCard({ session, plan, records, userId, active, threadFocus = null, preview = false, onExecute, onAddRecord, onSaveRecord }) {
   const alert = useAlert();

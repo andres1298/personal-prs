@@ -89,6 +89,9 @@
 .cal-cell:hover .cal-add span, .cal-add:focus-visible span { opacity: 1; }
 .cal-cell[data-out="true"] .cal-add { box-shadow: none; }
 .cal-add svg { width: 20px; height: 20px; }
+/* While the month's sessions load, each day holds a placeholder instead of its actions. */
+.cal-cell .skeleton { flex: 1; width: 100%; height: auto; min-height: 44px; border-radius: 10px; }
+.cal-cell[data-out="true"] .skeleton { opacity: .6; }
 
 /* ---------- Day editor: a full page, with the athlete's phone beside it on request ---------- */
 @keyframes fade-in { from { opacity: 0; } }

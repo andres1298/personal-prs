@@ -7,8 +7,13 @@ import { List, Row } from '../ui/list';
 import { LargeTitle } from '../ui/nav-bar';
 import { SegmentedControl } from '../ui/controls';
 import RecordValue from '../ui/record-value';
+import Skeleton, { Loading, SkeletonList } from '../ui/skeleton';
 
-export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
+// Placeholders while the records load: group chips and two groups of rows.
+const CHIP_SKELETONS = 4;
+const GROUP_SKELETONS = [3, 6];
+
+export default function PrsView({ records, loading = false, banner, busy, onQuick, onOpen }) {
   const [tab, setTab] = useState('Lift');
   const [group, setGroup] = useState(null);
   const { type, groups } = getCatalog()[tab];
@@ -31,20 +36,27 @@ export default function PrsView({ records, banner, busy, onQuick, onOpen }) {
     {banner}
     <SegmentedControl label="Categoría" value={tab} onChange={(next) => { setTab(next); setGroup(null); }}
       options={CATALOG_TABS.map((key) => ({ value: key, label: key }))} />
-    <div className="chips" role="group" aria-label="Grupos" data-tour="prs-groups">
-      {groups.map((g) => {
-        const count = g.moves.filter((move) => records.some((r) => r.move === move)).length;
-        return <button type="button" key={g.name} className="chip" aria-pressed={g.name === group} style={{ '--c': `var(${g.color})` }}
-          onClick={() => setGroup(group === g.name ? null : g.name)}>
-          <span>{g.name}</span><small className="num">{count}/{g.moves.length}</small>
-        </button>;
-      })}
-    </div>
-    {visible.map((g) => <List key={g.name} header={<><i className="dot" style={{ '--c': `var(${g.color})` }} />{g.name}</>}>
-      {g.moves.map((move) => {
-        const value = label(move);
-        return <Row key={move} title={move} chevron onClick={() => onOpen(move)} value={!!value} detail={value || <span className="muted">—</span>} />;
-      })}
-    </List>)}
+    {loading ? <Loading label="Cargando tus PRs">
+      <div className="chips" data-tour="prs-groups">
+        {Array.from({ length: CHIP_SKELETONS }, (_, index) => <Skeleton key={index} className="skeleton-chip" />)}
+      </div>
+      {GROUP_SKELETONS.map((rows, index) => <SkeletonList key={index} rows={rows} header />)}
+    </Loading> : <>
+      <div className="chips" role="group" aria-label="Grupos" data-tour="prs-groups">
+        {groups.map((g) => {
+          const count = g.moves.filter((move) => records.some((r) => r.move === move)).length;
+          return <button type="button" key={g.name} className="chip" aria-pressed={g.name === group} style={{ '--c': `var(${g.color})` }}
+            onClick={() => setGroup(group === g.name ? null : g.name)}>
+            <span>{g.name}</span><small className="num">{count}/{g.moves.length}</small>
+          </button>;
+        })}
+      </div>
+      {visible.map((g) => <List key={g.name} header={<><i className="dot" style={{ '--c': `var(${g.color})` }} />{g.name}</>}>
+        {g.moves.map((move) => {
+          const value = label(move);
+          return <Row key={move} title={move} chevron onClick={() => onOpen(move)} value={!!value} detail={value || <span className="muted">—</span>} />;
+        })}
+      </List>)}
+    </>}
   </>;
 }
