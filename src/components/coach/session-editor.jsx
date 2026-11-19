@@ -188,11 +188,14 @@ export default function SessionEditor({ date, session, targetName, group, athlet
           <Icon name="person" />{previewing && canPreview ? 'Ocultar vista previa' : 'Previsualizar'}
         </button>
       </header>
-      {session && <SegmentedControl label="Vista" value={tab} onChange={setTab}
-        options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
+      {/* One row: which view, and whether athletes see the day (it is part of the program, so only there). */}
+      <div className="editor-bar">
+        {session && <SegmentedControl label="Vista" value={tab} onChange={setTab}
+          options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
+        {tab === 'program' && <Visibility published={draft.published} onChange={(published) => change({ published })} />}
+      </div>
 
       {tab === 'results' ? <Results sessionId={session.id} content={session.content} focusAthleteId={focusAthleteId} api={api} /> : <>
-        <Visibility published={draft.published} onChange={(published) => change({ published })} />
         <div className="editor-meta">
           <input className="editor-title" value={draft.title} maxLength={LIMITS.title} placeholder="Título de la sesión (opcional)"
             aria-label="Título de la sesión" onChange={(event) => change({ title: event.target.value })} />
@@ -282,21 +285,20 @@ export default function SessionEditor({ date, session, targetName, group, athlet
 }
 
 const VISIBILITY = [
-  { value: true, label: 'Visible', icon: 'eye', hint: 'Tus atletas la ven' },
-  { value: false, label: 'Oculta', icon: 'eyeOff', hint: 'Solo tú la ves' },
+  { value: true, label: 'Visible', icon: 'eye', hint: 'Visible: tus atletas la ven' },
+  { value: false, label: 'Oculta', icon: 'eyeOff', hint: 'Oculta: solo tú la ves' },
 ];
 
-/** Whether athletes see the day: two clear choices at the top, green while visible, grey while hidden. */
+/**
+ * Whether athletes see the day: green while visible, grey while hidden. On a phone the chosen side
+ * shows its name and the other only its icon, as in the tab bar, so it fits beside the view switch.
+ */
 function Visibility({ published, onChange }) {
-  const current = VISIBILITY.find((option) => option.value === published);
-  return <div className="visibility" data-visible={published}>
-    <div className="visibility-choice" role="radiogroup" aria-label="Visibilidad para tus atletas">
-      {VISIBILITY.map((option) => <button type="button" key={option.label} role="radio" aria-checked={option.value === published}
-        onClick={() => { if (option.value !== published) onChange(option.value); }}>
-        <Icon name={option.icon} weight={2.4} />{option.label}
-      </button>)}
-    </div>
-    <p>{current.hint}{published ? '' : ' hasta que la hagas visible'}</p>
+  return <div className="visibility" role="radiogroup" aria-label="Visibilidad para tus atletas" data-visible={published}>
+    {VISIBILITY.map((option) => <button type="button" key={option.label} role="radio" aria-checked={option.value === published}
+      aria-label={option.hint} title={option.hint} onClick={() => { if (option.value !== published) onChange(option.value); }}>
+      <Icon name={option.icon} weight={2.4} /><span>{option.label}</span>
+    </button>)}
   </div>;
 }
 

@@ -103,26 +103,30 @@
 .drawer-kicker { margin: 0 0 6px; color: var(--ink2); font-size: 12px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .preview-toggle { min-height: 38px; background: var(--surface); }
 .preview-toggle[aria-pressed="true"] { background: var(--inverse); color: var(--inverse-ink); }
-.editor-main > .segmented { flex: none; max-width: 360px; min-height: 42px; margin: 0; }
-.editor-main > .segmented button { min-height: 34px; font-size: 13px; }
 .editor-foot {
   position: sticky; bottom: 0; z-index: 2; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px;
   margin-top: auto; padding: 12px 0 16px; background: var(--bg); box-shadow: 0 -1px 0 var(--line), 0 40px 0 var(--bg);
 }
 .editor-foot-actions { display: flex; gap: 8px; margin-left: auto; }
-/* Visibility: a two-way switch at the top of the program, green while athletes see it. */
-.visibility { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
-.visibility p { margin: 0; color: var(--ink2); font-size: 14px; font-weight: 700; }
-.visibility-choice { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
-.visibility-choice button {
-  display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border-radius: 10px;
-  color: var(--ink2); font-size: 15px; font-weight: 800; transition: background-color .2s, color .2s, transform .2s var(--ease);
+/* View switch and visibility share one row. Visibility: green while athletes see the day, grey while hidden. */
+.editor-bar { display: flex; align-items: center; gap: 8px; }
+.editor-main > .editor-bar > .segmented { flex: 1 1 auto; max-width: 360px; min-height: 42px; margin: 0; }
+.editor-main > .editor-bar > .segmented button { min-height: 34px; font-size: 13px; }
+.visibility { flex: none; display: inline-flex; gap: 2px; padding: 4px; border-radius: 12px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.visibility button {
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px; min-width: 36px; min-height: 34px; padding: 0 11px; border-radius: 9px;
+  color: var(--ink3); font-size: 13px; font-weight: 800; transition: background-color .2s, color .2s, transform .2s var(--ease);
 }
-.visibility-choice svg { width: 18px; height: 18px; }
-.visibility-choice button:active { transform: scale(.96); }
-.visibility-choice button[aria-checked="true"]:first-child { background: var(--b-green); color: var(--block-ink); }
-.visibility-choice button[aria-checked="true"]:last-child { background: var(--b-gray); color: var(--block-ink); }
-.visibility[data-visible="false"] p { color: var(--ink); }
+.visibility svg { width: 17px; height: 17px; flex: none; }
+.visibility button:active { transform: scale(.94); }
+.visibility button[aria-checked="true"] { color: var(--block-ink); }
+.visibility[data-visible="true"] button[aria-checked="true"] { background: var(--b-green); }
+.visibility[data-visible="false"] button[aria-checked="true"] { background: var(--b-gray); }
+/* On a phone only the chosen side keeps its name. */
+@media (max-width: 560px) {
+  .visibility button { padding: 0 9px; }
+  .visibility button[aria-checked="false"] span { display: none; }
+}
 .editor-foot .nav-text:not(.strong) { background: var(--surface); }
 /* The phone is as tall as its content, up to the window: past that it scrolls inside. */
 .editor-aside { position: sticky; top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; max-height: calc(100dvh - 48px); }
