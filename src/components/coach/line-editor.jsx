@@ -168,9 +168,9 @@ export default function LineEditor({ item, earlier, names, weightNames, preview,
 }
 
 const LOAD_KINDS = [
-  { value: 'weight', label: 'Chicos / Chicas', help: 'Un peso fijo en libras. Si escribes uno para chicos y otro para chicas, cada atleta ve el de su categoría; con uno solo, es para todos.' },
-  { value: 'percent', label: '% de un PR', help: 'Un porcentaje de un récord del atleta (1RM, 3RM o 5RM) o del peso que anotó hoy en una línea anterior. Cada atleta ve su peso ya calculado.' },
-  { value: 'max', label: 'Máximo del día', help: 'El atleta sube hasta su peso más alto del día y lo anota. La línea no lleva un peso escrito.' },
+  { value: 'weight', label: 'Chicos / Chicas', short: 'Peso fijo en libras', help: 'Un peso fijo en libras. Si escribes uno para chicos y otro para chicas, cada atleta ve el de su categoría; con uno solo, es para todos.' },
+  { value: 'percent', label: '% de un PR', short: 'Calculado del récord de cada atleta', help: 'Un porcentaje de un récord del atleta (1RM, 3RM o 5RM) o del peso que anotó hoy en una línea anterior. Cada atleta ve su peso ya calculado.' },
+  { value: 'max', label: 'Máximo del día', short: 'Sube hasta su peso más alto y lo anota', help: 'El atleta sube hasta su peso más alto del día y lo anota. La línea no lleva un peso escrito.' },
 ];
 const kindOf = (load) => (load.type === 'percent' || load.type === 'max' ? load.type : 'weight');
 
@@ -229,7 +229,7 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
       <OptionRow title="Carga" wide help="Cómo se define el peso de esta línea. Elige una de las tres formas; cada una explica su uso al pasar por encima o al tocar su nombre.">
         <div className="load-kinds" role="radiogroup" aria-label="Tipo de carga">
           {LOAD_KINDS.map((option) => <button type="button" key={option.value} role="radio" aria-checked={option.value === kind} title={option.help}
-            onClick={() => setKind(option.value)}>{option.label}</button>)}
+            onClick={() => setKind(option.value)}><b>{option.label}</b><small>{option.short}</small></button>)}
         </div>
         <p className="opt-note">{LOAD_KINDS.find((option) => option.value === kind).help}</p>
       </OptionRow>

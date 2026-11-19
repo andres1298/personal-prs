@@ -269,7 +269,17 @@
 /* The three ways to load a line, one choice, each with its own color when chosen. */
 .load-kinds { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; width: 100%; max-width: 420px; padding: 4px; border-radius: 12px; background: var(--bg); }
 .load-kinds button { min-height: 40px; padding: 4px 8px; border-radius: 9px; color: var(--ink2); font-size: 13px; font-weight: 800; line-height: 1.15; text-align: center; transition: background-color .2s, color .2s, transform .2s var(--ease); }
+.load-kinds button b { font-weight: 800; }
+/* The short line is for phones, where the options stack; wider screens explain the chosen one below. */
+.load-kinds button small { display: none; }
 .load-kinds button:active { transform: scale(.96); }
+@media (max-width: 560px) {
+  .load-kinds { grid-template-columns: minmax(0, 1fr); max-width: none; }
+  .load-kinds button { display: grid; gap: 2px; justify-items: start; min-height: 52px; padding: 8px 12px; text-align: left; font-size: 15px; }
+  .load-kinds button small { display: block; color: var(--ink3); font-size: 12px; font-weight: 600; }
+  .load-kinds button[aria-checked="true"] small { color: var(--block-ink); opacity: .75; }
+  .opt-row[data-wide="true"] .load-kinds + .opt-note { display: none; }
+}
 .load-kinds button[aria-checked="true"] { color: var(--block-ink); }
 .load-kinds button:nth-child(1)[aria-checked="true"] { background: var(--b-blue); }
 .load-kinds button:nth-child(2)[aria-checked="true"] { background: var(--b-yellow); }
@@ -566,4 +576,13 @@
 }
 @media (prefers-reduced-motion: reduce) {
   .kpi, .stat-card, .rank-row, .rank-bar i, .heat [data-state], .board-row, .attention, .session-facts p, .stat-skeleton i, .editor-page { animation: none; }
+}
+
+/* A phone-width line, after the narrow-window rules so it wins: reps and movement on top, then the
+   weight with the line's two tools beside it, so nothing is left alone on a third row. */
+@media (max-width: 560px) {
+  .line-row { grid-template-columns: 92px minmax(0, 1fr) 36px 36px; }
+  .line-row > .line-move { grid-column: 2 / -1; }
+  .line-row > .line-load { grid-column: 1 / 3; }
+  .line-row > .icon-button { width: 36px; height: 36px; }
 }
