@@ -28,7 +28,7 @@ export const findMovement = (text, names) => { const key = moveKey(text); return
  * links the athlete's records, and anything else is kept as free text. Lines and the parts of a
  * complex use the same field.
  */
-function MoveCombo({ id, value, names, label = 'Movimiento', autoFocus, onPick, onEnter }) {
+function MoveCombo({ id, value, names, label = 'Movimiento', autoFocus, onPick, onEnter, onAddMove }) {
   const [text, setText] = useState(value);
   const [focused, setFocused] = useState(false);
   const [active, setActive] = useState(0);
@@ -63,11 +63,13 @@ function MoveCombo({ id, value, names, label = 'Movimiento', autoFocus, onPick, 
   }
 
   const listId = `moves-${id}`;
-  return <div className="line-move">
+  return <div className="line-move" data-add={Boolean(onAddMove)}>
     <input ref={input} value={text} maxLength={LIMITS.label} placeholder={label} aria-label={label} autoComplete="off"
       role="combobox" aria-expanded={open} aria-controls={listId} aria-autocomplete="list" aria-activedescendant={open ? `${listId}-${active}` : undefined}
       onChange={(event) => type(event.target.value)} onFocus={() => setFocused(true)} onBlur={() => setFocused(false)} onKeyDown={onKeyDown} />
     {linked && <i className="line-move-dot" style={{ '--c': `var(${moveInfo(linked).group.color})` }} title="Movimiento del catálogo" />}
+    {onAddMove && <button type="button" className="line-move-add" onClick={onAddMove}
+      aria-label="Agregar otro movimiento (complex)" title="Agregar otro movimiento: un complex, seguidos sin soltar la barra"><Icon name="plus" weight={2.8} /></button>}
     {open && <ul className="move-suggest" id={listId} role="listbox" aria-label="Sugerencias">
       {matches.map((move, index) => <li key={move} id={`${listId}-${index}`} role="option" aria-selected={index === active}
         style={{ '--c': `var(${moveInfo(move).group.color})` }} onMouseDown={(event) => { event.preventDefault(); choose(move); }}>{move}</li>)}
@@ -76,8 +78,10 @@ function MoveCombo({ id, value, names, label = 'Movimiento', autoFocus, onPick, 
 }
 
 /** A complex written like lines: reps and a typed movement per part, done in a row without dropping the bar. */
-function ComplexParts({ item, names, onParts, onEnter }) {
+function ComplexParts({ item, names, onParts, onSingle, onEnter }) {
   const parts = item.parts;
+  // Removing down to one part leaves a single movement again.
+  const remove = (index) => { const rest = parts.filter((_, at) => at !== index); if (rest.length > 1) onParts(rest); else onSingle(rest[0]); };
   const patch = (index, change) => onParts(parts.map((part, at) => (at === index ? { ...part, ...change } : part)));
   return <div className="complex-parts">
     <span className="complex-tag">Complex · seguidos, sin soltar la barra</span>
@@ -87,8 +91,8 @@ function ComplexParts({ item, names, onParts, onEnter }) {
       <MoveCombo id={`${item.id}-${index}`} value={part.movement} names={names} label={`Movimiento ${index + 1}`}
         onPick={({ movement, label }) => patch(index, { movement: movement ?? label })}
         onEnter={index === parts.length - 1 && parts.length < LIMITS.parts ? () => onParts([...parts, { reps: 1, movement: '' }]) : onEnter} />
-      {parts.length > 2 ? <button type="button" className="icon-button danger" aria-label={`Quitar movimiento ${index + 1} del complex`}
-        onClick={() => onParts(parts.filter((_, at) => at !== index))}><Icon name="xmark" /></button> : <span />}
+      <button type="button" className="icon-button danger" aria-label={`Quitar movimiento ${index + 1} del complex`}
+        onClick={() => remove(index)}><Icon name="minus" weight={2.8} /></button>
     </div>)}
     {parts.length < LIMITS.parts && <button type="button" className="complex-add" onClick={() => onParts([...parts, { reps: 1, movement: '' }])}>
       <Icon name="plus" weight={2.8} />Agregar movimiento al complex
@@ -147,11 +151,14 @@ export default function LineEditor({ item, earlier, names, weightNames, preview,
     <div className="line-row" data-complex={Boolean(item.parts)} onKeyDown={(event) => { if (event.key === 'Enter' && event.target.tagName === 'INPUT' && !event.defaultPrevented) { event.preventDefault(); onEnter(); } }}>
       {item.parts
         ? <ComplexParts item={item} names={weightNames} onEnter={onEnter}
-          onParts={(parts) => onChange({ movement: null, parts, label: complexLabel(parts.filter((part) => part.movement)) })} />
+          onParts={(parts) => onChange({ movement: null, parts, label: complexLabel(parts.filter((part) => part.movement)) })}
+          onSingle={(part) => { const linked = findMovement(part?.movement ?? '', names); onChange({ parts: undefined, movement: linked ?? null, label: linked ? '' : part?.movement ?? '' }); }} />
         : <>
           <input className="line-reps" value={item.reps} maxLength={LIMITS.reps} placeholder={ladder ? 'Escalera' : 'Reps'} aria-label="Repeticiones"
             onChange={(event) => onChange({ reps: event.target.value })} />
-          <MoveCombo id={item.id} value={itemName(item)} names={names} autoFocus={autoFocus} onPick={pick} onEnter={onEnter} />
+          <MoveCombo id={item.id} value={itemName(item)} names={names} autoFocus={autoFocus} onPick={pick} onEnter={onEnter}
+            onAddMove={() => onChange({ movement: null, parts: [{ reps: 1, movement: itemName(item) }, { reps: 1, movement: '' }],
+              label: itemName(item) ? `1 ${itemName(item)}` : '' })} />
         </>}
       {usesWeight ? <LoadInput item={item} onLoad={(next) => onChange({ load: next })} onMore={onOpen} /> : <span className="line-load none">Sin carga</span>}
       <button type="button" className="icon-button line-more" aria-expanded={open} aria-label={open ? 'Cerrar opciones de la línea' : 'Más opciones de la línea'}
@@ -248,16 +255,9 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
   const logged = item.log || load.type === 'max';
 
   return <div className="line-options">
-    <section className="opt-group" aria-label="Movimiento">
+    {usesWeight && <section className="opt-group" aria-label="Movimiento">
       <h4 className="opt-heading">Movimiento</h4>
-      <OptionRow title="Tipo" help="Un movimiento, o un complex: varios movimientos seguidos sin soltar la barra, por ejemplo 1 Clean + 2 Split Jerk. Cada parte lleva sus repeticiones.">
-        <div className="load-kinds two" role="radiogroup" aria-label="Tipo de movimiento">
-          <button type="button" role="radio" aria-checked={!complex} onClick={() => { if (complex) onChange({ parts: undefined, label: '' }); }}><b>Uno</b></button>
-          <button type="button" role="radio" aria-checked={complex} onClick={() => { if (!complex) onChange({ movement: null, parts: [{ reps: 1, movement: item.movement ?? '' }, { reps: 1, movement: '' }],
-            label: item.movement ? `1 ${item.movement}` : '' }); }}><b>Complex</b></button>
-        </div>
-      </OptionRow>
-      {usesWeight && <>
+      <>
       <OptionRow title="Carga" wide help="Cómo se define el peso de esta línea. Elige una de las tres formas; cada una explica su uso al pasar por encima o al tocar su nombre.">
         <div className="load-kinds" role="radiogroup" aria-label="Tipo de carga">
           {LOAD_KINDS.map((option) => <button type="button" key={option.value} role="radio" aria-checked={option.value === kind} title={option.help}
@@ -289,8 +289,8 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
               : 'Se calcula cuando el atleta anote la línea base.'}
         </p>}
       </div>}
-      </>}
-    </section>
+      </>
+    </section>}
 
     <section className="opt-group" aria-label="En el bloque">
       <h4 className="opt-heading">En el bloque</h4>

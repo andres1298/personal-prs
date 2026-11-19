@@ -219,6 +219,15 @@
 .line-move { position: relative; min-width: 0; }
 .line-move input { padding-right: 30px; }
 .line-move-dot { position: absolute; top: 50%; right: 12px; width: 9px; height: 9px; margin-top: -4.5px; border-radius: 50%; background: var(--c); }
+/* The + beside the movement adds another one: the line becomes a complex. */
+.line-move[data-add="true"] input { padding-right: 60px; }
+.line-move[data-add="true"] .line-move-dot { right: 44px; }
+.line-move-add {
+  position: absolute; top: 50%; right: 5px; width: 30px; height: 30px; margin-top: -15px; display: grid; place-items: center; border-radius: 9px;
+  color: var(--ink3); transition: background-color .2s, color .2s;
+}
+.line-move-add svg { width: 15px; height: 15px; }
+.line-move-add:hover, .line-move-add:focus-visible { background: var(--surface2); color: var(--ink); }
 .move-suggest {
   position: absolute; z-index: 5; top: calc(100% + 4px); left: 0; right: 0; display: grid; gap: 2px; margin: 0; padding: 6px; list-style: none;
   border-radius: 12px; background: var(--surface2); box-shadow: var(--shadow);
