@@ -1,10 +1,11 @@
 'use client';
 
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { today } from '../../lib/catalog';
 import { addDays, addMonths, allItems, cloneContent, itemName, monthWeeks, weekDays } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
+import Skeleton from '../ui/skeleton';
 import SessionEditor from './session-editor';
 
 const DAY_NAMES = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
@@ -24,24 +25,31 @@ export default function CalendarView({ overview, movements, target, focus, onTar
   const [month, setMonth] = useState(today().slice(0, 7));
   const [sessions, setSessions] = useState([]);
   const [error, setError] = useState('');
-  // The editor waits for the month's sessions, so a day opened from elsewhere shows what it already has.
-  const [loaded, setLoaded] = useState(false);
+  // Which target and month the sessions on hand belong to. The editor waits for them, so a day opened from
+  // elsewhere shows what it already has, and the days hold placeholders instead of their actions meanwhile.
+  const [loadedFor, setLoadedFor] = useState(null);
+  const request = useRef(0);
   const [editing, setEditing] = useState(null);     // { date, tab?, athleteId?, key? }
   const [clipboard, setClipboard] = useState(null); // { kind: 'day', date, session } | { kind: 'week', monday, sessions }
   const weeks = useMemo(() => monthWeeks(month), [month]);
   const from = weeks[0];
   const to = addDays(weeks.at(-1), 6);
-  const query = target && `${target.kind}=${target.id}`;
+  const query = target && `${target.kind}=${target.id}&from=${from}&to=${to}`;
+  const loaded = Boolean(query) && loadedFor === query;
 
+  // Only the answer for the target and month on screen is kept, whatever order the answers arrive in.
   const load = useCallback(async () => {
     if (!query) return;
+    const id = ++request.current;
     try {
-      setSessions((await api.send(`/api/coach/sessions?${query}&from=${from}&to=${to}`, 'GET')).sessions);
+      const { sessions: list } = await api.send(`/api/coach/sessions?${query}`, 'GET');
+      if (id !== request.current) return;
+      setSessions(list);
       setError('');
-      setLoaded(true);
-    } catch (err) { setError(err.message); }
-  }, [api, query, from, to]);
-  useEffect(() => { setSessions([]); setLoaded(false); load(); }, [load]);
+      setLoadedFor(query);
+    } catch (err) { if (id === request.current) setError(err.message); }
+  }, [api, query]);
+  useEffect(() => { load(); }, [load]);
 
   // Another screen asked for a session: show its month and open it on the results.
   useEffect(() => {
@@ -51,7 +59,7 @@ export default function CalendarView({ overview, movements, target, focus, onTar
     setEditing({ date: focus.date, tab: 'results', athleteId: focus.athleteId, key: focus.key });
   }, [focus]);
 
-  const byDate = useMemo(() => new Map(sessions.map((session) => [session.date, session])), [sessions]);
+  const byDate = useMemo(() => new Map((loaded ? sessions : []).map((session) => [session.date, session])), [loaded, sessions]);
   const group = target?.kind === 'group' ? overview.groups.find((candidate) => candidate.id === target.id) : null;
   const athletes = !target ? [] : group
     ? overview.athletes.filter((athlete) => group.memberIds.includes(athlete.id))
@@ -148,7 +156,8 @@ export default function CalendarView({ overview, movements, target, focus, onTar
       <button type="button" className="tinted-button small" onClick={() => setClipboard(null)}>Soltar</button>
     </p>}
 
-    <div className="calendar" style={group ? { '--b': `var(${group.color})` } : undefined}>
+    <div className="calendar" aria-busy={!loaded} style={group ? { '--b': `var(${group.color})` } : undefined}>
+      {!loaded && <span className="visually-hidden" role="status">Cargando el calendario</span>}
       <div className="cal-names" aria-hidden="true">{DAY_NAMES.map((name) => <span key={name}>{name}</span>)}</div>
       {weeks.map((monday) => {
         const days = weekDays(monday);
@@ -156,15 +165,22 @@ export default function CalendarView({ overview, movements, target, focus, onTar
         return <div className="cal-week" key={monday}>
           <div className="cal-week-tools">
             <span>Semana del {shortDate(monday)}</span>
-            {inWeek.length > 0 && <button type="button" className="tinted-button small" onClick={() => setClipboard({ kind: 'week', monday, sessions: inWeek })}>Copiar semana</button>}
-            {clipboard?.kind === 'week' && clipboard.monday !== monday && <button type="button" className="tinted-button small" onClick={() => pasteWeek(monday)}>Pegar semana</button>}
+            {loaded && inWeek.length > 0 && <button type="button" className="tinted-button small" onClick={() => setClipboard({ kind: 'week', monday, sessions: inWeek })}>Copiar semana</button>}
+            {loaded && clipboard?.kind === 'week' && clipboard.monday !== monday && <button type="button" className="tinted-button small" onClick={() => pasteWeek(monday)}>Pegar semana</button>}
           </div>
           {days.map((date, index) => {
             const session = byDate.get(date);
             const lines = session ? summary(session) : [];
+            const day = <span className="cal-day"><small>{DAY_NAMES[index]}</small><b className="num">{Number(date.slice(8))}</b></span>;
+            if (!loaded) {
+              return <div className="cal-cell" key={date} data-out={date.slice(0, 7) !== month} data-today={date === now}>
+                <header>{day}</header>
+                <Skeleton />
+              </div>;
+            }
             return <div className="cal-cell" key={date} data-out={date.slice(0, 7) !== month} data-today={date === now}>
               <header>
-                <span className="cal-day"><small>{DAY_NAMES[index]}</small><b className="num">{Number(date.slice(8))}</b></span>
+                {day}
                 {session && <button type="button" className="cal-tool" onClick={() => setClipboard({ kind: 'day', date, session })}>Copiar</button>}
                 {clipboard?.kind === 'day' && clipboard.date !== date && <button type="button" className="cal-tool" onClick={() => pasteDay(date)}>Pegar</button>}
               </header>
@@ -172,7 +188,7 @@ export default function CalendarView({ overview, movements, target, focus, onTar
                 <b>{session.title || 'Sesión'}</b>
                 {lines.map((line, lineIndex) => <span key={lineIndex}>{line}</span>)}
                 {allItems(session.content).length === 0 && !lines.length && session.notes && <span>{session.notes}</span>}
-                <em>{session.published ? (athletes.length ? `${session.completed}/${athletes.length} completaron` : 'Publicada') : 'Borrador'}</em>
+                <em>{session.published ? (athletes.length ? `${session.completed}/${athletes.length} completaron` : 'Visible') : 'Oculta'}</em>
               </button> : <button type="button" className="cal-add" aria-label={`Programar el ${shortDate(date)}`} onClick={() => setEditing({ date })}>
                 <Icon name="plus" weight={2.6} /><span>Programar</span>
               </button>}

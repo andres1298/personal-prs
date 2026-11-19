@@ -28,6 +28,9 @@ import { useHistoryBack, useOpenLayers } from '../components/back-navigation';
 import EdgeSwipeBack from '../components/edge-swipe-back';
 
 const SETTINGS_DEFAULTS = { bar: 45, plates: [...ALL_PLATES], lastPct: 70, wake: true, simple: false, tab: 'exec' };
+// How long records and movements wait for the plan's first answer, and, without a plan, for the first paint.
+const PLAN_FIRST_MS = 3000;
+const AFTER_PAINT_MS = 150;
 
 export default function App(props) {
   const scope = props.hasBackend ? props.userId : 'demo';
@@ -38,8 +41,8 @@ export default function App(props) {
   </AlertProvider>;
 }
 
-function Banner({ loading, demo, error, stale, onRetry }) {
-  if (loading) return <div className="banner" role="status"><span className="spinner" aria-hidden="true" />Cargando tus PRs…</div>;
+// While loading, each screen shows the shape of its content instead (see Skeleton).
+function Banner({ demo, error, stale, onRetry }) {
   if (demo) return <div className="banner warn"><span>Datos de ejemplo · cambios solo en esta sesión</span><Link className="pill-btn" href="/app">Iniciar sesión</Link></div>;
   if (error) return <div className="banner warn" role="alert"><span>{error}</span><button type="button" className="pill-btn" onClick={onRetry}>Reintentar</button></div>;
   if (stale) return <div className="banner warn" aria-live="polite"><span>{stale}</span><button type="button" className="pill-btn" onClick={onRetry}>Actualizar</button></div>;
@@ -48,15 +51,26 @@ function Banner({ loading, demo, error, stale, onRetry }) {
 
 function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false, userId, tourPending: newMember = false, scope }) {
   const alert = useAlert();
+  const plan = usePlan(hasBackend, scope);
+  // Today's session goes first: records and movements are asked for once the plan has answered (or failed),
+  // or just after the first paint for members without a plan. The copies on the device show meanwhile.
+  const [warm, setWarm] = useState(!hasBackend);
+  const planSettled = plan.loaded || Boolean(plan.error);
+  useEffect(() => {
+    if (warm) return undefined;
+    if (planSettled) { setWarm(true); return undefined; }
+    const timer = setTimeout(() => setWarm(true), hasPlan ? PLAN_FIRST_MS : AFTER_PAINT_MS);
+    return () => clearTimeout(timer);
+  }, [warm, planSettled, hasPlan]);
   const {
     records, loading: loadingRecords, error: recordsError, stale: recordsStale, synced, reload: reloadRecords, addRecord, addRecords,
-  } = useRecords(hasBackend, scope);
-  const movements = useMovements(hasBackend, scope);
-  const plan = usePlan(hasBackend, scope);
-  // The server's answer at page load holds until the plan itself arrives, so the tab does not flicker.
+  } = useRecords(hasBackend, scope, !warm);
+  const movements = useMovements(hasBackend, scope, !warm);
+  // The server's answer at page load holds until the plan itself arrives (the sessions of other weeks come
+  // with the whole range), so the tab does not flicker.
   // Following someone: a coach, or the coach's own groups they train with.
-  const following = Boolean(plan.coach) || plan.ownGroups.length > 0;
-  const planEnabled = hasBackend && (plan.loaded ? following || plan.sessions.length > 0 : hasPlan || following);
+  const following = Boolean(plan.coach) || plan.ownGroups.length > 0 || (!plan.loaded && hasPlan);
+  const planEnabled = hasBackend && (plan.complete ? following || plan.sessions.length > 0 : hasPlan || following);
   const planBadge = plan.sessions.some((session) => session.unread > 0 || (session.date === today() && !session.completedAt));
   const loading = loadingRecords || movements.loading;
   const error = recordsError || movements.error;
@@ -74,10 +88,6 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
   const [tourOpen, setTourOpen] = useState(false);
   const tourSnapshot = useRef(null);
   const formCount = useRef(0);
-  // The loader stays up until the first load settles; later reloads use the banner.
-  const [connected, setConnected] = useState(false);
-  useEffect(() => { if (!loading) setConnected(true); }, [loading]);
-
   const setEx = useCallback((patch) => updateEx((current) => ({
     ...(typeof patch === 'function' ? patch(current) : patch), ts: Date.now(),
   })), [updateEx]);
@@ -89,12 +99,12 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
   // Simple mode hides the tab bar while lifting.
   const focus = running && !!settings.simple;
 
-  // The guided tour opens by itself for new members (and once per device in the demo).
+  // The guided tour opens by itself for new members (and once per device in the demo), over the loaded screens.
   // The device flag also covers the moment between closing the tour and the server saving it.
   const autoTour = (hasBackend ? newMember : true) && !tour.seen;
   useEffect(() => {
-    if (ready && tourReady && autoTour) setTourOpen(true);
-  }, [ready, tourReady, autoTour]);
+    if (ready && tourReady && autoTour && !loading) setTourOpen(true);
+  }, [ready, tourReady, autoTour, loading]);
 
   // Offer the quick upload once to accounts that have no records yet, after the tour.
   // The device copy can be out of date, so it waits for the server's answer.
@@ -166,15 +176,15 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
     else if (tab !== home) updateSettings({ tab: home });
     window.scrollTo({ top: 0 });
   };
-  useHistoryBack(screenDepth, screenBack, ready && connected);
+  useHistoryBack(screenDepth, screenBack, ready);
   const openLayers = useOpenLayers();
   const page = useRef(null);
   // The screen going back would show, drawn under the edge swipe.
   const previousScreen = () => <section className="wrap">
     {home === 'plan' && !inExec
-      ? <PlanView plan={plan} records={records} userId={userId} active={false} onExecute={() => {}} onAddRecord={() => {}} onSaveRecord={() => {}} />
+      ? <PlanView plan={plan} records={records} recordsReady={!loadingRecords} userId={userId} active={false} onExecute={() => {}} onAddRecord={() => {}} onSaveRecord={() => {}} />
       : <ExecuteView ex={tab === 'exec' ? { ...ex, view: ex.view === 'run' && !ex.free ? 'moves' : 'pick' } : ex} setEx={() => {}}
-        settings={settings} records={records} banner={banner} onOpenSettings={() => {}} />}
+        settings={settings} records={records} loading={loading} banner={banner} onOpenSettings={() => {}} />}
   </section>;
 
   const goTab = (next) => {
@@ -229,21 +239,22 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
     setQuickOpen(false);
   }
 
-  const banner = <Banner loading={loading} demo={!hasBackend} error={error} stale={stale} onRetry={reload} />;
-  if (!ready || !connected) return <SignalLoader />;
+  const banner = <Banner demo={!hasBackend} error={error} stale={stale} onRetry={reload} />;
+  // Only the device's settings are awaited: each tab shows the shape of its content until its data arrives.
+  if (!ready) return <SignalLoader />;
 
   return <>
     <TimerPill />
     <main className="page" ref={page} data-focus={focus}>
       {planEnabled && <section className="tab-view wrap" hidden={tab !== 'plan'}>
-        <PlanView plan={plan} records={records} userId={userId} active={tab === 'plan'} onExecute={executeLoad} onAddRecord={openForm} onSaveRecord={addRecord} />
+        <PlanView plan={plan} records={records} recordsReady={!loadingRecords} userId={userId} active={tab === 'plan'} onExecute={executeLoad} onAddRecord={openForm} onSaveRecord={addRecord} />
       </section>}
       <section className="tab-view wrap" hidden={tab !== 'exec'}>
-        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} banner={banner} onOpenSettings={() => setSettingsOpen(true)}
+        <ExecuteView ex={ex} setEx={setEx} settings={settings} records={records} loading={loading} banner={banner} onOpenSettings={() => setSettingsOpen(true)}
           onOpenRecord={(move) => setDetail({ move })} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'prs'}>
-        <PrsView records={records} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={openMove} />
+        <PrsView records={records} loading={loading} banner={banner} busy={loading || !!error} onQuick={() => setQuickOpen(true)} onOpen={openMove} />
       </section>
       <section className="tab-view wrap" hidden={tab !== 'timer'}>
         <TimerView />

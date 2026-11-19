@@ -9,6 +9,7 @@ import { BackButton, LargeTitle, NavBar } from '../ui/nav-bar';
 import { SegmentedControl } from '../ui/controls';
 import PlateDisc from '../ui/plate-disc';
 import RecordValue from '../ui/record-value';
+import Skeleton, { Loading, SkeletonList } from '../ui/skeleton';
 
 export const EXERCISE_DEFAULTS = {
   view: 'pick', cat: null, move: null, free: false, rm: 1, base: 0, pct: 80,
@@ -48,17 +49,22 @@ const FREE_PATCH = { view: 'run', free: true };
 const executeGroups = () => [...weightGroups(), ...repsGroups()];
 
 // `scrollToTop` lets a host that scrolls an inner container (the landing page's phone) keep the window still.
-export default function ExecuteView({ ex, setEx, settings, records, banner, onOpenSettings, onOpenRecord, scrollToTop = scrollTop }) {
+// `loading`: the records and movements have not arrived yet and there is no copy of them on the device.
+export default function ExecuteView({ ex, setEx, settings, records, loading = false, banner, onOpenSettings, onOpenRecord, scrollToTop = scrollTop }) {
   const go = (patch) => { setEx(patch); scrollToTop(); };
   if (ex.view === 'pick') {
-    return <Picker ex={ex} go={go} settings={settings} records={records} banner={banner} />;
+    return <Picker ex={ex} go={go} settings={settings} records={records} loading={loading} banner={banner} />;
   }
-  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} onOpenRecord={onOpenRecord} />;
+  if (ex.view === 'moves') return <Moves ex={ex} go={go} records={records} loading={loading} onOpenRecord={onOpenRecord} />;
   return <Workbench ex={ex} setEx={setEx} go={go} settings={settings} records={records} onOpenSettings={onOpenSettings} />;
 }
 
 /* ---------- Picker ---------- */
-function Picker({ ex, go, settings, records, banner }) {
+// Placeholder tiles while the groups and their counts load.
+const PICKER_TILES = 7;
+const MOVE_ROWS = 5;
+
+function Picker({ ex, go, settings, records, loading, banner }) {
   const canResume = ex.base > 0 && (ex.move || ex.free);
   const resumeTarget = canResume ? computeLoad(ex, settings, settings.simple).target : 0;
   return <>
@@ -77,7 +83,9 @@ function Picker({ ex, go, settings, records, banner }) {
         <Icon name="xmark" weight={2.6} />
       </button>
     </div>}
-    <div className="category-grid" data-tour="categories">
+    {loading ? <Loading className="category-grid" label="Cargando tus PRs" data-tour="categories">
+      {Array.from({ length: PICKER_TILES }, (_, index) => <Skeleton key={index} className="skeleton-tile" />)}
+    </Loading> : <div className="category-grid" data-tour="categories">
       {executeGroups().map((group) => {
         const count = group.moves.filter((move) => firstRm(records, move)).length;
         return <button type="button" key={group.name} className="category-card" style={block(group.color)}
@@ -87,7 +95,7 @@ function Picker({ ex, go, settings, records, banner }) {
           <span className="category-name display" style={{ '--chars': group.name.length }}>{group.name}</span>
         </button>;
       })}
-    </div>
+    </div>}
     <button type="button" className="outline-row" data-tour="free-calc" onClick={() => go(FREE_PATCH)}>
       <span className="outline-glyph display" aria-hidden="true">%</span>
       <span className="outline-copy"><b>Cálculo libre</b><small>Cualquier peso y porcentaje</small></span>
@@ -97,7 +105,7 @@ function Picker({ ex, go, settings, records, banner }) {
 }
 
 /* ---------- Movements of a group ---------- */
-function Moves({ ex, go, records, onOpenRecord }) {
+function Moves({ ex, go, records, loading, onOpenRecord }) {
   const groups = executeGroups();
   const group = groups.find((g) => g.name === ex.cat) || groups[0] || { name: '', color: '--b-gray', moves: [] };
   const reps = repsGroups().includes(group);
@@ -122,12 +130,14 @@ function Moves({ ex, go, records, onOpenRecord }) {
     <NavBar back={{ label: 'Execute', onClick: () => go({ view: 'pick' }) }} title={group.name}>
       <section className="category-hero">
         <span className="category-letter display" aria-hidden="true">{group.name[0]}</span>
-        <p>{withPR.length ? `${withPR.length} con PR` : 'Sin PRs'} · {group.moves.length} {group.moves.length === 1 ? 'movimiento' : 'movimientos'}</p>
+        {loading ? <Skeleton width={150} height={15} /> : <p>{withPR.length ? `${withPR.length} con PR` : 'Sin PRs'} · {group.moves.length} {group.moves.length === 1 ? 'movimiento' : 'movimientos'}</p>}
         <h1 className="display">{group.name}</h1>
       </section>
     </NavBar>
-    {withPR.length ? <List>{withPR.map(row)}</List> : <p className="empty">Aún no tienes PRs en {group.name}</p>}
-    {without.length > 0 && <List header="Sin PR registrado">{without.map(row)}</List>}
+    {loading ? <SkeletonList label="Cargando tus PRs" rows={MOVE_ROWS} /> : <>
+      {withPR.length ? <List>{withPR.map(row)}</List> : <p className="empty">Aún no tienes PRs en {group.name}</p>}
+      {without.length > 0 && <List header="Sin PR registrado">{without.map(row)}</List>}
+    </>}
     {reps
       ? <p className="list-footer">Máximo de repeticiones sin pausa. Toca un movimiento para ver su historial o registrar uno nuevo.</p>
       : <List>

@@ -84,7 +84,10 @@ export default function SessionEditor({ date, session, targetName, group, athlet
     onClose();
   }
   useEffect(() => {
-    const onKey = (event) => { if (event.key === 'Escape' && !document.querySelector('.alert-root')) close(); };
+    // Escape closes an open help bubble or alert first, not the editor.
+    const onKey = (event) => {
+      if (event.key === 'Escape' && !event.defaultPrevented && !document.querySelector('.alert-root, .info-tip-bubble')) close();
+    };
     document.addEventListener('keydown', onKey);
     return () => document.removeEventListener('keydown', onKey);
   });
@@ -188,8 +191,12 @@ export default function SessionEditor({ date, session, targetName, group, athlet
           <Icon name="person" />{previewing && canPreview ? 'Ocultar vista previa' : 'Previsualizar'}
         </button>
       </header>
-      {session && <SegmentedControl label="Vista" value={tab} onChange={setTab}
-        options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
+      {/* One row: which view, and whether athletes see the day (it is part of the program, so only there). */}
+      <div className="editor-bar">
+        {session && <SegmentedControl label="Vista" value={tab} onChange={setTab}
+          options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
+        {tab === 'program' && <Visibility published={draft.published} onChange={(published) => change({ published })} />}
+      </div>
 
       {tab === 'results' ? <Results sessionId={session.id} content={session.content} focusAthleteId={focusAthleteId} api={api} /> : <>
         <div className="editor-meta">
@@ -259,10 +266,6 @@ export default function SessionEditor({ date, session, targetName, group, athlet
       </>}
 
       {tab === 'program' && <footer className="editor-foot">
-        {/* One icon for the state: lit while athletes see the day, grey while it is a draft. */}
-        <button type="button" className="publish-toggle" aria-pressed={draft.published} onClick={() => change({ published: !draft.published })}
-          aria-label={draft.published ? 'Publicada: tus atletas la ven. Toca para volverla borrador' : 'Borrador: solo tú la ves. Toca para publicarla'}
-          title={draft.published ? 'Publicada: tus atletas la ven' : 'Borrador: solo tú la ves'}><Icon name="broadcast" weight={2.4} /></button>
         <span className="editor-foot-actions">
           {session && <button type="button" className="nav-text danger" onClick={remove}>Borrar</button>}
           {session && <button type="button" className="nav-text" disabled={dirty} title={dirty ? 'Guarda antes de copiar' : undefined} onClick={onCopy}>Copiar día</button>}
@@ -279,8 +282,26 @@ export default function SessionEditor({ date, session, targetName, group, athlet
       <div className="phone">
         <PlanPreview session={previewSession} records={previewRecords ?? []} division={previewDivision} />
       </div>
-      {!draft.published && <p className="line-hint">Es un borrador: tus atletas no lo ven hasta que lo publiques.</p>}
+      {!draft.published && <p className="line-hint">Está oculta: tus atletas no la ven hasta que la hagas visible.</p>}
     </aside>}
+  </div>;
+}
+
+const VISIBILITY = [
+  { value: true, label: 'Visible', icon: 'eye', hint: 'Visible: tus atletas la ven' },
+  { value: false, label: 'Oculta', icon: 'eyeOff', hint: 'Oculta: solo tú la ves' },
+];
+
+/**
+ * Whether athletes see the day: green while visible, grey while hidden. On a phone the chosen side
+ * shows its name and the other only its icon, as in the tab bar, so it fits beside the view switch.
+ */
+function Visibility({ published, onChange }) {
+  return <div className="visibility" role="radiogroup" aria-label="Visibilidad para tus atletas" data-visible={published}>
+    {VISIBILITY.map((option) => <button type="button" key={option.label} role="radio" aria-checked={option.value === published}
+      aria-label={option.hint} title={option.hint} onClick={() => { if (option.value !== published) onChange(option.value); }}>
+      <Icon name={option.icon} weight={2.4} /><span>{option.label}</span>
+    </button>)}
   </div>;
 }
 

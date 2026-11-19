@@ -19,6 +19,8 @@
   /* How much of a category's block is used as text or outline on the ground (see --accent). */
   --accent-mix: 74%;
   --shadow: 0 10px 30px -10px rgba(0, 0, 0, .35);
+  /* The light that sweeps across loading placeholders (see .skeleton). */
+  --shimmer: color-mix(in oklab, var(--surface) 75%, transparent);
 
   /* Blocks: categories and templates. Coral is never a category: it marks the + button and destructive actions. */
   --b-pink: #ff86b8;
@@ -65,6 +67,7 @@
     --scrim: rgba(0, 0, 0, .6);
     --accent-mix: 100%;
     --shadow: 0 10px 30px -10px rgba(0, 0, 0, .8);
+    --shimmer: color-mix(in oklab, var(--ink) 8%, transparent);
     --danger: #ff6a4d;
   }
 }
@@ -352,6 +355,29 @@ html.has-timer .navbar { padding-top: calc(var(--safe-top) + 54px); }
 .empty { color: var(--ink2); text-align: center; padding: 22px 16px; }
 .empty.compact { padding: 18px 16px; }
 .hint { color: var(--ink2); font-size: 13px; text-align: center; }
+
+/* ---------- Skeletons: the shape of what is loading, with a light sweeping across ---------- */
+.skeleton {
+  position: relative; display: block; flex: none; max-width: 100%; height: 1em; overflow: hidden; isolation: isolate;
+  border-radius: 8px; background: var(--surface2);
+}
+.skeleton::after {
+  content: ''; position: absolute; inset: 0; transform: translateX(-100%);
+  background: linear-gradient(100deg, transparent 20%, var(--shimmer) 50%, transparent 80%);
+  animation: shimmer 1.5s var(--ease) infinite;
+}
+@keyframes shimmer { to { transform: translateX(100%); } }
+.skeleton-tile { min-height: 140px; border-radius: var(--radius); }
+.skeleton-tile:last-child:nth-child(odd) { grid-column: 1 / -1; }
+.skeleton-chip { width: 112px; height: 40px; border-radius: 10px; }
+.list .skeleton-row .row-body { gap: 16px; }
+/* On a colored block the placeholder is a shade of its black ink. */
+.category-hero .skeleton { background: color-mix(in oklab, var(--block-ink) 12%, transparent); }
+.plan-skeleton { margin-bottom: 40px; }
+.plan-skeleton .plan-block { --b: var(--surface2); }
+.plan-skeleton .plan-head { margin-bottom: 22px; }
+.plan-skeleton .plan-item-text { gap: 8px; }
+.plan-weight-skeleton { flex: none; display: flex; }
 
 /* Controls drawn at 40–42 px reach 44 px of touch area without changing their look. */
 :is(.pill-btn, .nav-text.strong, .segmented button, .target-reset, .pct-stepper button) { position: relative; }
@@ -978,6 +1004,7 @@ html.has-timer .wb-head { padding-top: calc(var(--safe-top) + 54px); }
 @media (prefers-reduced-motion: reduce) {
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; }
   .signal-plate { animation: none !important; opacity: 1; }
+  .skeleton::after { display: none; }
   .ring-waves { display: none; }
 }
 
