@@ -1,6 +1,7 @@
 'use client';
 
-import { useEffect, useId, useMemo, useRef, useState } from 'react';
+import { useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { moveInfo } from '../../lib/catalog';
 import { BASE_RMS, complexLabel, itemName, LIMITS } from '../../lib/training';
 import { Switch } from '../ui/controls';
@@ -168,7 +169,7 @@ export default function LineEditor({ item, earlier, names, weightNames, preview,
 }
 
 const LOAD_KINDS = [
-  { value: 'weight', label: 'Chicos / Chicas', short: 'Peso fijo en libras', help: 'Un peso fijo en libras. Si escribes uno para chicos y otro para chicas, cada atleta ve el de su categoría; con uno solo, es para todos.' },
+  { value: 'weight', label: 'Peso fijo', short: 'En libras, uno para chicos y otro para chicas', help: 'Un peso fijo en libras. Si escribes uno para chicos y otro para chicas, cada atleta ve el de su categoría; con uno solo, es para todos.' },
   { value: 'percent', label: '% de un PR', short: 'Calculado del récord de cada atleta', help: 'Un porcentaje de un récord del atleta (1RM, 3RM o 5RM) o del peso que anotó hoy en una línea anterior. Cada atleta ve su peso ya calculado.' },
   { value: 'max', label: 'Máximo del día', short: 'Sube hasta su peso más alto y lo anota', help: 'El atleta sube hasta su peso más alto del día y lo anota. La línea no lleva un peso escrito.' },
 ];
@@ -186,11 +187,33 @@ function InfoTip({ label, text }) {
   const button = useRef(null);
   // Leaving with the pointer closes a bubble opened by hovering, not one the keyboard or a tap is on.
   const leave = () => { if (document.activeElement !== button.current) hide(); };
+  const bubble = useRef(null);
+  const [place, setPlace] = useState(null);
+  // Placed against the window: centred on the (i), kept 12 px inside the screen on both sides, below
+  // the (i) or above it when there is no room. It follows the (i) while the page scrolls.
+  useLayoutEffect(() => {
+    if (!open) { setPlace(null); return undefined; }
+    const measure = () => {
+      if (!button.current || !bubble.current) return;
+      const anchor = button.current.getBoundingClientRect();
+      const { width, height } = bubble.current.getBoundingClientRect();
+      const margin = 12;
+      const left = Math.min(Math.max(anchor.left + anchor.width / 2 - width / 2, margin), window.innerWidth - width - margin);
+      const below = anchor.bottom + 8 + height <= window.innerHeight - margin;
+      setPlace({ left, top: below ? anchor.bottom + 8 : anchor.top - 8 - height, side: below ? 'below' : 'above', arrow: anchor.left + anchor.width / 2 - left });
+    };
+    measure();
+    window.addEventListener('scroll', measure, true);
+    window.addEventListener('resize', measure);
+    return () => { window.removeEventListener('scroll', measure, true); window.removeEventListener('resize', measure); };
+  }, [open]);
   return <span className="info-tip" onMouseEnter={show} onMouseLeave={leave}>
     <button type="button" ref={button} className="info-tip-button" aria-label={`Qué hace «${label}»`} aria-expanded={open} aria-describedby={open ? id : undefined}
       onClick={tap} onFocus={show} onBlur={hide}
       onKeyDown={(event) => { if (event.key === 'Escape' && open) { event.preventDefault(); hide(); } }}><Icon name="info" weight={2.4} /></button>
-    {open && <span className="info-tip-bubble" role="tooltip" id={id}>{text}</span>}
+    {/* In the body, so no scrolling or clipped container around the line can cut it. */}
+    {open && createPortal(<span ref={bubble} className="info-tip-bubble" role="tooltip" id={id} data-side={place?.side}
+      style={place ? { left: place.left, top: place.top, '--arrow': `${place.arrow}px` } : { visibility: 'hidden' }}>{text}</span>, document.body)}
   </span>;
 }
 
@@ -225,7 +248,16 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
   const logged = item.log || load.type === 'max';
 
   return <div className="line-options">
-    {usesWeight && <div className="opt-group">
+    <section className="opt-group" aria-label="Movimiento">
+      <h4 className="opt-heading">Movimiento</h4>
+      <OptionRow title="Tipo" help="Un movimiento, o un complex: varios movimientos seguidos sin soltar la barra, por ejemplo 1 Clean + 2 Split Jerk. Cada parte lleva sus repeticiones.">
+        <div className="load-kinds two" role="radiogroup" aria-label="Tipo de movimiento">
+          <button type="button" role="radio" aria-checked={!complex} onClick={() => { if (complex) onChange({ parts: undefined, label: '' }); }}><b>Uno</b></button>
+          <button type="button" role="radio" aria-checked={complex} onClick={() => { if (!complex) onChange({ movement: null, parts: [{ reps: 1, movement: item.movement ?? '' }, { reps: 1, movement: '' }],
+            label: item.movement ? `1 ${item.movement}` : '' }); }}><b>Complex</b></button>
+        </div>
+      </OptionRow>
+      {usesWeight && <>
       <OptionRow title="Carga" wide help="Cómo se define el peso de esta línea. Elige una de las tres formas; cada una explica su uso al pasar por encima o al tocar su nombre.">
         <div className="load-kinds" role="radiogroup" aria-label="Tipo de carga">
           {LOAD_KINDS.map((option) => <button type="button" key={option.value} role="radio" aria-checked={option.value === kind} title={option.help}
@@ -257,9 +289,11 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
               : 'Se calcula cuando el atleta anote la línea base.'}
         </p>}
       </div>}
-    </div>}
+      </>}
+    </section>
 
-    <div className="opt-group">
+    <section className="opt-group" aria-label="En el bloque">
+      <h4 className="opt-heading">En el bloque</h4>
       <OptionRow title="Series de esta línea" help="Cuántas veces se repite esta línea por su cuenta, por ejemplo 5 series de 3. Déjalo vacío si se hace una vez o si el bloque ya tiene rondas.">
         <div className="stepper-field">
           <button type="button" aria-label="Una serie menos" disabled={!item.sets} onClick={() => onChange({ sets: item.sets > 2 ? item.sets - 1 : null })}><Icon name="minus" weight={2.8} /></button>
@@ -271,17 +305,11 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
       <OptionRow title="El atleta anota peso y reps" help="Si está activo, el atleta escribe el peso y las repeticiones que hizo en esta línea y los ves en Resultados. Apagado, la línea es solo informativa. Con «Máximo del día» siempre se anota.">
         <Switch checked={logged} disabled={load.type === 'max'} label="El atleta anota peso y reps" onChange={(log) => onChange({ log })} />
       </OptionRow>
-      <OptionRow title="Complex" help="Varios movimientos seguidos sin soltar la barra, por ejemplo 1 Clean + 2 Split Jerk. Cada parte lleva sus repeticiones.">
-        {complex
-          ? <button type="button" className="tinted-button" onClick={() => onChange({ parts: undefined, label: '' })}>Volver a un movimiento</button>
-          : <button type="button" className="tinted-button" onClick={() => onChange({ movement: null, parts: [{ reps: 1, movement: item.movement ?? '' }, { reps: 1, movement: '' }],
-            label: item.movement ? `1 ${item.movement}` : '' })}><Icon name="plus" weight={2.8} />Convertir</button>}
-      </OptionRow>
       <OptionRow title="Nota de la línea" wide help="Detalles para el atleta en esta línea: tempo, variante, RPE…">
         <input className="line-input" value={item.notes} maxLength={LIMITS.notes} placeholder="p. ej. «3 s en el negativo» o «con liga»" aria-label="Nota de la línea"
           onChange={(event) => onChange({ notes: event.target.value })} />
       </OptionRow>
-    </div>
+    </section>
 
     <footer className="line-foot">
       {!item.movement && !complex && item.label.trim() && <p className="line-hint">

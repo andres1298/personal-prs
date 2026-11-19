@@ -252,6 +252,7 @@
 .line-options { display: grid; gap: 12px; padding: 6px 12px 12px; }
 /* Settings as rows grouped in cards: name and help on the left, control on the right. */
 .opt-group { display: grid; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.opt-heading { margin: 0; padding: 12px 14px 0; color: var(--ink3); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
 .opt-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 52px; padding: 8px 14px; }
 .opt-row + .opt-row, .opt-group > .opt-sub { box-shadow: inset 0 1px 0 var(--line); }
 .opt-row[data-wide="true"] { flex-wrap: wrap; }
@@ -273,27 +274,37 @@
 /* The short line is for phones, where the options stack; wider screens explain the chosen one below. */
 .load-kinds button small { display: none; }
 .load-kinds button:active { transform: scale(.96); }
+/* Movement type: one movement or a complex, a quiet two-way switch. */
+.load-kinds.two { grid-template-columns: repeat(2, minmax(0, 1fr)); width: auto; min-width: 200px; }
+.load-kinds.two button[aria-checked="true"] { background: var(--inverse); color: var(--inverse-ink); }
 @media (max-width: 560px) {
-  .load-kinds { grid-template-columns: minmax(0, 1fr); max-width: none; }
-  .load-kinds button { display: grid; gap: 2px; justify-items: start; min-height: 52px; padding: 8px 12px; text-align: left; font-size: 15px; }
+  .load-kinds:not(.two) { grid-template-columns: minmax(0, 1fr); max-width: none; }
+  .load-kinds:not(.two) button { display: grid; gap: 2px; justify-items: start; min-height: 52px; padding: 8px 12px; text-align: left; font-size: 15px; }
   .load-kinds button small { display: block; color: var(--ink3); font-size: 12px; font-weight: 600; }
   .load-kinds button[aria-checked="true"] small { color: var(--block-ink); opacity: .75; }
   .opt-row[data-wide="true"] .load-kinds + .opt-note { display: none; }
 }
 .load-kinds button[aria-checked="true"] { color: var(--block-ink); }
-.load-kinds button:nth-child(1)[aria-checked="true"] { background: var(--b-blue); }
-.load-kinds button:nth-child(2)[aria-checked="true"] { background: var(--b-yellow); }
-.load-kinds button:nth-child(3)[aria-checked="true"] { background: var(--b-pink); }
+.load-kinds:not(.two) button:nth-child(1)[aria-checked="true"] { background: var(--b-blue); }
+.load-kinds:not(.two) button:nth-child(2)[aria-checked="true"] { background: var(--b-yellow); }
+.load-kinds:not(.two) button:nth-child(3)[aria-checked="true"] { background: var(--b-pink); }
 /* Help bubble beside a setting's name. */
 .info-tip { position: relative; display: inline-flex; }
 .info-tip-button { display: grid; place-items: center; width: 26px; height: 26px; border-radius: 50%; color: var(--ink3); transition: color .2s; }
 .info-tip-button svg { width: 16px; height: 16px; }
 .info-tip-button:hover, .info-tip-button[aria-expanded="true"] { color: var(--ink); }
 .info-tip-bubble {
-  position: absolute; z-index: 20; left: 50%; top: calc(100% + 6px); transform: translateX(-30%); width: max-content; max-width: min(280px, 78vw);
+  position: fixed; z-index: 60; left: 0; top: 0; width: max-content; max-width: min(300px, calc(100vw - 24px));
   padding: 10px 12px; border-radius: 12px; background: var(--inverse); color: var(--inverse-ink); box-shadow: var(--shadow);
-  font-size: 13px; font-weight: 600; line-height: 1.4; letter-spacing: 0; text-transform: none;
+  font-size: 13px; font-weight: 600; line-height: 1.4; letter-spacing: 0; text-transform: none; pointer-events: none;
 }
+/* A small arrow points at the (i), above or below the bubble. */
+.info-tip-bubble::before {
+  content: ''; position: absolute; left: clamp(12px, var(--arrow, 50%), calc(100% - 12px)); width: 10px; height: 10px; background: inherit;
+  transform: translateX(-50%) rotate(45deg); border-radius: 2px;
+}
+.info-tip-bubble[data-side="below"]::before { top: -4px; }
+.info-tip-bubble[data-side="above"]::before { bottom: -4px; }
 .line-options .tinted-button { min-height: 36px; padding: 0 12px; gap: 8px; background: var(--surface); }
 .line-options .tinted-button svg { width: 16px; height: 16px; }
 .line-options .choice button, .line-options .stepper-field, .line-options .line-input, .line-options .line-select { background-color: var(--bg); }
