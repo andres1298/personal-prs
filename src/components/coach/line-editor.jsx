@@ -254,13 +254,13 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
   return <div className="line-options">
     <section className="opt-group" aria-label="Movimiento">
       <h4 className="opt-heading">Movimiento</h4>
-      <div className="opt-row">
+      <OptionRow title="Complex" help="Varios movimientos seguidos sin soltar la barra, por ejemplo 1 Clean + 2 Split Jerk. Cada parte lleva sus repeticiones; quitar partes hasta dejar una la vuelve un movimiento normal.">
         {complex
-          ? <button type="button" className="tinted-button" onClick={() => onChange({ parts: undefined, label: '' })}>Volver a un movimiento</button>
-          : <button type="button" className="tinted-button" title="Varios movimientos seguidos sin soltar la barra, por ejemplo 1 Clean + 2 Split Jerk"
+          ? <button type="button" className="tinted-button" onClick={() => onChange({ parts: undefined, label: '' })}>Volver a uno</button>
+          : <button type="button" className="tinted-button"
             onClick={() => onChange({ movement: null, parts: [{ reps: 1, movement: itemName(item) }, { reps: 1, movement: '' }], label: itemName(item) ? `1 ${itemName(item)}` : '' })}>
             <Icon name="plus" weight={2.8} />Convertir en complex</button>}
-      </div>
+      </OptionRow>
       {usesWeight && <>
       <OptionRow title="Carga" wide help="Cómo se define el peso de esta línea. Elige una de las tres formas; cada una explica su uso al pasar por encima o al tocar su nombre.">
         <div className="load-kinds" role="radiogroup" aria-label="Tipo de carga">
@@ -298,7 +298,7 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
 
     <section className="opt-group" aria-label="En el bloque">
       <h4 className="opt-heading">En el bloque</h4>
-      <OptionRow title="Series de esta línea" help="Cuántas veces se repite esta línea por su cuenta, por ejemplo 5 series de 3. Déjalo vacío si se hace una vez o si el bloque ya tiene rondas.">
+      <OptionRow title="Series" help="Cuántas veces se repite esta línea por su cuenta, por ejemplo 5 series de 3. Déjalo vacío si se hace una vez o si el bloque ya tiene rondas.">
         <div className="stepper-field">
           <button type="button" aria-label="Una serie menos" disabled={!item.sets} onClick={() => onChange({ sets: item.sets > 2 ? item.sets - 1 : null })}><Icon name="minus" weight={2.8} /></button>
           <input inputMode="numeric" value={item.sets ?? ''} placeholder="–" aria-label="Series"
@@ -306,10 +306,10 @@ function LineOptions({ item, earlier, weightNames, preview, usesWeight, setLoad,
           <button type="button" aria-label="Una serie más" disabled={item.sets >= 99} onClick={() => onChange({ sets: (item.sets ?? 1) + 1 })}><Icon name="plus" weight={2.8} /></button>
         </div>
       </OptionRow>
-      <OptionRow title="El atleta anota peso y reps" help="Si está activo, el atleta escribe el peso y las repeticiones que hizo en esta línea y los ves en Resultados. Apagado, la línea es solo informativa. Con «Máximo del día» siempre se anota.">
+      <OptionRow title="Anota peso y reps" help="Si está activo, el atleta escribe el peso y las repeticiones que hizo en esta línea y los ves en Resultados. Apagado, la línea es solo informativa. Con «Máximo del día» siempre se anota.">
         <Switch checked={logged} disabled={load.type === 'max'} label="El atleta anota peso y reps" onChange={(log) => onChange({ log })} />
       </OptionRow>
-      <OptionRow title="Nota de la línea" wide help="Detalles para el atleta en esta línea: tempo, variante, RPE…">
+      <OptionRow title="Nota" wide help="Detalles para el atleta en esta línea: tempo, variante, RPE…">
         <input className="line-input" value={item.notes} maxLength={LIMITS.notes} placeholder="p. ej. «3 s en el negativo» o «con liga»" aria-label="Nota de la línea"
           onChange={(event) => onChange({ notes: event.target.value })} />
       </OptionRow>

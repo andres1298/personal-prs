@@ -252,12 +252,15 @@
 .line-options { display: grid; gap: 12px; padding: 6px 12px 12px; }
 /* Settings as rows grouped in cards: name and help on the left, control on the right. */
 .opt-group { display: grid; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
-.opt-heading { margin: 0; padding: 12px 14px 0; color: var(--ink3); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+.opt-heading { margin: 0; padding: 12px 14px 2px; color: var(--ink2); font-size: 11px; font-weight: 800; letter-spacing: .08em; text-transform: uppercase; }
+/* Under a group's heading the first row needs no divider. */
+.opt-heading + .opt-row { box-shadow: none; }
 .opt-row { display: flex; align-items: center; justify-content: space-between; gap: 8px 16px; min-height: 52px; padding: 8px 14px; }
 .opt-row + .opt-row, .opt-group > .opt-sub { box-shadow: inset 0 1px 0 var(--line); }
-.opt-row[data-wide="true"] { flex-wrap: wrap; }
+.opt-row[data-wide="true"] { flex-wrap: wrap; align-items: flex-start; }
+.opt-row[data-wide="true"] .opt-title { min-height: 40px; }
 .opt-row[data-wide="true"] .opt-control { flex: 1 1 320px; }
-.opt-title { display: inline-flex; align-items: center; gap: 4px; color: var(--ink); font-size: 14px; font-weight: 800; }
+.opt-title { display: inline-flex; align-items: center; gap: 4px; flex: none; color: var(--ink); font-size: 14px; font-weight: 800; white-space: nowrap; }
 .opt-control { display: flex; flex-wrap: wrap; align-items: center; justify-content: flex-end; gap: 8px; min-width: 0; }
 .opt-row[data-wide="true"] .opt-control { justify-content: flex-start; }
 .opt-note { flex-basis: 100%; margin: 0; color: var(--ink2); font-size: 13px; line-height: 1.4; }
