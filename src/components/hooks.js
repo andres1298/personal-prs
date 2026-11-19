@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useRef, useState } from 'react';
+import { forgetShell } from '../lib/shell';
 
 export function readStored(key, fallback) {
   try {
@@ -67,6 +68,7 @@ export function cacheKey(name, scope) {
 
 /** Forgets every copy of server data on this device, e.g. when signing out. */
 export function clearCaches() {
+  forgetShell();
   try {
     Object.keys(localStorage).filter((key) => key.startsWith(CACHE_PREFIX)).forEach((key) => localStorage.removeItem(key));
   } catch {}

@@ -3,6 +3,7 @@
 import Link from 'next/link';
 import { useState } from 'react';
 import { useAlert } from '../ui/alert';
+import { setShell } from '../../lib/shell';
 import Icon from '../ui/icon';
 import { List, Row } from '../ui/list';
 import { SegmentedControl, SymbolTile } from '../ui/controls';
@@ -65,7 +66,7 @@ export default function CoachSection({ coach, ownGroups = [], isCoach, division,
     {error && <p className="field-error" role="alert">{error}</p>}
     {isCoach && <List header="Modo coach" footer={ownGroups.length ? `Entrenas con ${ownGroups.join(', ')}: sus sesiones publicadas aparecen en tu Plan.`
       : 'Para ver tu propia programación en el Plan, activa "Entreno con este grupo" en Atletas.'}>
-      <Link className="row row-button" href="/coach">
+      <Link className="row row-button" href="/coach" onClick={() => setShell('coach')}>
         <span className="row-leading"><SymbolTile color="--b-blue"><Icon name="calendar" /></SymbolTile></span>
         <span className="row-body"><span className="row-text"><span className="row-title">Programar entrenamientos</span>
           <span className="row-subtitle">Atletas, grupos y calendario. Más cómodo en computadora.</span></span>

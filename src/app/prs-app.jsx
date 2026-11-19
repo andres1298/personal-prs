@@ -12,7 +12,8 @@ import { today } from '../lib/catalog';
 import { DEFAULT_PCT } from '../lib/plates';
 import { AlertProvider, useAlert } from '../components/ui/alert';
 import TabBar from '../components/tab-bar';
-import { AppSkeleton } from '../components/ui/screen-skeleton';
+import { AppSkeleton, ExecSkeleton } from '../components/ui/screen-skeleton';
+import { setShell } from '../lib/shell';
 import ExecuteView, { EXERCISE_DEFAULTS, restoreExercise, selectMovePatch, tourExercise } from '../components/execute/execute-view';
 import PrsView from '../components/prs/prs-view';
 import MoveDetailSheet from '../components/prs/move-detail-sheet';
@@ -155,6 +156,9 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
 
   // Members who follow a plan open on it, once per visit; afterwards the tab they pick is kept.
   const home = planEnabled && following ? 'plan' : 'exec';
+  // The next loading screen shows this app's skeleton. A coach's next visit opens on their
+  // workspace, so only members remember it for the next visit.
+  useEffect(() => { if (hasBackend) setShell(home, !isCoach); }, [hasBackend, home, isCoach]);
   const homed = useRef(false);
   useEffect(() => {
     if (!ready || home !== 'plan' || homed.current) return;
@@ -241,7 +245,7 @@ function PrsApp({ hasBackend, isAdmin = false, isCoach = false, hasPlan = false,
 
   const banner = <Banner demo={!hasBackend} error={error} stale={stale} onRetry={reload} />;
   // Only the device's settings are awaited: each tab shows the shape of its content until its data arrives.
-  if (!ready) return <AppSkeleton />;
+  if (!ready) return hasPlan ? <AppSkeleton /> : <ExecSkeleton />;
 
   return <>
     <TimerPill />
