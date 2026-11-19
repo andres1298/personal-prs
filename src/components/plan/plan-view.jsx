@@ -2,9 +2,10 @@
 
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { bestRecord, formatValue, moveInfo, parseValue, today } from '../../lib/catalog';
-import { addDays, itemName, loadText, recordCandidate, resolveLoad, volumeText, weekDays, weekStart } from '../../lib/training';
+import { addDays, itemName, ladderText, loadText, recordCandidate, resolveLoad, volumeText, weekDays, weekStart } from '../../lib/training';
 import { useAlert } from '../ui/alert';
 import Icon from '../ui/icon';
+import { BellButton, NoticeSheet } from '../notifications';
 import { useTimer } from '../timer/timer-provider';
 import { formatClock } from '../../lib/timer-engine';
 import { TEMPLATES } from '../timer/timer-views';
@@ -29,7 +30,8 @@ export function blockColor(block) {
 const seconds = (ms) => (ms < 60_000 ? `${ms / 1000} s` : formatClock(ms));
 /**
  * How the block is done, as short tags under its title: its format first, then its numbers.
- * "FOR TIME · Límite 30:00 · Descanso 2:00", "EMOM · Cada 3:00 · 5 rondas".
+ * "FOR TIME · Límite 30:00", "EMOM · Cada 3:00 · 5 rondas". The rest is not a tag: it is done
+ * after the lines, so it closes the block (see restText).
  */
 export function blockTags(block) {
   const { timer } = block;
@@ -39,12 +41,30 @@ export function blockTags(block) {
     emom: [TEMPLATES.emom.name, `Cada ${seconds(timer.interval)}`, `${timer.rounds} rondas`],
     tabata: [TEMPLATES.tabata.name, `${seconds(timer.work)} / ${seconds(timer.rest)}`, `${timer.rounds} rondas`],
   }[timer.type] : [];
-  return block.rest ? [...tags, `Descanso ${formatClock(block.rest)}`] : tags;
+  return tags;
 }
 
+/** "Descanso 1:00 entre rondas": the pause taken after each pass through the block's lines. */
+export const restText = (block) => (block.rest ? `Descanso ${formatClock(block.rest)}${block.rounds > 1 || block.ladder ? ' entre rondas' : ''}` : '');
+
 const longDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'long', day: 'numeric', month: 'long' });
+const shortDate = (date) => new Date(`${date}T12:00`).toLocaleDateString('es-CR', { weekday: 'short', day: 'numeric', month: 'short' });
 const clock = (value) => new Date(value).toLocaleString('es-CR', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' });
 const fieldText = (value) => (value == null ? '' : String(value));
+const NOTICE_LIMIT = 30;
+
+/**
+ * The coach's comments across the loaded weeks, newest first, for the bell. The last `unread`
+ * comments of each session's thread are the new ones; the athlete's own never count, and the
+ * coach's own programming has no thread.
+ */
+function coachNotices(sessions, userId) {
+  const notices = sessions.filter((session) => !session.own).flatMap((session) => {
+    const theirs = session.comments.filter((comment) => comment.authorId !== userId);
+    return theirs.map((comment, index) => ({ comment, session, unread: index >= theirs.length - session.unread }));
+  });
+  return notices.sort((a, b) => new Date(b.comment.createdAt) - new Date(a.comment.createdAt)).slice(0, NOTICE_LIMIT);
+}
 
 /** The athlete's programming: a week strip and the session of the chosen day. */
 export default function PlanView({ plan, records, userId, active, onExecute, onAddRecord, onSaveRecord }) {
@@ -58,6 +78,17 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
   const sessions = byDate.get(selected) ?? [];
   const move = (weeks) => setSelected((current) => addDays(current, 7 * weeks));
   const now = today();
+  const [noticesOpen, setNoticesOpen] = useState(false);
+  // The thread a notice asked for: its day is selected and the thread scrolled into view.
+  const [threadFocus, setThreadFocus] = useState(null); // { id, key }
+  const notices = useMemo(() => coachNotices(plan.sessions, userId), [plan.sessions, userId]);
+  const unread = plan.sessions.reduce((sum, session) => sum + (session.own ? 0 : session.unread), 0);
+  const coachName = plan.coach?.name || 'Tu coach';
+  function openNotice({ session }) {
+    setNoticesOpen(false);
+    setSelected(session.date);
+    setThreadFocus({ id: session.id, key: Date.now() });
+  }
 
   return <>
     {/* The week is the first thing on screen; the tab bar already says this is the plan. */}
@@ -83,15 +114,24 @@ export default function PlanView({ plan, records, userId, active, onExecute, onA
     </nav>
     <div className="plan-date-row">
       <p className="plan-date">{longDate(selected)}</p>
-      {selected !== now && <button type="button" className="plan-today" onClick={() => setSelected(now)}>Hoy</button>}
+      <span className="plan-date-tools">
+        {selected !== now && <button type="button" className="plan-today" onClick={() => setSelected(now)}>Hoy</button>}
+        {(plan.coach || notices.length > 0) && <BellButton count={unread} onClick={() => setNoticesOpen(true)} />}
+      </span>
     </div>
     {!sessions.length && <p className="empty">{plan.loaded || plan.sessions.length ? 'No hay sesión programada para este día.' : 'Cargando tu plan…'}</p>}
     {sessions.map((session) => <SessionCard key={session.id} session={session} plan={plan} records={records} userId={userId} active={active}
-      onExecute={onExecute} onAddRecord={onAddRecord} onSaveRecord={onSaveRecord} />)}
+      threadFocus={threadFocus?.id === session.id ? threadFocus.key : null} onExecute={onExecute} onAddRecord={onAddRecord} onSaveRecord={onSaveRecord} />)}
+    <NoticeSheet open={noticesOpen} onClose={() => setNoticesOpen(false)} onOpen={openNotice}
+      empty="Aquí verás los comentarios que te deje tu coach en tus sesiones."
+      notices={notices.map(({ comment, session, unread: isNew }) => ({
+        id: comment.id, session, unread: isNew, heading: coachName, body: comment.body, time: clock(comment.createdAt),
+        context: `Sesión del ${shortDate(session.date)}${session.title ? ` · ${session.title}` : ''}`,
+      }))} />
   </>;
 }
 
-function SessionCard({ session, plan, records, userId, active, preview = false, onExecute, onAddRecord, onSaveRecord }) {
+function SessionCard({ session, plan, records, userId, active, threadFocus = null, preview = false, onExecute, onAddRecord, onSaveRecord }) {
   const alert = useAlert();
   const [results, setResults] = useState(session.results);
   const [saving, setSaving] = useState(false);
@@ -160,7 +200,7 @@ function SessionCard({ session, plan, records, userId, active, preview = false, 
     <button type="button" className="filled-button plan-done" data-done={done} disabled={saving} onClick={toggleDone}>
       <Icon name="check" weight={3} />{done ? `Completada · ${clock(session.completedAt)}` : 'Marcar como completada'}
     </button>
-    {!preview && <Thread session={session} plan={plan} userId={userId} active={active} />}
+    {!preview && !session.own && <Thread session={session} plan={plan} userId={userId} active={active} focus={threadFocus} />}
   </article>;
 }
 
@@ -185,9 +225,13 @@ function PlanBlock({ block, index, content, results, bestOf, division, onItemCha
     {block.notes && <p className="plan-notes">{block.notes}</p>}
     {/* Rounds are the block's: everything below is repeated together, so it is said once, above it. */}
     {block.rounds > 1 && <p className="plan-rounds"><Icon name="repeat" weight={2.4} />{block.rounds} rondas de:</p>}
+    {block.ladder && <p className="plan-rounds"><Icon name="stairs" weight={2.4} />Escalera <span className="num">{ladderText(block.ladder)}</span> de:</p>}
     {block.items.map((item) => <PlanItem key={item.id} item={item} content={content} results={results} bestOf={bestOf} division={division} logging={open}
       onChange={(patch) => onItemChange(item, patch)} onExecute={onExecute} onAddRecord={onAddRecord} />)}
-    {open && block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value} onChange={(value) => onScoreChange(block, value)} />}
+    {/* The rest comes after the lines, as it does in the gym: it closes each round. */}
+    {block.rest && <p className="plan-rest"><Icon name="pause" weight={2.4} />{restText(block)}</p>}
+    {open && block.score !== 'none' && <ScoreField type={block.score} value={results.blocks[block.id]?.value}
+      cap={block.timer?.type === 'fortime' ? block.timer.cap : null} onChange={(value) => onScoreChange(block, value)} />}
     {(block.timer || loggable) && <div className="plan-block-foot">
       {block.timer && <StartTimer config={block.timer} />}
       {loggable && <button type="button" className="plan-outline" aria-expanded={open} onClick={() => setLogging(!open)}>
@@ -256,23 +300,84 @@ function LogField({ label, unit, inputMode, value, parse, format = fieldText, on
 }
 
 const formatTime = (value) => (value == null ? '' : formatValue(value, 'time'));
+const splitTime = (value) => (value == null ? { min: '', sec: '' } : { min: String(Math.floor(value / 60)), sec: String(Math.round(value % 60)).padStart(2, '0') });
 
-function ScoreField({ type, value, onChange }) {
+/**
+ * A time as minutes and seconds in two boxes, so the phone's number pad is enough: no ':' to find
+ * and no sum in seconds. Saved in seconds once focus leaves both boxes. A time over the coach's cap
+ * (ms) is saved only after the athlete confirms it, since it usually means a typo.
+ */
+function TimeField({ label, value, cap, onChange }) {
+  const alert = useAlert();
+  const [text, setText] = useState(() => splitTime(value));
+  const [invalid, setInvalid] = useState(false);
+  const group = useRef(null);
+  const seconds = useRef(null);
+  useEffect(() => { setText(splitTime(value)); }, [value]);
+  const revert = () => { setText(splitTime(value)); setInvalid(false); };
+
+  async function commit() {
+    const min = text.min.trim();
+    const sec = text.sec.trim();
+    if (!min && !sec) { setInvalid(false); if (value != null) onChange(null); return; }
+    if (!/^\d{0,3}$/.test(min) || !/^\d{0,2}$/.test(sec) || Number(sec || 0) > 59) { setInvalid(true); return; }
+    const total = Number(min || 0) * 60 + Number(sec || 0);
+    if (!(total > 0)) { setInvalid(true); return; }
+    setInvalid(false);
+    setText(splitTime(total));
+    if (total === value) return;
+    if (cap && total * 1000 > cap) {
+      const keep = await alert({
+        title: 'Terminaste fuera del tiempo límite',
+        message: `Registraste ${formatTime(total)} y el límite del coach era ${formatClock(cap)}. ¿Quieres guardarlo así?`,
+        actions: [{ label: 'Corregir', role: 'cancel' }, { label: 'Guardar así', value: true }],
+      });
+      if (!keep) { revert(); return; }
+    }
+    onChange(total);
+  }
+  // Moving from minutes to seconds is one edit, not two saves.
+  const leave = (event) => { if (!group.current?.contains(event.relatedTarget)) commit(); };
+  const digits = (key, max) => (event) => setText((current) => ({ ...current, [key]: event.target.value.replace(/\D/g, '').slice(0, max) }));
+  const enter = (event) => { if (event.key === 'Enter') event.currentTarget.blur(); };
+
+  return <div className="log-field time-field" ref={group} onBlur={leave} aria-invalid={invalid}>
+    <span>{label}</span>
+    <span className="time-inputs">
+      <input inputMode="numeric" aria-label="Minutos" placeholder="min" value={text.min} enterKeyHint="next"
+        onChange={digits('min', 3)} onKeyDown={(event) => { if (event.key === 'Enter') seconds.current?.focus(); }} />
+      <b aria-hidden="true">:</b>
+      <input ref={seconds} inputMode="numeric" aria-label="Segundos" placeholder="seg" value={text.sec} enterKeyHint="done"
+        onChange={digits('sec', 2)} onKeyDown={enter} />
+    </span>
+    {cap ? <small className="time-cap">Límite {formatClock(cap)}</small> : null}
+  </div>;
+}
+
+function ScoreField({ type, value, cap, onChange }) {
   const field = SCORE_FIELDS[type];
+  if (type === 'time') return <div className="plan-log score"><TimeField label={field.label} value={value} cap={cap} onChange={onChange} /></div>;
   return <div className="plan-log score">
     <LogField label={field.label} unit={field.placeholder} inputMode={field.inputMode} value={value}
       parse={(text) => parseValue(text, type)} format={type === 'time' ? formatTime : fieldText} onChange={onChange} />
   </div>;
 }
 
-function Thread({ session, plan, userId, active }) {
+function Thread({ session, plan, userId, active, focus }) {
   const alert = useAlert();
   const [text, setText] = useState('');
   const [sending, setSending] = useState(false);
+  const section = useRef(null);
   const { id, unread } = session;
   const { markSeen } = plan;
   // Reading the thread is what clears the unread mark; the tab stays mounted while hidden, so it must be showing.
   useEffect(() => { if (active && unread > 0) markSeen(id); }, [active, id, unread, markSeen]);
+  // Opened from the bell: bring the thread into view once its day is on screen.
+  useEffect(() => {
+    if (!focus || !active) return undefined;
+    const frame = requestAnimationFrame(() => section.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
+    return () => cancelAnimationFrame(frame);
+  }, [focus, active]);
 
   async function send(event) {
     event.preventDefault();
@@ -287,7 +392,7 @@ function Thread({ session, plan, userId, active }) {
     } finally { setSending(false); }
   }
 
-  return <section className="thread" aria-label="Comentarios">
+  return <section ref={section} className="thread" aria-label="Comentarios">
     <h3 className="list-header">Comentarios con tu coach</h3>
     {session.comments.map((comment) => <p key={comment.id} className="bubble" data-mine={comment.authorId === userId}>
       {comment.body}<small>{clock(comment.createdAt)}</small>

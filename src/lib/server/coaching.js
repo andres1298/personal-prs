@@ -87,7 +87,7 @@ export async function getOverview(coachId, now = new Date()) {
     athletes: active.map(row),
     former: [...former.values()],
     groups: groups.map((group) => ({
-      id: group.id, name: group.name, color: group.color, joinCode: group.joinCode, memberIds: group.members.map((member) => member.athleteId),
+      id: group.id, name: group.name, color: group.color, joinCode: group.joinCode, coachTrains: group.coachTrains, memberIds: group.members.map((member) => member.athleteId),
     })),
     invites: invites.map((invite) => ({ ...invite, expired: invite.expiresAt <= now })),
   };
@@ -102,10 +102,10 @@ export async function createGroup(coachId, input) {
   const group = await prisma.trainingGroup.create({
     data: { coachId: id, name, color: GROUP_COLORS[count % GROUP_COLORS.length], joinCode: newCode() },
   });
-  return { id: group.id, name, color: group.color, joinCode: group.joinCode, memberIds: [] };
+  return { id: group.id, name, color: group.color, joinCode: group.joinCode, coachTrains: false, memberIds: [] };
 }
 
-/** input: { name?, memberIds?, newCode? }. Members must be the coach's active athletes. */
+/** input: { name?, memberIds?, newCode?, coachTrains? }. Members must be the coach's active athletes. */
 export async function updateGroup(coachId, groupId, input) {
   const id = requireId(coachId);
   if (!input || typeof input !== 'object') throw new CoachingError('invalid_input');
@@ -114,6 +114,10 @@ export async function updateGroup(coachId, groupId, input) {
     const data = {};
     if (input.name !== undefined) data.name = validatedName(input.name, GROUP_NAME_MAX);
     if (input.newCode === true) data.joinCode = newCode();
+    if (input.coachTrains !== undefined) {
+      if (typeof input.coachTrains !== 'boolean') throw new CoachingError('invalid_input');
+      data.coachTrains = input.coachTrains;
+    }
     if (Object.keys(data).length) await tx.trainingGroup.update({ where: { id: group.id }, data });
     if (input.memberIds !== undefined) {
       if (!Array.isArray(input.memberIds) || input.memberIds.length > 1000) throw new CoachingError('invalid_input');
@@ -124,7 +128,7 @@ export async function updateGroup(coachId, groupId, input) {
       await tx.groupMember.createMany({ data: wanted.map((athleteId) => ({ groupId: group.id, athleteId })), skipDuplicates: true });
     }
     const saved = await tx.trainingGroup.findUnique({ where: { id: group.id }, include: { members: { select: { athleteId: true } } } });
-    return { id: saved.id, name: saved.name, color: saved.color, joinCode: saved.joinCode, memberIds: saved.members.map((member) => member.athleteId) };
+    return { id: saved.id, name: saved.name, color: saved.color, joinCode: saved.joinCode, coachTrains: saved.coachTrains, memberIds: saved.members.map((member) => member.athleteId) };
   });
 }
 

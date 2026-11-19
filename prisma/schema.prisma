@@ -156,19 +156,21 @@ model CoachAthlete {
 }
 
 model TrainingGroup {
-  id         String            @id @default(uuid(7)) @db.Uuid
-  coachId    String            @db.Uuid
-  name       String
+  id          String            @id @default(uuid(7)) @db.Uuid
+  coachId     String            @db.Uuid
+  name        String
   // Block color token, e.g. "--b-blue".
-  color      String
+  color       String
   // Reusable code athletes use to join; the coach can replace it at any time.
-  joinCode   String            @unique
-  archivedAt DateTime?         @db.Timestamptz(3)
-  createdAt  DateTime          @default(now()) @db.Timestamptz(3)
-  coach      Profile           @relation(fields: [coachId], references: [id], onDelete: Restrict)
-  members    GroupMember[]
-  sessions   TrainingSession[]
-  invites    CoachInvite[]
+  joinCode    String            @unique
+  // The coach trains with this group: its published sessions also show in the coach's own plan.
+  coachTrains Boolean           @default(false)
+  archivedAt  DateTime?         @db.Timestamptz(3)
+  createdAt   DateTime          @default(now()) @db.Timestamptz(3)
+  coach       Profile           @relation(fields: [coachId], references: [id], onDelete: Restrict)
+  members     GroupMember[]
+  sessions    TrainingSession[]
+  invites     CoachInvite[]
 
   @@index([coachId, archivedAt])
 }
@@ -223,6 +225,7 @@ model TrainingSession {
   athlete     Profile?         @relation("SessionAthlete", fields: [athleteId], references: [id], onDelete: Restrict)
   logs        SessionLog[]
   comments    SessionComment[]
+  threadReads CoachThreadRead[]
 
   // One session per day and target; null targets are distinct, so each index covers its own kind.
   @@unique([groupId, date])
@@ -260,4 +263,15 @@ model SessionComment {
   author    Profile         @relation(fields: [authorId], references: [id], onDelete: Restrict)
 
   @@index([sessionId, athleteId, createdAt])
+}
+
+// When the session's coach last read an athlete's thread; newer comments from that athlete
+// count as new for the coach. A session has one coach, so the reader is implied.
+model CoachThreadRead {
+  sessionId String          @db.Uuid
+  athleteId String          @db.Uuid
+  seenAt    DateTime        @db.Timestamptz(3)
+  session   TrainingSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@id([sessionId, athleteId])
 }

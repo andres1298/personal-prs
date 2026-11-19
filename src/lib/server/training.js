@@ -5,6 +5,8 @@ import { emptyResults, isDate, LIMITS, normalizeContent, normalizeResults } from
 
 const MAX_RANGE_DAYS = 400;
 const ACTIVITY_DAYS = 14;
+const NOTIFICATION_DAYS = 30;
+const NOTIFICATION_LIMIT = 50;
 const day = (date) => date.toISOString().slice(0, 10);
 const toDate = (value) => new Date(`${value}T00:00:00.000Z`);
 const personName = (profile) => profile.displayName || profile.email || 'Sin nombre';
@@ -58,7 +60,8 @@ export async function listCoachSessions(coachId, target, from, to) {
   const where = await resolveTarget(prisma, id, target);
   const sessions = await prisma.trainingSession.findMany({
     where: { coachId: id, ...where, date: range(from, to) },
-    include: { logs: { select: { completedAt: true } } }, orderBy: { date: 'asc' },
+    // The coach's own log (training with their group) is not an athlete's.
+    include: { logs: { where: { athleteId: { not: id } }, select: { completedAt: true } } }, orderBy: { date: 'asc' },
   });
   return sessions.map((session) => ({
     ...sessionDto(session), logged: session.logs.length, completed: session.logs.filter((log) => log.completedAt).length,
@@ -77,7 +80,7 @@ export async function saveSession(coachId, input, now = new Date()) {
   const date = toDate(input.date);
   return getPrisma().$transaction(async (tx) => {
     const target = await resolveTarget(tx, id, input.target);
-    const existing = await tx.trainingSession.findFirst({ where: { coachId: id, ...target, date }, include: { logs: { select: { completedAt: true } } } });
+    const existing = await tx.trainingSession.findFirst({ where: { coachId: id, ...target, date }, include: { logs: { where: { athleteId: { not: id } }, select: { completedAt: true } } } });
     // The first publication time is kept through later edits.
     const publishedAt = input.published ? existing?.publishedAt ?? now : null;
     const session = existing
@@ -172,6 +175,63 @@ export async function listActivity(coachId, now = new Date()) {
 }
 
 /**
+ * Comments athletes left on the coach's sessions in the last days, newest first, for the coach's
+ * bell. Only threads the coach can open count: current athletes, and in a group session only its
+ * current members (as in getSessionDetail). `unread` marks a comment newer than the coach's last
+ * read of that thread; the coach's own replies are never listed.
+ */
+export async function listCoachNotifications(coachId, now = new Date()) {
+  const id = requireId(coachId);
+  const prisma = getPrisma();
+  const since = new Date(now.getTime() - NOTIFICATION_DAYS * 86400000);
+  const links = await prisma.coachAthlete.findMany({
+    where: { coachId: id, endedAt: null },
+    select: { athleteId: true, athlete: { select: { groupMemberships: { where: { group: { coachId: id, archivedAt: null } }, select: { groupId: true } } } } },
+  });
+  const athleteIds = links.map((link) => link.athleteId);
+  const members = new Set(links.flatMap((link) => link.athlete.groupMemberships.map((membership) => `${membership.groupId}:${link.athleteId}`)));
+  const comments = await prisma.sessionComment.findMany({
+    where: { athleteId: { in: athleteIds }, authorId: { in: athleteIds }, createdAt: { gte: since }, session: { coachId: id } },
+    include: {
+      session: { select: { id: true, date: true, title: true, groupId: true, athleteId: true, threadReads: { where: { athleteId: { in: athleteIds } } } } },
+      author: { select: { displayName: true, email: true } },
+    },
+    // Some rows may be dropped below, so a few more than the limit are read.
+    orderBy: { createdAt: 'desc' }, take: NOTIFICATION_LIMIT * 4,
+  });
+  const reachable = (comment) => comment.authorId === comment.athleteId && (comment.session.groupId
+    ? members.has(`${comment.session.groupId}:${comment.athleteId}`) : comment.session.athleteId === comment.athleteId);
+  return comments.filter(reachable).slice(0, NOTIFICATION_LIMIT).map((comment) => {
+    const read = comment.session.threadReads.find((entry) => entry.athleteId === comment.athleteId);
+    return {
+      id: comment.id, sessionId: comment.sessionId, date: day(comment.session.date), title: comment.session.title ?? '', groupId: comment.session.groupId,
+      athleteId: comment.athleteId, athleteName: personName(comment.author), body: comment.body, createdAt: comment.createdAt,
+      unread: !read || comment.createdAt > read.seenAt,
+    };
+  });
+}
+
+/**
+ * Marks threads of one of the coach's sessions as read now: those of `athleteIds`, or every
+ * thread with comments when it is omitted. Returns how many threads were marked.
+ */
+export async function markCoachThreadsSeen(coachId, sessionId, athleteIds, now = new Date()) {
+  const prisma = getPrisma();
+  const session = await prisma.trainingSession.findFirst({ where: { id: requireId(sessionId), coachId: requireId(coachId) }, select: { id: true } });
+  if (!session) throw new CoachingError('not_found');
+  if (athleteIds != null && !Array.isArray(athleteIds)) throw new CoachingError('invalid_input');
+  const only = athleteIds?.map((athleteId) => requireId(athleteId, 'invalid_input'));
+  const threads = await prisma.sessionComment.findMany({
+    where: { sessionId: session.id, ...(only ? { athleteId: { in: only } } : {}) }, distinct: ['athleteId'], select: { athleteId: true },
+  });
+  await prisma.$transaction(threads.map(({ athleteId }) => prisma.coachThreadRead.upsert({
+    where: { sessionId_athleteId: { sessionId: session.id, athleteId } },
+    update: { seenAt: now }, create: { sessionId: session.id, athleteId, seenAt: now },
+  })));
+  return threads.length;
+}
+
+/**
  * The raw material of the coach's progress panels between two dates: their current athletes,
  * the published sessions and what those athletes logged. Former athletes are left out
  * entirely, like everywhere else.
@@ -205,16 +265,26 @@ export async function getCoachStats(coachId, from, to) {
 /* ---------- Athlete ---------- */
 
 // Published sessions of the athlete's current coaches and groups, plus any session they logged:
-// what they did stays theirs after leaving a coach or a group.
+// what they did stays theirs after leaving a coach or a group. A coach who trains with one of
+// their own groups sees its published sessions too.
 async function visibleWhere(db, athleteId) {
   const coachIds = await activeCoachIds(athleteId, db);
   return {
     OR: [
       { publishedAt: { not: null }, athleteId, coachId: { in: coachIds } },
       { publishedAt: { not: null }, group: { archivedAt: null, members: { some: { athleteId } } } },
+      { publishedAt: { not: null }, coachId: athleteId, group: { archivedAt: null, coachTrains: true } },
       { logs: { some: { athleteId } } },
     ],
   };
+}
+
+/** Names of the coach's own groups they train with, for their plan tab. Empty for anyone else. */
+export async function ownTrainingGroups(profileId, db = getPrisma()) {
+  const groups = await db.trainingGroup.findMany({
+    where: { coachId: requireId(profileId), coachTrains: true, archivedAt: null }, select: { name: true }, orderBy: { createdAt: 'asc' },
+  });
+  return groups.map((group) => group.name);
 }
 
 async function visibleSession(db, athleteId, sessionId) {
@@ -228,6 +298,7 @@ export async function hasPlan(athleteId) {
   const id = requireId(athleteId);
   const prisma = getPrisma();
   if ((await activeCoachIds(id, prisma)).length) return true;
+  if ((await ownTrainingGroups(id, prisma)).length) return true;
   return Boolean(await prisma.sessionLog.findFirst({ where: { athleteId: id }, select: { sessionId: true } }));
 }
 
@@ -250,6 +321,8 @@ export async function listPlan(athleteId, from, to) {
     return {
       ...sessionDto(session),
       group: session.group,
+      // The coach's own programming: there is no one to comment with.
+      own: session.coachId === id,
       results: log?.results ?? emptyResults(), completedAt: log?.completedAt ?? null,
       comments: session.comments.map(commentDto),
       unread: session.comments.filter((comment) => comment.authorId !== id && comment.createdAt > seenAt).length,
@@ -287,5 +360,7 @@ export async function addAthleteComment(athleteId, sessionId, body) {
   const id = requireId(athleteId);
   const prisma = getPrisma();
   const session = await visibleSession(prisma, id, sessionId);
+  // A coach training with their own group has no one to write to.
+  if (session.coachId === id) throw new CoachingError('forbidden');
   return commentDto(await prisma.sessionComment.create({ data: { sessionId: session.id, athleteId: id, authorId: id, body: commentBody(body) } }));
 }

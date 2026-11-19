@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { formatClock, normalizeConfig } from '../../lib/timer-engine';
 import { moveInfo } from '../../lib/catalog';
-import { LIMITS } from '../../lib/training';
+import { LADDER_PRESETS, ladderText, parseLadder } from '../../lib/training';
 import { TEMPLATES } from '../timer/timer-views';
 import Icon from '../ui/icon';
 import { Choice } from './line-editor';
@@ -59,6 +59,34 @@ function TimeField({ label, value, unit = 'min', optional = false, onChange }) {
   </label>;
 }
 
+const STRUCTURES = [{ value: 'rounds', label: 'Rondas' }, { value: 'ladder', label: 'Escalera' }];
+
+/**
+ * A rep ladder: a common one in one tap, or any typed with dashes, commas or spaces ("15 12 9").
+ * The text is kept while typing and applied when the field is left; an unreadable ladder is flagged.
+ */
+function LadderField({ value, onChange }) {
+  const current = ladderText(value);
+  // The box holds a ladder of the coach's own; a common one is already marked among the choices.
+  const shown = LADDER_PRESETS.some((ladder) => ladderText(ladder) === current) ? '' : current;
+  const [text, setText] = useState(shown);
+  const [invalid, setInvalid] = useState(false);
+  useEffect(() => { setText(shown); setInvalid(false); }, [shown]);
+  const commit = () => {
+    const ladder = parseLadder(text);
+    if (!text.trim()) { setInvalid(false); setText(shown); return; }
+    if (ladder) { setInvalid(false); if (ladderText(ladder) !== current) onChange(ladder); else setText(shown); } else setInvalid(true);
+  };
+  return <div className="format-field ladder-field">
+    <span>Escalera de reps</span>
+    <Choice label="Escaleras comunes" size="small" value={current} onChange={(next) => onChange(parseLadder(next))}
+      options={LADDER_PRESETS.map((ladder) => ({ value: ladderText(ladder), label: ladderText(ladder) }))} />
+    <input className="format-text" value={text} placeholder="Otra: 20-16-12-8" aria-label="Otra escalera" aria-invalid={invalid} inputMode="text"
+      onChange={(event) => setText(event.target.value)} onBlur={commit} onKeyDown={(event) => { if (event.key === 'Enter') event.currentTarget.blur(); }} />
+    {invalid && <small className="format-error">Escribe de 2 a 10 números separados por guiones, por ejemplo 21-15-9.</small>}
+  </div>;
+}
+
 /** A whole number from `min`; below it the value is cleared when `min` is 1 and the field optional. */
 function CountField({ label, value, optional = false, onChange }) {
   return <label className="format-field">
@@ -77,11 +105,30 @@ export default function BlockFormat({ block, onChange }) {
   const format = formatOf(block);
   const config = block.timer ? normalizeConfig(block.timer) : null;
   const setTimer = (patch) => onChange({ timer: normalizeConfig({ ...config, ...patch }) });
-  // A rep scheme for the whole block ("21-15-9") is written on every line at once.
-  const setAll = (key, value) => onChange({ items: block.items.map((item) => ({ ...item, [key]: value })) });
-  const reps = commonValue(block.items, 'reps');
   // A For Time of one round has no rest between rounds.
   const setRounds = (rounds) => onChange({ rounds: rounds > 1 ? rounds : undefined, ...(rounds > 1 || format !== 'fortime' ? {} : { rest: undefined }) });
+  const structure = block.ladder ? 'ladder' : 'rounds';
+  // A ladder replaces the rounds. Lines that carried the scheme in their reps ("21-15-9") hand it to
+  // the block, so it is written once; going back to rounds keeps the lines as they are.
+  function setStructure(next) {
+    if (next === structure) return;
+    if (next === 'rounds') { onChange({ ladder: undefined, ...(format === 'fortime' ? { rest: undefined } : {}) }); return; }
+    const written = parseLadder(commonValue(block.items, 'reps'));
+    onChange({
+      ladder: written ?? LADDER_PRESETS[0], rounds: undefined,
+      items: block.items.map((item) => (parseLadder(item.reps) ? { ...item, reps: '' } : item)),
+    });
+  }
+  const rest = <TimeField label="Descanso entre rondas" value={block.rest ?? null} optional onChange={(value) => onChange({ rest: value ?? undefined })} />;
+  const repeat = <>
+    <div className="format-field">
+      <span>Cómo se repite</span>
+      <Choice label="Cómo se repite" size="small" value={structure} onChange={setStructure} options={STRUCTURES} />
+    </div>
+    {structure === 'rounds'
+      ? <CountField label="Rondas" value={block.rounds ?? 1} onChange={setRounds} />
+      : <LadderField value={block.ladder} onChange={(ladder) => onChange({ ladder })} />}
+  </>;
 
   function pick(next) {
     if (next === format) return;
@@ -90,26 +137,19 @@ export default function BlockFormat({ block, onChange }) {
     // Lifts are logged one by one in sets and EMOMs; a workout on the clock is logged as a whole.
     const timed = TIMED.includes(next);
     const items = TIMED.includes(format) === timed ? block.items : block.items.map((item) => (item.movement && moveInfo(item.movement).type === 'weight' && item.load.type !== 'max' ? { ...item, log: !timed } : item));
-    onChange({ timer, score: SCORE_OF[next], rest: ROUNDED.includes(next) ? block.rest : undefined, rounds: ROUNDED.includes(next) ? block.rounds : undefined, items });
+    const kept = ROUNDED.includes(next);
+    onChange({ timer, score: SCORE_OF[next], rest: kept ? block.rest : undefined, rounds: kept ? block.rounds : undefined, ladder: kept ? block.ladder : undefined, items });
   }
 
   return <div className="block-format">
     <Choice label="Formato del bloque" size="small" value={format} onChange={pick}
       options={FORMAT_CHOICES.map((option) => ({ ...option, color: option.value === 'rounds' ? undefined : TEMPLATES[option.value].color }))} />
     <div className="format-fields">
-      {format === 'rounds' && <>
-        <CountField label="Rondas" value={block.rounds ?? 1} onChange={setRounds} />
-        <TimeField label="Descanso entre rondas" value={block.rest ?? null} optional onChange={(rest) => onChange({ rest: rest ?? undefined })} />
-      </>}
+      {format === 'rounds' && <>{repeat}{rest}</>}
       {format === 'fortime' && <>
-        <CountField label="Rondas" value={block.rounds ?? 1} onChange={setRounds} />
-        <label className="format-field">
-          <span>Reps de todas las líneas</span>
-          <input className="format-text" value={reps ?? ''} maxLength={LIMITS.reps} placeholder="21-15-9" aria-label="Reps de todas las líneas"
-            onChange={(event) => setAll('reps', event.target.value)} />
-        </label>
+        {repeat}
         <TimeField label="Límite" value={config.cap} onChange={(cap) => setTimer({ cap })} />
-        {block.rounds > 1 && <TimeField label="Descanso entre rondas" value={block.rest ?? null} optional onChange={(rest) => onChange({ rest: rest ?? undefined })} />}
+        {(block.rounds > 1 || block.ladder) && rest}
       </>}
       {format === 'amrap' && <TimeField label="Duración" value={config.duration} onChange={(duration) => setTimer({ duration })} />}
       {format === 'emom' && <>

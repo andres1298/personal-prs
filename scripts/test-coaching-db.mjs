@@ -9,8 +9,8 @@ import {
   isCoach, revokeInvite, updateGroup,
 } from '../src/lib/server/coaching.js';
 import {
-  addAthleteComment, addCoachComment, deleteSession, getSessionDetail, hasPlan, listActivity, listCoachSessions, listPlan,
-  saveLog, saveSession,
+  addAthleteComment, addCoachComment, deleteSession, getSessionDetail, hasPlan, listActivity, listCoachNotifications, listCoachSessions,
+  listPlan, markCoachThreadsSeen, ownTrainingGroups, saveLog, saveSession,
 } from '../src/lib/server/training.js';
 import { newBlock, newItem } from '../src/lib/training.js';
 import { seedMovements } from '../prisma/catalog.mjs';
@@ -144,6 +144,31 @@ try {
   assert.deepEqual(events.map((event) => [event.kind, event.athleteName]).sort(), [['comment', 'Ana'], ['completed', 'Ana']]);
   assert.deepEqual(await listActivity(otherCoachId), []);
 
+  // The coach's bell: athletes' comments stay new until the coach reads that thread; their own
+  // replies never count, and other coaches neither list nor mark anything.
+  const notices = async () => (await listCoachNotifications(coachId)).map((notice) => [notice.athleteName, notice.body, notice.unread]);
+  const [first] = await listCoachNotifications(coachId);
+  assert.deepEqual([first.sessionId, first.date, first.groupId, first.athleteId], [saved.id, '2026-11-10', group.id, anaId]);
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', true]]);
+  assert.deepEqual(await listCoachNotifications(otherCoachId), []);
+  await assert.rejects(markCoachThreadsSeen(otherCoachId, saved.id), code('not_found'));
+  await assert.rejects(markCoachThreadsSeen(coachId, saved.id, 'nope'), code('invalid_input'));
+  assert.equal(await markCoachThreadsSeen(coachId, saved.id, [benId]), 0);
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', true]]);
+  assert.equal(await markCoachThreadsSeen(coachId, saved.id), 1);
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', false]]);
+  await addCoachComment(coachId, saved.id, anaId, 'Keep going');
+  assert.deepEqual(await notices(), [['Ana', 'Felt heavy', false]]);
+  await addAthleteComment(anaId, saved.id, 'Thanks');
+  assert.deepEqual(await notices(), [['Ana', 'Thanks', true], ['Ana', 'Felt heavy', false]]);
+  assert.equal(await markCoachThreadsSeen(coachId, saved.id, [anaId]), 1);
+  assert.deepEqual(await notices(), [['Ana', 'Thanks', false], ['Ana', 'Felt heavy', false]]);
+  // A group session's thread counts only while the athlete is in the group, as in the session detail.
+  await updateGroup(coachId, group.id, { memberIds: [benId] });
+  assert.deepEqual(await notices(), []);
+  await updateGroup(coachId, group.id, { memberIds: [anaId, benId] });
+  assert.equal((await notices()).length, 2);
+
   // Editing a logged session keeps the athlete's results; deleting it is refused.
   const edited = await saveSession(coachId, session({ groupId: group.id }, '2026-11-10', { blocks: [newBlock({ title: 'Changed' })] }));
   assert.deepEqual([edited.id, edited.logged, edited.completed], [saved.id, 1, 1]);
@@ -152,6 +177,32 @@ try {
   await assert.rejects(deleteSession(otherCoachId, draft.id), code('not_found'));
   await deleteSession(coachId, draft.id);
   assert.deepEqual((await listCoachSessions(coachId, { groupId: group.id }, '2026-11-01', '2026-11-30')).map((entry) => entry.logged), [1]);
+
+  // A coach can train with their own group: its published sessions join their plan, drafts and
+  // one-to-one sessions do not, they log like an athlete, and nobody counts their log as an athlete's.
+  assert.deepEqual(await ownTrainingGroups(coachId), []);
+  assert.equal(await hasPlan(coachId), false);
+  assert.deepEqual(await listPlan(coachId, '2026-11-01', '2026-11-30'), []);
+  await assert.rejects(updateGroup(coachId, group.id, { coachTrains: 'yes' }), code('invalid_input'));
+  await assert.rejects(updateGroup(otherCoachId, group.id, { coachTrains: true }), code('not_found'));
+  assert.equal((await updateGroup(coachId, group.id, { coachTrains: true })).coachTrains, true);
+  assert.equal((await getOverview(coachId)).groups.find((entry) => entry.id === group.id).coachTrains, true);
+  assert.deepEqual(await ownTrainingGroups(coachId), [updated.name]);
+  assert.equal(await hasPlan(coachId), true);
+  const ownDraft = await saveSession(coachId, session({ groupId: group.id }, '2026-11-12', { blocks: [] }, false));
+  const own = await listPlan(coachId, '2026-11-01', '2026-11-30');
+  assert.deepEqual(own.map((entry) => [entry.date, entry.own]), [['2026-11-10', true]]);
+  assert.equal((await listPlan(anaId, '2026-11-10', '2026-11-10'))[0].own, false);
+  await saveLog(coachId, saved.id, { completed: true });
+  assert.ok((await listPlan(coachId, '2026-11-10', '2026-11-10'))[0].completedAt);
+  await assert.rejects(addAthleteComment(coachId, saved.id, 'Note to self'), code('forbidden'));
+  assert.deepEqual((await listCoachSessions(coachId, { groupId: group.id }, '2026-11-10', '2026-11-10')).map((entry) => [entry.logged, entry.completed]), [[1, 1]]);
+  assert.deepEqual((await getSessionDetail(coachId, saved.id)).athletes.map((athlete) => athlete.name), ['Ana', 'Ben']);
+  assert.equal((await updateGroup(coachId, group.id, { coachTrains: false })).coachTrains, false);
+  assert.deepEqual(await ownTrainingGroups(coachId), []);
+  // What the coach logged stays theirs, like any athlete's.
+  assert.deepEqual((await listPlan(coachId, '2026-11-01', '2026-11-30')).map((entry) => entry.date), ['2026-11-10']);
+  await deleteSession(coachId, ownDraft.id);
 
   // Leaving: the athlete keeps what they logged and their records; the coach loses access and keeps a history row.
   await assert.rejects(endLink(otherCoachId, { coachId, athleteId: anaId }), code('forbidden'));
@@ -167,6 +218,7 @@ try {
   assert.deepEqual(overview.former.map((athlete) => [athlete.name, athlete.left]), [['Ana', true]]);
   assert.deepEqual((await getSessionDetail(coachId, saved.id)).athletes.map((athlete) => athlete.name), ['Ben']);
   assert.deepEqual(await listActivity(coachId, new Date('2026-11-12T00:00:00Z')), []);
+  assert.deepEqual(await listCoachNotifications(coachId), []);
   // Free again, Ana can follow another coach.
   await acceptJoin(anaId, otherGroup.joinCode);
 
@@ -179,7 +231,7 @@ try {
   assert.deepEqual((await getOverview(otherCoachId)).groups, []);
 
   // Every new table denies the Data API.
-  const tables = ['CoachAthlete', 'TrainingGroup', 'GroupMember', 'CoachInvite', 'TrainingSession', 'SessionLog', 'SessionComment'];
+  const tables = ['CoachAthlete', 'TrainingGroup', 'GroupMember', 'CoachInvite', 'TrainingSession', 'SessionLog', 'SessionComment', 'CoachThreadRead'];
   const rls = await prisma.$queryRaw`SELECT relname FROM pg_class WHERE relrowsecurity AND relname = ANY(${tables})`;
   assert.equal(rls.length, tables.length);
   console.log('Coaching integration checks passed.');

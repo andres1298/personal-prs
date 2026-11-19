@@ -132,7 +132,7 @@ function LoadInput({ item, onLoad, onMore }) {
  * Everything else (sets of its own, the percentage's base, a complex, logging, a note) waits
  * in its options, one line open at a time.
  */
-export default function LineEditor({ item, earlier, names, weightNames, preview, timed, open, autoFocus, onOpen, onClose, onChange, onEnter, onMove, onRemove, onCreateMovement }) {
+export default function LineEditor({ item, earlier, names, weightNames, preview, timed, ladder = false, open, autoFocus, onOpen, onClose, onChange, onEnter, onMove, onRemove, onCreateMovement }) {
   const { load } = item;
   const usesWeight = !item.movement || moveInfo(item.movement).type === 'weight';
   const setLoad = (patch) => onChange({ load: { ...load, ...patch } });
@@ -157,7 +157,7 @@ export default function LineEditor({ item, earlier, names, weightNames, preview,
         ? <ComplexParts item={item} names={weightNames} onEnter={onEnter}
           onParts={(parts) => onChange({ movement: null, parts, label: complexLabel(parts.filter((part) => part.movement)) })} />
         : <>
-          <input className="line-reps" value={item.reps} maxLength={LIMITS.reps} placeholder="Reps" aria-label="Repeticiones"
+          <input className="line-reps" value={item.reps} maxLength={LIMITS.reps} placeholder={ladder ? 'Escalera' : 'Reps'} aria-label="Repeticiones"
             onChange={(event) => onChange({ reps: event.target.value })} />
           <MoveCombo id={item.id} value={itemName(item)} names={names} autoFocus={autoFocus} onPick={pick} onEnter={onEnter} />
         </>}

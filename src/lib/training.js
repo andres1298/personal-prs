@@ -5,6 +5,8 @@
 //   timer     optional workout clock the athlete starts from the block: a timer-engine config
 //             ({ type: 'amrap' | 'emom' | 'tabata' | 'fortime', ...its times and rounds })
 //   rounds    optional, more than one: how many times the block's lines are done ("3 rounds for time")
+//   ladder    optional rep ladder ([12, 9, 6, 3]): the lines are done once per step with that many reps;
+//             a line's own reps ("400 m") then hold for every step. Replaces rounds.
 //   rest      optional ms of rest between sets of a block without a clock
 // item:    { id, movement, label, sets, reps, load: { type, value, base }, log, notes }
 //   movement  catalog name (links the athlete's records) or null for free text in `label`
@@ -22,7 +24,9 @@ export const LOAD_TYPES = ['none', 'weight', 'percent', 'max'];
 export const SCORE_TYPES = ['none', 'time', 'reps', 'weight'];
 export const BASE_RMS = [1, 3, 5];
 export const DIVISIONS = ['MEN', 'WOMEN'];
-export const LIMITS = { blocks: 12, items: 20, title: 80, notes: 2000, label: 80, reps: 16, comment: 2000, parts: 6 };
+export const LIMITS = { blocks: 12, items: 20, title: 80, notes: 2000, label: 80, reps: 16, comment: 2000, parts: 6, ladder: 10 };
+/** Common rep ladders, offered as one-tap choices. */
+export const LADDER_PRESETS = [[21, 15, 9], [15, 12, 9], [12, 9, 6, 3], [10, 8, 6, 4, 2], [5, 4, 3, 2, 1], [1, 2, 3, 4, 5]];
 
 const ID_PATTERN = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const round5 = (x) => Math.round(x / 5) * 5;
@@ -85,6 +89,25 @@ function normalizeParts(input) {
   return parts.length >= 2 ? parts : null;
 }
 
+/** [12, 9, 6, 3] from "12-9-6-3" (dashes, commas or spaces), or null when it is not a ladder of two to ten steps. */
+export function parseLadder(text) {
+  const parts = String(text ?? '').trim().split(/[\s,\-–—·/]+/).filter(Boolean);
+  if (parts.length < 2 || parts.length > LIMITS.ladder || !parts.every((part) => /^\d{1,3}$/.test(part))) return null;
+  const steps = parts.map(Number);
+  return steps.every((step) => step >= 1) ? steps : null;
+}
+
+/** "12-9-6-3" */
+export const ladderText = (ladder) => ladder.join('-');
+
+function normalizeLadder(input) {
+  if (input == null) return null;
+  if (!Array.isArray(input)) fail('A ladder must list its steps.');
+  const ladder = parseLadder(input.map((step) => (Number.isInteger(step) ? String(step) : 'x')).join('-'));
+  if (!ladder) fail('A ladder has two to ten steps of 1 to 999 reps.');
+  return ladder;
+}
+
 /** "1 Clean + 2 Split Jerk" from a complex's parts. */
 export const complexLabel = (parts) => parts.map((part) => `${part.reps} ${part.movement}`).join(' + ');
 
@@ -128,11 +151,13 @@ export function normalizeContent(input) {
     });
     // The timer engine clamps times and rounds to what it can run.
     if (block.timer != null && (!isObject(block.timer) || !TIMER_TYPES.includes(block.timer.type))) fail('Unknown timer type.');
-    const rounds = block.rounds == null ? null : numberIn(Math.trunc(block.rounds), 1, 99, 'Rounds');
+    const ladder = normalizeLadder(block.ladder);
+    // A ladder is its own sequence of rounds, so the two never stack.
+    const rounds = block.rounds == null || ladder ? null : numberIn(Math.trunc(block.rounds), 1, 99, 'Rounds');
     const rest = block.rest == null ? null : numberIn(Math.round(block.rest / 1000) * 1000, 5000, 3_600_000, 'Rest');
     return {
       id: blockId, title: text(block.title, LIMITS.title, 'Block title'), notes: text(block.notes, LIMITS.notes, 'Block notes'), score: block.score,
-      ...(block.timer ? { timer: normalizeConfig(block.timer) } : {}), ...(rounds > 1 ? { rounds } : {}), ...(rest ? { rest } : {}), items,
+      ...(block.timer ? { timer: normalizeConfig(block.timer) } : {}), ...(rounds > 1 ? { rounds } : {}), ...(ladder ? { ladder } : {}), ...(rest ? { rest } : {}), items,
     };
   });
   return { blocks };
