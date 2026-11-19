@@ -172,7 +172,7 @@ export default function CalendarView({ overview, movements, target, focus, onTar
                 <b>{session.title || 'Sesión'}</b>
                 {lines.map((line, lineIndex) => <span key={lineIndex}>{line}</span>)}
                 {allItems(session.content).length === 0 && !lines.length && session.notes && <span>{session.notes}</span>}
-                <em>{session.published ? (athletes.length ? `${session.completed}/${athletes.length} completaron` : 'Publicada') : 'Borrador'}</em>
+                <em>{session.published ? (athletes.length ? `${session.completed}/${athletes.length} completaron` : 'Visible') : 'Oculta'}</em>
               </button> : <button type="button" className="cal-add" aria-label={`Programar el ${shortDate(date)}`} onClick={() => setEditing({ date })}>
                 <Icon name="plus" weight={2.6} /><span>Programar</span>
               </button>}

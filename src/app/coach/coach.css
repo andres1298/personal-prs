@@ -110,13 +110,19 @@
   margin-top: auto; padding: 12px 0 16px; background: var(--bg); box-shadow: 0 -1px 0 var(--line), 0 40px 0 var(--bg);
 }
 .editor-foot-actions { display: flex; gap: 8px; margin-left: auto; }
-.publish-toggle {
-  width: 40px; height: 40px; flex: none; display: grid; place-items: center; border-radius: 50%; background: var(--surface2); color: var(--ink3);
-  transition: background-color .2s, color .2s, transform .2s var(--ease);
+/* Visibility: a two-way switch at the top of the program, green while athletes see it. */
+.visibility { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 14px; }
+.visibility p { margin: 0; color: var(--ink2); font-size: 14px; font-weight: 700; }
+.visibility-choice { display: inline-flex; gap: 4px; padding: 4px; border-radius: 14px; background: var(--surface); box-shadow: inset 0 0 0 1px var(--line); }
+.visibility-choice button {
+  display: inline-flex; align-items: center; gap: 7px; min-height: 40px; padding: 0 14px; border-radius: 10px;
+  color: var(--ink2); font-size: 15px; font-weight: 800; transition: background-color .2s, color .2s, transform .2s var(--ease);
 }
-.publish-toggle svg { width: 20px; height: 20px; }
-.publish-toggle[aria-pressed="true"] { background: var(--b-green); color: var(--block-ink); }
-.publish-toggle:active { transform: scale(.92); }
+.visibility-choice svg { width: 18px; height: 18px; }
+.visibility-choice button:active { transform: scale(.96); }
+.visibility-choice button[aria-checked="true"]:first-child { background: var(--b-green); color: var(--block-ink); }
+.visibility-choice button[aria-checked="true"]:last-child { background: var(--b-gray); color: var(--block-ink); }
+.visibility[data-visible="false"] p { color: var(--ink); }
 .editor-foot .nav-text:not(.strong) { background: var(--surface); }
 /* The phone is as tall as its content, up to the window: past that it scrolls inside. */
 .editor-aside { position: sticky; top: 24px; display: flex; flex-direction: column; align-items: center; gap: 12px; max-height: calc(100dvh - 48px); }

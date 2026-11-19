@@ -192,6 +192,7 @@ export default function SessionEditor({ date, session, targetName, group, athlet
         options={[{ value: 'program', label: 'Programación' }, { value: 'results', label: `Resultados${session.logged ? ` · ${session.logged}` : ''}` }]} />}
 
       {tab === 'results' ? <Results sessionId={session.id} content={session.content} focusAthleteId={focusAthleteId} api={api} /> : <>
+        <Visibility published={draft.published} onChange={(published) => change({ published })} />
         <div className="editor-meta">
           <input className="editor-title" value={draft.title} maxLength={LIMITS.title} placeholder="Título de la sesión (opcional)"
             aria-label="Título de la sesión" onChange={(event) => change({ title: event.target.value })} />
@@ -259,10 +260,6 @@ export default function SessionEditor({ date, session, targetName, group, athlet
       </>}
 
       {tab === 'program' && <footer className="editor-foot">
-        {/* One icon for the state: lit while athletes see the day, grey while it is a draft. */}
-        <button type="button" className="publish-toggle" aria-pressed={draft.published} onClick={() => change({ published: !draft.published })}
-          aria-label={draft.published ? 'Publicada: tus atletas la ven. Toca para volverla borrador' : 'Borrador: solo tú la ves. Toca para publicarla'}
-          title={draft.published ? 'Publicada: tus atletas la ven' : 'Borrador: solo tú la ves'}><Icon name="broadcast" weight={2.4} /></button>
         <span className="editor-foot-actions">
           {session && <button type="button" className="nav-text danger" onClick={remove}>Borrar</button>}
           {session && <button type="button" className="nav-text" disabled={dirty} title={dirty ? 'Guarda antes de copiar' : undefined} onClick={onCopy}>Copiar día</button>}
@@ -279,8 +276,27 @@ export default function SessionEditor({ date, session, targetName, group, athlet
       <div className="phone">
         <PlanPreview session={previewSession} records={previewRecords ?? []} division={previewDivision} />
       </div>
-      {!draft.published && <p className="line-hint">Es un borrador: tus atletas no lo ven hasta que lo publiques.</p>}
+      {!draft.published && <p className="line-hint">Está oculta: tus atletas no la ven hasta que la hagas visible.</p>}
     </aside>}
+  </div>;
+}
+
+const VISIBILITY = [
+  { value: true, label: 'Visible', icon: 'eye', hint: 'Tus atletas la ven' },
+  { value: false, label: 'Oculta', icon: 'eyeOff', hint: 'Solo tú la ves' },
+];
+
+/** Whether athletes see the day: two clear choices at the top, green while visible, grey while hidden. */
+function Visibility({ published, onChange }) {
+  const current = VISIBILITY.find((option) => option.value === published);
+  return <div className="visibility" data-visible={published}>
+    <div className="visibility-choice" role="radiogroup" aria-label="Visibilidad para tus atletas">
+      {VISIBILITY.map((option) => <button type="button" key={option.label} role="radio" aria-checked={option.value === published}
+        onClick={() => { if (option.value !== published) onChange(option.value); }}>
+        <Icon name={option.icon} weight={2.4} />{option.label}
+      </button>)}
+    </div>
+    <p>{current.hint}{published ? '' : ' hasta que la hagas visible'}</p>
   </div>;
 }
 
